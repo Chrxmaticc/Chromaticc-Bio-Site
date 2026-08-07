@@ -457,30 +457,43 @@
       document.getElementById('applySettingsBtn').onclick = () => applySettings(w);
     }
 
-    function applySettings(widget) {
-      const inputs = settingsDiv.querySelectorAll('input, select, textarea');
-      inputs.forEach(inp => {
-        const key = inp.dataset.key;
-        if (!key) return;
-        if (inp.type === 'file' && inp.files.length > 0) {
-          const file = inp.files[0];
-          const reader = new FileReader();
-          reader.onload = () => {
-            widget.settings[key] = reader.result;
-            renderCanvas();
-          };
-          reader.readAsDataURL(file);
-        } else if (inp.type === 'checkbox') {
-          widget.settings[key] = inp.checked;
-        } else if (key === 'badges') {
-          widget.settings[key] = inp.value.split(',').map(s => s.trim());
-        } else {
-          widget.settings[key] = inp.value;
-        }
-      });
-      renderCanvas();
-    }
+function applySettings(widget) {
+  const inputs = settingsDiv.querySelectorAll('input, select, textarea');
+  const fileReaders = [];
 
+  // First, collect all file promises
+  inputs.forEach(inp => {
+    const key = inp.dataset.key;
+    if (!key) return;
+
+    if (inp.type === 'file' && inp.files.length > 0) {
+      const file = inp.files[0];
+      const promise = new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ key, value: reader.result });
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      fileReaders.push(promise);
+    } else if (inp.type === 'checkbox') {
+      widget.settings[key] = inp.checked;
+    } else if (key === 'badges') {
+      widget.settings[key] = inp.value.split(',').map(s => s.trim());
+    } else {
+      widget.settings[key] = inp.value;
+    }
+  });
+
+  // Wait for all file reads, then update widget and re‑render
+  Promise.all(fileReaders).then(results => {
+    results.forEach(({ key, value }) => {
+      widget.settings[key] = value;
+    });
+    renderCanvas();        // now the base64 string is complete
+  }).catch(err => {
+    console.error('File read error:', err);
+  });
+}
     function addWidget(type) {
       const def = widgetTypes.find(t => t.type === type);
       if (!def) return;
