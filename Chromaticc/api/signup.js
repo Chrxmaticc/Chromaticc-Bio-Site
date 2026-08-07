@@ -17,17 +17,23 @@ function hashPassword(password) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
 
   const { username, email, password } = req.body;
-  if (!username || !email || !password) return res.status(400).json({ message: 'All fields required' });
+  if (!username || !email || !password) {
+    return res.status(400).json({ message: 'All fields required' });
+  }
 
   try {
     const existing = await pool.query(
       'SELECT id FROM users WHERE username = $1 OR email = $2',
       [username, email]
     );
-    if (existing.rows.length > 0) return res.status(409).json({ message: 'Username or email already taken' });
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ message: 'Username or email already taken' });
+    }
 
     const password_hash = await hashPassword(password);
     const token = crypto.randomBytes(32).toString('hex');
@@ -38,9 +44,16 @@ export default async function handler(req, res) {
     );
 
     const user = newUser.rows[0];
-    return res.status(201).json({ token, user: { id: user.id, username: user.username } });
+
+    // Set the cookie — this is the line you need
+    res.setHeader('Set-Cookie', `token=${token}; Path=/; SameSite=Lax; Max-Age=604800`);
+
+    return res.status(201).json({
+      token,
+      user: { id: user.id, username: user.username }
+    });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
+    console.error('Signup error:', err);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }
