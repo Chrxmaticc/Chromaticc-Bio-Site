@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chromaticc – Ultimate Profile Builder</title>
+    <link rel="icon" type="image/png" href="Chromaticc.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(180deg, #ffffff 0%, #e0e0e0 25%, #808080 55%, #1a1a1a 80%, #000000 100%);
+            background-attachment: fixed;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        /* Floating PNGs */
+        .floating-pngs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .floating-png {
+            position: absolute;
+            opacity: 0;
+            transition: opacity 0.2s linear;
+            width: 120px;
+            height: auto;
+        }
+        #png1 { top: 15%; left: 5%; }
+        #png2 { top: 40%; right: 8%; }
+        #png3 { top: 70%; left: 10%; }
+        #png4 { top: 85%; right: 12%; }
+
+        /* Topbar */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 16px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 1000;
+            color: #e0e0e0;
+        }
+        .topbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+            font-weight: 900;
+        }
+        .topbar .logo img {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+        }
+        .topbar .logo span {
+            background: linear-gradient(135deg, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .topbar nav {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+        .topbar nav a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+        .topbar nav a:hover {
+            color: #fff;
+        }
+
+        /* Hero */
+        .hero {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 140px 20px 60px;
+        }
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff, #c0c0c0, #888888);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.55);
+            margin-top: 12px;
+            max-width: 600px;
+        }
+
+        /* Stats */
+        .stats-section {
+            width: 100%;
+            padding: 0 clamp(20px, 4vw, 48px);
+        }
+        .stats-row {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .stat-card {
+            background: linear-gradient(160deg, #1a1a1a 0%, #0a0a0a 70%);
+            border: 1px solid rgba(192, 192, 192, 0.1);
+            border-radius: 28px;
+            padding: 32px 30px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-icon {
+            position: absolute;
+            right: -20px;
+            bottom: -24px;
+            width: 140px;
+            height: 140px;
+            color: rgba(160, 160, 160, 0.7);
+            pointer-events: none;
+        }
+        .stat-value {
+            font-size: clamp(36px, 4vw, 52px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #b0b0b0;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        .liquid-btn {
+            padding: 0.9rem 2.2rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #0a0a0a;
+            background: linear-gradient(135deg, #e0e0e0, #808080);
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 10px 20px rgba(192, 192, 192, 0.15);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+        }
+        .liquid-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 15px 30px rgba(192, 192, 192, 0.3);
+        }
+        .liquid-btn-outline {
+            background: transparent;
+            color: #e0e0e0;
+            border: 2px solid #808080;
+            box-shadow: none;
+        }
+        .liquid-btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Audio Player */
+        .audio-section {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            padding: 60px 20px;
+        }
+        .audio-player {
+            width: 100%;
+            max-width: 450px;
+            background: rgba(20, 20, 20, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .track-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #fff;
+        }
+        .track-name {
+            font-size: 1.1rem;
+        }
+        .progress-bar {
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(to right, #c0c0c0, #e0e0e0);
+            transition: width 0.2s linear;
+        }
+        .audio-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ctrl-btn {
+            background: none;
+            border: none;
+            color: #c0c0c0;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s, color 0.2s;
+        }
+        .ctrl-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        .play-btn {
+            width: 52px;
+            height: 52px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+        }
+        .volume-slider {
+            width: 100px;
+            accent-color: #c0c0c0;
+        }
+
+        /* Features Bento Grid */
+        .features-section {
+            position: relative;
+            z-index: 2;
+            padding: 80px 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .features-section h2 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+        .bento-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            color: #fff;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+        .bento-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+        }
+        .bento-card svg {
+            width: 2rem;
+            height: 2rem;
+            color: #c0c0c0;
+        }
+        .bento-card h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+        }
+        .bento-card p {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            flex: 1;
+        }
+
+        /* Feature Grid */
+        .feature-grid-section {
+            position: relative;
+            z-index: 2;
+            padding: 0 clamp(20px, 5vw, 80px) 80px;
+            border-top: 1px solid rgba(192, 192, 192, 0.08);
+        }
+        .feature-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        .feature {
+            padding: 44px 40px 44px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            opacity: 0;
+            transform: translateY(14px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .feature.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .feature:nth-child(odd) {
+            padding-right: 56px;
+        }
+        .feature:nth-child(even) {
+            padding-left: 56px;
+            border-left: 1px solid transparent;
+        }
+        .feature-num {
+            display: block;
+            font-size: 14px;
+            letter-spacing: 0.05em;
+            color: #808080;
+            margin-bottom: 18px;
+        }
+        .feature-head {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+        .feature-head svg {
+            width: 24px;
+            height: 24px;
+            color: #a0a0a0;
+            flex-shrink: 0;
+        }
+        .feature-head h3 {
+            font-size: clamp(22px, 2.4vw, 30px);
+            font-weight: 700;
+            color: #e0e0e0;
+        }
+        .feature p {
+            padding-left: 42px;
+            color: #b0b0b0;
+            line-height: 1.65;
+        }
+
+        /* FAQ */
+        .faq-section {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 80px auto;
+            padding: 0 20px;
+        }
+        .faq-section h2 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .faq-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .faq-question {
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+        }
+        .faq-question:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .faq-question svg {
+            transition: transform 0.3s;
+        }
+        .faq-answer {
+            padding: 0 20px 20px;
+            color: #b0b0b0;
+            display: none;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .faq-item.open .faq-question svg {
+            transform: rotate(180deg);
+        }
+        .faq-item.open .faq-answer {
+            display: block;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem;
+            position: relative;
+            z-index: 2;
+        }
+        .footer a {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 720px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            .feature:nth-child(odd),
+            .feature:nth-child(even) {
+                padding: 36px 0;
+            }
+        }
+        @media (max-width: 480px) {
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fixed background PNGs (fade in with scroll) -->
+    <div class="floating-pngs">
+        <img src="Chromaticc.png" alt="Character" class="floating-png" id="png1">
+        <img src="Chromaticc-Happy.png" alt="Happy" class="floating-png" id="png2">
+        <img src="Chromaticc-Speaker.png" alt="Speaker" class="floating-png" id="png3">
+        <img src="Chromaticc-Doctor.png" alt="Doctor" class="floating-png" id="png4">
+    </div>
+
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="logo">
+            <img src="Chromaticc.png" alt="Chromaticc Logo">
+            <span>Chromaticc</span>
+        </div>
+        <nav>
+            <a href="#">Home</a>
+            <a href="#">Features</a>
+            <a href="#">Dashboard</a>
+            <a href="#">Docs</a>
+        </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <h1>Chromaticc</h1>
+        <p class="subtitle">Make profile pages easily with customization, better then guns.lol.</p>
+
+        <div class="stats-section">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value" data-target="8" data-decimals="0" data-suffix="+">0+</div>
+                    <div class="stat-label">Profiles Created</div>
+                    <svg class="stat-icon" viewBox="0 0 150 150" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="30" y="20" width="90" height="100" rx="16"/><path d="M55 55 L75 72 L55 90"/><path d="M80 92 L100 92"/>
+                    </svg>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" data-target="2" data-decimals="0" data-suffix="K+">0K+</div>
+                    <div class="stat-label">Active Users</div>
+                    <svg class="stat-icon" viewBox="0 0 150 150" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round">
+                        <circle cx="55" cy="65" r="20"/><path d="M30 120 C30 90, 85 90, 85 120"/>
+                    </svg>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" data-target="99.9" data-decimals="1" data-suffix="%">0%</div>
+                    <div class="stat-label">Uptime</div>
+                    <svg class="stat-icon" viewBox="0 0 150 150" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round">
+                        <path d="M20 120 L45 120 L62 60 L80 130 L98 90 L130 90"/>
+                    </svg>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" data-target="24" data-decimals="0" data-suffix="/7">0/7</div>
+                    <div class="stat-label">Support</div>
+                    <svg class="stat-icon" viewBox="0 0 150 150" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round">
+                        <path d="M75 20 L95 55 L135 60 L105 90 L110 130 L75 110 L40 130 L45 90 L15 60 L55 55 Z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <a href="#" class="liquid-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                </svg>
+                Explore Profiles
+            </a>
+            <a href="#" class="liquid-btn liquid-btn-outline">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l9 4.5v7L12 18l-9-4.5v-7L12 2z"/><path d="M12 18v4"/><path d="M8 22h8"/>
+                </svg>
+                Get Started
+            </a>
+        </div>
+    </section>
+
+    <!-- Audio Player (above features) -->
+    <section class="audio-section">
+        <div class="audio-player">
+            <div class="track-info">
+                <span class="track-name">SCP STAFF.mp3</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                </svg>
+            </div>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="audio-controls">
+                <button class="ctrl-btn" id="prevBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/>
+                    </svg>
+                </button>
+                <button class="ctrl-btn play-btn" id="playBtn">
+                    <svg id="playIcon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 4l15 8-15 8z"/>
+                    </svg>
+                </button>
+                <button class="ctrl-btn" id="nextBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/>
+                    </svg>
+                </button>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+            </div>
+            <audio id="audioPlayer" src="SCP STAFF.mp3" preload="auto"></audio>
+        </div>
+    </section>
+
+    <!-- Features Bento Grid -->
+    <section class="features-section">
+        <h2>Core Features</h2>
+        <div class="bento-grid">
+            <div class="bento-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                <h3>Full Customization</h3>
+                <p>Move, resize, rotate cards. Code your own profile with HTML/CSS.</p>
+            </div>
+            <div class="bento-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                <h3>Plugin System</h3>
+                <p>Inject JavaScript & HTML to add widgets, automations.</p>
+            </div>
+            <div class="bento-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+                <h3>Custom Fonts & Text</h3>
+                <p>Add gradient, neon, or regular text. Upload TTF fonts.</p>
+            </div>
+            <div class="bento-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                <h3>Discord Rich Presence</h3>
+                <p>Sync your status, Spotify, and badges automatically.</p>
+            </div>
+            <div class="bento-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                <h3>Music & Lyric Sync</h3>
+                <p>Embed audio player, auto‑sync lyrics on your profile.</p>
+            </div>
+            <div class="bento-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <h3>Custom Subdomains</h3>
+                <p>Your own domain like chromaticc.me – totally free.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Detailed Feature Grid -->
+    <section class="feature-grid-section">
+        <div class="feature-grid" id="featureGrid">
+            <article class="feature">
+                <span class="feature-num">01</span>
+                <div class="feature-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <circle cx="12" cy="12" r="2"/><path d="M8.5 8.5a5 5 0 0 0 0 7"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>
+                    </svg>
+                    <h3>Free Forever</h3>
+                </div>
+                <p>No subscriptions. Every feature, free for everyone.</p>
+            </article>
+            <article class="feature">
+                <span class="feature-num">02</span>
+                <div class="feature-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                    </svg>
+                    <h3>Background Customization</h3>
+                </div>
+                <p>Video, animated GIFs, photos, or interactive gradients.</p>
+            </article>
+            <article class="feature">
+                <span class="feature-num">03</span>
+                <div class="feature-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10.5h4M7 14h7"/>
+                    </svg>
+                    <h3>Click‑to‑Enter Audio</h3>
+                </div>
+                <p>Auto‑play blocked? One click enables profile audio.</p>
+            </article>
+            <article class="feature">
+                <span class="feature-num">04</span>
+                <div class="feature-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <path d="M4 13a8 8 0 1 1 16 0"/><path d="M12 12l4-4"/>
+                    </svg>
+                    <h3>Lightning Fast</h3>
+                </div>
+                <p>50% faster than our competition. Instant loads.</p>
+            </article>
+            <article class="feature">
+                <span class="feature-num">05</span>
+                <div class="feature-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+                    </svg>
+                    <h3>Profile Badges</h3>
+                </div>
+                <p>Earn OG, bug hunter, and community badges.</p>
+            </article>
+            <article class="feature">
+                <span class="feature-num">06</span>
+                <div class="feature-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                        <rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>
+                    </svg>
+                    <h3>Dashboard Control</h3>
+                </div>
+                <p>Manage everything from one place. Drag & drop editor.</p>
+            </article>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq-section">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-item">
+            <button class="faq-question">
+                Is it really free?
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-answer">Yes, Chromaticc is 100% free. No hidden fees, no "premium only" features.</div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question">
+                Can I use my own domain?
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-answer">Absolutely. We support custom subdomains and custom domains for free.</div>
+        </div>
+        <div class="faq-item">
+            <button class="faq-question">
+                How do I add music?
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="faq-answer">Upload any audio file (except OGG) and our lyric‑sync embed will match it automatically.</div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        Chromaticc &copy; 2026 — <a href="#">GitHub</a> · <a href="#">Discord</a>
+    </footer>
+
+    <script>
+        // ---- Floating PNGs fade in with scroll ----
+        const pngs = document.querySelectorAll('.floating-png');
+        function updatePNGOpacity() {
+            const scrollY = window.scrollY;
+            const maxScroll = window.innerHeight;  // full opacity after one screen
+            pngs.forEach(img => {
+                let opacity = Math.min(scrollY / maxScroll, 1);
+                // offset to make them appear gradually at different scroll points
+                // we keep simple: all fade together
+                img.style.opacity = opacity;
+            });
+        }
+        window.addEventListener('scroll', updatePNGOpacity, { passive: true });
+        window.addEventListener('resize', updatePNGOpacity);
+        // initial call
+        updatePNGOpacity();
+
+        // ---- Stat count-up animation ----
+        const statValues = document.querySelectorAll('.stat-value');
+        function animateStats() {
+            statValues.forEach(el => {
+                const target = parseFloat(el.dataset.target);
+                const suffix = el.dataset.suffix || '';
+                const decimals = parseInt(el.dataset.decimals) || 0;
+                const format = (val) => val.toFixed(decimals) + suffix;
+
+                if (window.matchMedia('(prefers-reduced-motion:reduce)').matches) {
+                    el.textContent = format(target);
+                    return;
+                }
+
+                let start = null;
+                const duration = 1100;
+                function step(timestamp) {
+                    if (!start) start = timestamp;
+                    const progress = Math.min((timestamp - start) / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    el.textContent = format(target * eased);
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        el.textContent = format(target);
+                    }
+                }
+                requestAnimationFrame(step);
+            });
+        }
+
+        // Intersection Observer for stats
+        if ('IntersectionObserver' in window) {
+            const statsObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateStats();
+                        statsObserver.disconnect();
+                    }
+                });
+            }, { threshold: 0.3 });
+            statsObserver.observe(document.querySelector('.stats-row'));
+        } else {
+            animateStats();
+        }
+
+        // ---- Feature grid scroll reveal ----
+        const features = document.querySelectorAll('.feature');
+        if ('IntersectionObserver' in window) {
+            const featureObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry, idx) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.classList.add('is-visible');
+                        }, idx * 50);
+                        featureObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+            features.forEach(f => featureObserver.observe(f));
+        } else {
+            features.forEach(f => f.classList.add('is-visible'));
+        }
+
+        // ---- Audio Player Logic ----
+        const audio = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play().catch(() => {});
+            } else {
+                audio.pause();
+            }
+        }
+
+        function updatePlayIcon() {
+            if (audio.paused) {
+                playIcon.innerHTML = '<path d="M6 4l15 8-15 8z"/>';
+            } else {
+                playIcon.innerHTML = '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
+            }
+        }
+
+        audio.addEventListener('play', updatePlayIcon);
+        audio.addEventListener('pause', updatePlayIcon);
+        audio.addEventListener('timeupdate', () => {
+            if (audio.duration) {
+                const percent = (audio.currentTime / audio.duration) * 100;
+                progressFill.style.width = percent + '%';
+            }
+        });
+        audio.addEventListener('ended', () => {
+            audio.currentTime = 0;
+            updatePlayIcon();
+        });
+
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const width = rect.width;
+            if (audio.duration) {
+                audio.currentTime = (x / width) * audio.duration;
+            }
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            audio.volume = e.target.value;
+        });
+
+        playBtn.addEventListener('click', togglePlay);
+        prevBtn.addEventListener('click', () => {
+            audio.currentTime = 0;
+            if (audio.paused) {
+                audio.play().catch(() => {});
+            }
+        });
+        nextBtn.addEventListener('click', () => {
+            audio.currentTime = 0;
+            if (audio.paused) {
+                audio.play().catch(() => {});
+            }
+        });
+
+        // ---- FAQ accordion ----
+        document.querySelectorAll('.faq-question').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = btn.parentElement;
+                item.classList.toggle('open');
+                document.querySelectorAll('.faq-item').forEach(other => {
+                    if (other !== item) other.classList.remove('open');
+                });
+            });
+        });
+
+        // ---- 3D tilt on cards (optional) ----
+        document.querySelectorAll('.stat-card, .bento-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateY = ((x - centerX) / centerX) * 5;
+                const rotateX = ((y - centerY) / centerY) * -5;
+                card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+        });
+    </script>
+</body>
+</html>
