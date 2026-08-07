@@ -1,8 +1,10 @@
 import formidable from 'formidable';
+import fs from 'fs';
 
 export const config = {
   api: {
-    bodyParser: false, // Disable Next.js/Vercel's default body parser
+    bodyParser: false,       // mandatory for formidable
+    maxBodySize: '50mb',     // ← NOW YOU CAN UPLOAD ANY AUDIO / IMAGE
   },
 };
 
@@ -14,16 +16,15 @@ export default async function handler(req, res) {
   const form = formidable({ multiples: false });
 
   try {
-    // parse the form (returns a Promise when callback is omitted)
     const [fields, files] = await form.parse(req);
-    const file = files.file?.[0]; // 'file' is the field name sent from dashboard
+    const file = files.file?.[0];
 
     if (!file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
     const token = process.env.BLOB_READ_WRITE_TOKEN;
-    const fileBuffer = require('fs').readFileSync(file.filepath);
+    const fileBuffer = fs.readFileSync(file.filepath);
 
     const response = await fetch(
       `https://blob.vercel-storage.com/put/${file.originalFilename}`,
