@@ -1,11 +1,11 @@
 {
   "name": "chromaticc",
   "version": "1.0.0",
-  "description": "The goofiest, most powerful bio site ever.",
   "dependencies": {
     "pg": "^8.11.3",
     "formidable": "^3.5.1",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.0"
+    "jsonwebtoken": "^9.0.0",
+    "@vercel/blob": "^0.23.0"
   }
 }
