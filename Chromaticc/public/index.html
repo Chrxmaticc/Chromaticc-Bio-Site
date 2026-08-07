@@ -14,7 +14,7 @@
             box-sizing: border-box;
         }
 
-        /* ---- NEW BACKGROUND LAYER with background.jpeg ---- */
+        /* ---- BACKGROUND IMAGE (background.jpeg) with slow pan ---- */
         body::before {
             content: '';
             position: fixed;
@@ -33,7 +33,7 @@
             100% { transform: scale(1.15) translate(-3%, -2%); }
         }
 
-        /* ---- FLOATING SILVER PARTICLES (new, subtle) ---- */
+        /* ---- SILVER FLOATING PARTICLES ---- */
         .particles {
             position: fixed;
             top: 0;
@@ -45,7 +45,7 @@
         }
         .particle {
             position: absolute;
-            background: rgba(192,192,192,0.6);
+            background: rgba(192,192,192,0.7);
             border-radius: 50%;
             width: 2px;
             height: 2px;
@@ -60,7 +60,6 @@
 
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            /* Gradient with semi‑transparent colors so background.jpeg shows through */
             background: linear-gradient(180deg,
                 rgba(255,255,255,0.92) 0%,
                 rgba(224,224,224,0.9) 30%,
@@ -68,13 +67,13 @@
                 rgba(26,26,26,0.9) 85%,
                 rgba(0,0,0,0.95) 100%);
             background-attachment: fixed;
-            color: #fff;
+            color: #000; /* default text black for readability */
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
         }
 
-        /* ---- SPLATTER (kept + floating animation) ---- */
+        /* ---- SPLATTER (floating PNGs) ---- */
         .splatter-container {
             position: fixed;
             top: 0;
@@ -105,20 +104,7 @@
             z-index: 2;
         }
 
-        /* ---- GLASS STYLES (enhanced) ---- */
-        .glass, .stat-card, .bento-card, .audio-player, .faq-item, .footer {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
-            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
-        }
-        .glass-strong {
-            background: rgba(0, 0, 0, 0.18);
-        }
-
-        /* ---- TOPBAR (transparent glass) ---- */
+        /* ---- TOPBAR (truly transparent, glass) ---- */
         .topbar {
             position: fixed;
             top: 0;
@@ -128,12 +114,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: transparent;
+            background: transparent; /* no solid background */
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             z-index: 1000;
-            color: #e0e0e0;
+            color: #fff; /* topbar text stays white for visibility */
         }
         .topbar .logo {
             display: flex;
@@ -148,7 +134,7 @@
             border-radius: 8px;
         }
         .topbar .logo span {
-            background: linear-gradient(135deg, #ffffff, #aaaaaa);
+            background: linear-gradient(135deg, #fff, #aaa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -183,7 +169,7 @@
             font-size: clamp(3.8rem, 10vw, 7rem);
             font-weight: 900;
             letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #000000, #ffffff, #444444, #000000);
+            background: linear-gradient(135deg, #000, #fff, #444, #000);
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -201,16 +187,17 @@
         }
         .hero .subtitle {
             font-size: 1.25rem;
-            color: rgba(255, 255, 255, 0.75);
+            color: #000;
             margin-top: 16px;
             max-width: 600px;
+            text-shadow: 0 0 8px rgba(255,255,255,0.4);
         }
         .second-quote {
             font-style: italic;
             font-size: 0.95rem;
-            color: #b0b0b0;
+            color: #000;
             margin-top: 10px;
-            background: rgba(255,255,255,0.04);
+            background: rgba(255,255,255,0.2);
             backdrop-filter: blur(8px);
             padding: 8px 20px;
             border-radius: 20px;
@@ -218,13 +205,13 @@
         }
         .beta-notice {
             font-size: 0.95rem;
-            color: #c0c0c0;
+            color: #000;
             margin-top: 20px;
             font-weight: 500;
             letter-spacing: 0.3px;
         }
 
-        /* ---- STATS ---- */
+        /* ---- STATS (black text, light glass cards) ---- */
         .stats-section {
             width: 100%;
             padding: 0 clamp(20px, 4vw, 48px);
@@ -238,25 +225,25 @@
             gap: 20px;
         }
         .stat-card {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 28px;
             padding: 32px 30px;
             min-height: 190px;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
-            color: #fff;
+            color: #000;
             position: relative;
             overflow: hidden;
             transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
         }
         .stat-card:hover {
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
             transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
         .stat-icon {
             position: absolute;
@@ -264,7 +251,7 @@
             bottom: -24px;
             width: 140px;
             height: 140px;
-            color: rgba(180, 180, 180, 0.6);
+            color: rgba(60,60,60,0.5);
             pointer-events: none;
         }
         .stat-value {
@@ -273,15 +260,17 @@
             letter-spacing: -0.02em;
             line-height: 1;
             margin-bottom: 12px;
+            color: #000;
         }
         .stat-label {
             font-size: 14px;
-            color: #b0b0b0;
+            color: #000;
             text-transform: uppercase;
             letter-spacing: 0.06em;
+            font-weight: 600;
         }
 
-        /* ---- BUTTONS (with enhanced ripple) ---- */
+        /* ---- BUTTONS ---- */
         .btn-group {
             display: flex;
             gap: 1rem;
@@ -333,12 +322,12 @@
         }
         .btn-outline {
             background: transparent;
-            color: #e0e0e0;
+            color: #000;
             border: 2px solid #808080;
             box-shadow: none;
         }
         .btn-outline:hover {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.15);
         }
         .btn-discord {
             background: #5865F2;
@@ -351,7 +340,7 @@
             box-shadow: 0 15px 40px rgba(88,101,242,0.6);
         }
 
-        /* ---- AUDIO PLAYER ---- */
+        /* ---- AUDIO PLAYER (kept dark, white text) ---- */
         .audio-section {
             display: flex;
             justify-content: center;
@@ -370,13 +359,13 @@
             flex-direction: column;
             gap: 18px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            color: #fff;
         }
         .track-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-weight: 600;
-            color: #fff;
         }
         .track-name {
             font-size: 1.1rem;
@@ -426,7 +415,7 @@
             accent-color: #c0c0c0;
         }
 
-        /* ---- FEATURES BENTO GRID ---- */
+        /* ---- FEATURES BENTO (light glass, black text) ---- */
         .features-section {
             padding: 80px 40px;
             max-width: 1300px;
@@ -434,7 +423,7 @@
         }
         .features-section h2 {
             font-size: 2.2rem;
-            background: linear-gradient(135deg, #fff, #aaa);
+            background: linear-gradient(135deg, #000, #555);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -447,44 +436,45 @@
             gap: 24px;
         }
         .bento-card {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 24px;
             padding: 28px;
             display: flex;
             flex-direction: column;
             gap: 18px;
-            color: #fff;
+            color: #000;
             transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
             transform-style: preserve-3d;
         }
         .bento-card:hover {
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
             transform: translateY(-10px);
-            box-shadow: 0 30px 50px rgba(0,0,0,0.6);
+            box-shadow: 0 30px 50px rgba(0,0,0,0.5);
         }
         .bento-card svg {
             width: 2.2rem;
             height: 2.2rem;
-            color: #c0c0c0;
+            color: #000;
         }
         .bento-card h3 {
             font-size: 1.25rem;
-            font-weight: 600;
+            font-weight: 700;
+            color: #000;
         }
         .bento-card p {
-            color: #b0b0b0;
+            color: #000;
             font-size: 0.9rem;
             line-height: 1.5;
             flex: 1;
         }
 
-        /* ---- DETAILED FEATURE GRID ---- */
+        /* ---- DETAILED FEATURE GRID (light glass, black text) ---- */
         .feature-grid-section {
             padding: 0 clamp(20px, 5vw, 80px) 80px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(0,0,0,0.1);
         }
         .feature-grid {
             max-width: 1400px;
@@ -494,7 +484,7 @@
         }
         .feature {
             padding: 48px 48px 48px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
             opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.6s ease, transform 0.6s ease;
@@ -508,13 +498,13 @@
         }
         .feature:nth-child(even) {
             padding-left: 56px;
-            border-left: 1px solid rgba(255,255,255,0.06);
+            border-left: 1px solid rgba(0,0,0,0.1);
         }
         .feature-num {
             display: block;
             font-size: 14px;
             letter-spacing: 0.05em;
-            color: #808080;
+            color: #333;
             margin-bottom: 18px;
         }
         .feature-head {
@@ -526,22 +516,22 @@
         .feature-head svg {
             width: 26px;
             height: 26px;
-            color: #a0a0a0;
+            color: #333;
             flex-shrink: 0;
         }
         .feature-head h3 {
             font-size: clamp(22px, 2.4vw, 30px);
             font-weight: 700;
-            color: #e0e0e0;
+            color: #000;
         }
         .feature p {
             padding-left: 44px;
-            color: #b0b0b0;
+            color: #000;
             line-height: 1.65;
             font-size: 1rem;
         }
 
-        /* ---- FAQ ---- */
+        /* ---- FAQ (questions stay white, answers black) ---- */
         .faq-section {
             max-width: 800px;
             margin: 80px auto;
@@ -549,7 +539,7 @@
         }
         .faq-section h2 {
             font-size: 2rem;
-            background: linear-gradient(135deg, #fff, #aaa);
+            background: linear-gradient(135deg, #000, #555);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -557,16 +547,13 @@
             margin-bottom: 40px;
         }
         .faq-item {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 18px;
             margin-bottom: 16px;
             overflow: hidden;
-        }
-        .faq-item:hover {
-            border-color: rgba(255,255,255,0.12);
         }
         .faq-question {
             width: 100%;
@@ -584,10 +571,11 @@
         }
         .faq-question svg {
             transition: transform 0.3s;
+            stroke: #fff;
         }
         .faq-answer {
             padding: 0 24px 20px;
-            color: #b0b0b0;
+            color: #000;
             display: none;
             font-size: 0.95rem;
             line-height: 1.6;
@@ -599,23 +587,21 @@
             display: block;
         }
 
-        /* ---- FOOTER ---- */
+        /* ---- FOOTER (black text) ---- */
         .footer {
             text-align: center;
             padding: 40px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.5);
+            border-top: 1px solid rgba(0,0,0,0.2);
+            color: #000;
             font-size: 0.85rem;
-            background: rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.15);
             backdrop-filter: blur(12px);
         }
         .footer a {
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
+            color: #000;
+            text-decoration: underline;
             margin: 0 8px;
-        }
-        .footer a:hover {
-            color: #fff;
+            font-weight: 600;
         }
 
         /* ---- RESPONSIVE ---- */
@@ -634,14 +620,10 @@
 </head>
 <body>
 
-    <!-- BACKGROUND PARTICLES (new, subtle sparkles) -->
     <div class="particles" id="particlesContainer"></div>
-
-    <!-- SPLATTER CONTAINER (dynamically filled with images) -->
     <div class="splatter-container" id="splatterContainer"></div>
 
     <div class="content-wrapper">
-        <!-- TOPBAR -->
         <header class="topbar">
             <div class="logo">
                 <img src="Chromaticc.png" alt="Chromaticc Logo">
@@ -655,7 +637,6 @@
             </nav>
         </header>
 
-        <!-- HERO -->
         <section class="hero">
             <h1>Chromaticc</h1>
             <p class="subtitle">Make profile pages easily with customization, better then guns.lol.</p>
@@ -711,7 +692,6 @@
             </div>
         </section>
 
-        <!-- AUDIO PLAYER -->
         <section class="audio-section">
             <div class="audio-player">
                 <div class="track-info">
@@ -745,7 +725,6 @@
             </div>
         </section>
 
-        <!-- FEATURES BENTO GRID -->
         <section class="features-section">
             <h2>Everything you need, for free.</h2>
             <div class="bento-grid">
@@ -802,101 +781,44 @@
             </div>
         </section>
 
-        <!-- DETAILED FEATURE GRID -->
         <section class="feature-grid-section">
             <div class="feature-grid" id="featureGrid">
-                <article class="feature">
-                    <span class="feature-num">01</span>
-                    <div class="feature-head">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2"/><path d="M8.5 8.5a5 5 0 0 0 0 7"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
-                        <h3>Free Forever</h3>
-                    </div>
-                    <p>No subscriptions, no hidden fees. Every feature you see is free.</p>
-                </article>
-                <article class="feature">
-                    <span class="feature-num">02</span>
-                    <div class="feature-head">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                        <h3>Background Customization</h3>
-                    </div>
-                    <p>8+ background designs: video, animated, static, or gradient.</p>
-                </article>
-                <article class="feature">
-                    <span class="feature-num">03</span>
-                    <div class="feature-head">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10.5h4M7 14h7"/></svg>
-                        <h3>Click‑to‑Enter Audio</h3>
-                    </div>
-                    <p>Audio waits for user interaction, then plays automatically.</p>
-                </article>
-                <article class="feature">
-                    <span class="feature-num">04</span>
-                    <div class="feature-head">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 13a8 8 0 1 1 16 0"/><path d="M12 12l4-4"/></svg>
-                        <h3>Lightning Fast</h3>
-                    </div>
-                    <p>50% faster than our competition. Instant loading, 100% uptime.</p>
-                </article>
-                <article class="feature">
-                    <span class="feature-num">05</span>
-                    <div class="feature-head">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-                        <h3>Profile Badges</h3>
-                    </div>
-                    <p>Earn OG, bug hunter, and community badges. Show them off.</p>
-                </article>
-                <article class="feature">
-                    <span class="feature-num">06</span>
-                    <div class="feature-head">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-                        <h3>Dashboard Control</h3>
-                    </div>
-                    <p>Manage everything from one place. Drag & drop editor included.</p>
-                </article>
+                <article class="feature"><span class="feature-num">01</span><div class="feature-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2"/><path d="M8.5 8.5a5 5 0 0 0 0 7"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg><h3>Free Forever</h3></div><p>No subscriptions, no hidden fees. Every feature you see is free.</p></article>
+                <article class="feature"><span class="feature-num">02</span><div class="feature-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><h3>Background Customization</h3></div><p>8+ background designs: video, animated, static, or gradient.</p></article>
+                <article class="feature"><span class="feature-num">03</span><div class="feature-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10.5h4M7 14h7"/></svg><h3>Click‑to‑Enter Audio</h3></div><p>Audio waits for user interaction, then plays automatically.</p></article>
+                <article class="feature"><span class="feature-num">04</span><div class="feature-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 13a8 8 0 1 1 16 0"/><path d="M12 12l4-4"/></svg><h3>Lightning Fast</h3></div><p>50% faster than our competition. Instant loading, 100% uptime.</p></article>
+                <article class="feature"><span class="feature-num">05</span><div class="feature-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><h3>Profile Badges</h3></div><p>Earn OG, bug hunter, and community badges. Show them off.</p></article>
+                <article class="feature"><span class="feature-num">06</span><div class="feature-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><h3>Dashboard Control</h3></div><p>Manage everything from one place. Drag & drop editor included.</p></article>
             </div>
         </section>
 
-        <!-- FAQ -->
         <section class="faq-section">
             <h2>Frequently Asked Questions</h2>
             <div class="faq-item">
-                <button class="faq-question">
-                    Is Chromaticc really 100% free?
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
+                <button class="faq-question">Is Chromaticc really 100% free?<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
                 <div class="faq-answer">Absolutely. No subscriptions, no premium tiers. All features are free forever.</div>
             </div>
             <div class="faq-item">
-                <button class="faq-question">
-                    Can I use my own domain?
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
+                <button class="faq-question">Can I use my own domain?<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
                 <div class="faq-answer">Yes! You get a free subdomain, or connect your own custom domain with full Cloudflare support.</div>
             </div>
             <div class="faq-item">
-                <button class="faq-question">
-                    How do I add music to my profile?
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
+                <button class="faq-question">How do I add music to my profile?<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
                 <div class="faq-answer">Upload any audio file (except OGG) and our lyric‑sync embed will match lyrics automatically.</div>
             </div>
             <div class="faq-item">
-                <button class="faq-question">
-                    What's Click‑to‑Enter mode?
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
+                <button class="faq-question">What's Click‑to‑Enter mode?<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
                 <div class="faq-answer">It's a setting that requires a single click before audio plays, complying with browser autoplay policies.</div>
             </div>
         </section>
 
-        <!-- FOOTER -->
         <footer class="footer">
             <p>Chromaticc &copy; 2026 — <a href="#">GitHub</a> · <a href="https://discord.gg/chrxmaticc" target="_blank">Discord</a></p>
         </footer>
     </div>
 
     <script>
-        // ---- NEW: Create subtle floating particles (silver sparkles) ----
+        // Particles
         const particlesContainer = document.getElementById('particlesContainer');
         for (let i = 0; i < 40; i++) {
             const particle = document.createElement('div');
@@ -908,192 +830,112 @@
             particlesContainer.appendChild(particle);
         }
 
-        // ---- SPLATTER GENERATION (enhanced with more images) ----
-        const pngSources = [
-            'Chromaticc.png',
-            'Chromaticc-Happy.png',
-            'Chromaticc-Speaker.png',
-            'Chromaticc-Doctor.png'
-        ];
+        // Splatter
+        const pngSources = ['Chromaticc.png','Chromaticc-Happy.png','Chromaticc-Speaker.png','Chromaticc-Doctor.png'];
         const container = document.getElementById('splatterContainer');
-        const splatterCount = 24; // increased for heavier splatter
-
-        for (let i = 0; i < splatterCount; i++) {
+        for (let i = 0; i < 24; i++) {
             const img = document.createElement('img');
             img.src = pngSources[i % pngSources.length];
             img.className = 'splatter-img';
             img.style.left = Math.random() * 100 + '%';
             img.style.top = Math.random() * 100 + '%';
-            const size = 50 + Math.random() * 200;
-            img.style.width = size + 'px';
-            img.style.height = 'auto';
-            const rot = (Math.random() * 40) - 20;
-            img.style.setProperty('--rot', rot + 'deg');
+            img.style.width = (50 + Math.random() * 200) + 'px';
+            img.style.setProperty('--rot', ((Math.random()*40)-20) + 'deg');
             img.style.setProperty('--delay', Math.random() * 6);
             img.style.opacity = 0.08 + Math.random() * 0.3;
             container.appendChild(img);
         }
-
-        // Fade in splatter on load
         window.addEventListener('load', () => {
-            document.querySelectorAll('.splatter-img').forEach(img => {
-                img.style.opacity = img.style.opacity;
-            });
+            document.querySelectorAll('.splatter-img').forEach(i => i.style.opacity = i.style.opacity);
         });
 
-        // ---- STAT COUNTER ANIMATION ----
+        // Stats counter
         const statValues = document.querySelectorAll('.stat-value');
         function animateStats() {
             statValues.forEach(el => {
                 const target = parseFloat(el.dataset.target);
                 const suffix = el.dataset.suffix || '';
                 const decimals = parseInt(el.dataset.decimals) || 0;
-                const format = (val) => val.toFixed(decimals) + suffix;
-
+                const format = v => v.toFixed(decimals) + suffix;
                 if (window.matchMedia('(prefers-reduced-motion:reduce)').matches) {
                     el.textContent = format(target);
                     return;
                 }
-
                 let start = null;
-                const duration = 1100;
-                function step(timestamp) {
-                    if (!start) start = timestamp;
-                    const progress = Math.min((timestamp - start) / duration, 1);
-                    const eased = 1 - Math.pow(1 - progress, 3);
-                    el.textContent = format(target * eased);
-                    if (progress < 1) {
-                        requestAnimationFrame(step);
-                    } else {
-                        el.textContent = format(target);
-                    }
+                function step(ts) {
+                    if (!start) start = ts;
+                    const prog = Math.min((ts - start) / 1100, 1);
+                    el.textContent = format(target * (1 - Math.pow(1 - prog, 3)));
+                    if (prog < 1) requestAnimationFrame(step);
+                    else el.textContent = format(target);
                 }
                 requestAnimationFrame(step);
             });
         }
+        const statsObs = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) { animateStats(); statsObs.disconnect(); }
+        }, { threshold: 0.3 });
+        const statsRow = document.querySelector('.stats-row');
+        if (statsRow) statsObs.observe(statsRow);
 
-        if ('IntersectionObserver' in window) {
-            const statsObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        animateStats();
-                        statsObserver.disconnect();
-                    }
-                });
-            }, { threshold: 0.3 });
-            const statsRow = document.querySelector('.stats-row');
-            if (statsRow) statsObserver.observe(statsRow);
-        } else {
-            animateStats();
-        }
-
-        // ---- FEATURE GRID SCROLL REVEAL ----
+        // Feature reveal
         const features = document.querySelectorAll('.feature');
-        if ('IntersectionObserver' in window) {
-            const featureObserver = new IntersectionObserver((entries) => {
-                entries.forEach((entry, idx) => {
-                    if (entry.isIntersecting) {
-                        setTimeout(() => {
-                            entry.target.classList.add('is-visible');
-                        }, idx * 60);
-                        featureObserver.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.2, rootMargin: '0px 0px -40px 0px' });
-            features.forEach(f => featureObserver.observe(f));
-        } else {
-            features.forEach(f => f.classList.add('is-visible'));
-        }
+        const featureObs = new IntersectionObserver((entries) => {
+            entries.forEach((entry, idx) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => entry.target.classList.add('is-visible'), idx * 60);
+                    featureObs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.2, rootMargin: '0px 0px -40px 0px' });
+        features.forEach(f => featureObs.observe(f));
 
-        // ---- AUDIO PLAYER ----
+        // Audio player
         const audio = document.getElementById('audioPlayer');
         const playBtn = document.getElementById('playBtn');
         const playIcon = document.getElementById('playIcon');
-        const progressBar = document.getElementById('progressBar');
         const progressFill = document.getElementById('progressFill');
+        const progressBar = document.getElementById('progressBar');
         const volumeSlider = document.getElementById('volumeSlider');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-
-        function togglePlay() {
-            if (audio.paused) {
-                audio.play().catch(() => {});
-            } else {
-                audio.pause();
-            }
+        function togglePlay() { audio.paused ? audio.play().catch(()=>{}) : audio.pause(); }
+        function updateIcon() {
+            playIcon.innerHTML = audio.paused ? '<path d="M6 4l15 8-15 8z"/>' : '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
         }
-
-        function updatePlayIcon() {
-            if (audio.paused) {
-                playIcon.innerHTML = '<path d="M6 4l15 8-15 8z"/>';
-            } else {
-                playIcon.innerHTML = '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
-            }
-        }
-
-        audio.addEventListener('play', updatePlayIcon);
-        audio.addEventListener('pause', updatePlayIcon);
+        audio.addEventListener('play', updateIcon);
+        audio.addEventListener('pause', updateIcon);
         audio.addEventListener('timeupdate', () => {
-            if (audio.duration) {
-                const percent = (audio.currentTime / audio.duration) * 100;
-                progressFill.style.width = percent + '%';
-            }
+            if (audio.duration) progressFill.style.width = (audio.currentTime / audio.duration) * 100 + '%';
         });
-        audio.addEventListener('ended', () => {
-            audio.currentTime = 0;
-            updatePlayIcon();
-        });
-
-        progressBar.addEventListener('click', (e) => {
+        audio.addEventListener('ended', () => { audio.currentTime = 0; updateIcon(); });
+        progressBar.addEventListener('click', e => {
             const rect = progressBar.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const width = rect.width;
-            if (audio.duration) {
-                audio.currentTime = (x / width) * audio.duration;
-            }
+            if (audio.duration) audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
         });
-
-        volumeSlider.addEventListener('input', (e) => {
-            audio.volume = e.target.value;
-        });
+        volumeSlider.addEventListener('input', e => audio.volume = e.target.value);
         audio.volume = volumeSlider.value;
-
         playBtn.addEventListener('click', togglePlay);
-        prevBtn.addEventListener('click', () => {
-            audio.currentTime = 0;
-            if (audio.paused) audio.play().catch(() => {});
-        });
-        nextBtn.addEventListener('click', () => {
-            audio.currentTime = 0;
-            if (audio.paused) audio.play().catch(() => {});
-        });
+        document.getElementById('prevBtn').addEventListener('click', () => { audio.currentTime = 0; if (audio.paused) audio.play().catch(()=>{}); });
+        document.getElementById('nextBtn').addEventListener('click', () => { audio.currentTime = 0; if (audio.paused) audio.play().catch(()=>{}); });
 
-        // ---- FAQ ACCORDION ----
+        // FAQ accordion
         document.querySelectorAll('.faq-question').forEach(btn => {
             btn.addEventListener('click', () => {
                 const item = btn.parentElement;
                 item.classList.toggle('open');
-                document.querySelectorAll('.faq-item').forEach(other => {
-                    if (other !== item) other.classList.remove('open');
-                });
+                document.querySelectorAll('.faq-item').forEach(other => { if (other !== item) other.classList.remove('open'); });
             });
         });
 
-        // ---- 3D TILT ON CARDS ----
+        // 3D tilt
         document.querySelectorAll('.stat-card, .bento-card').forEach(card => {
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const rotateY = ((x - centerX) / centerX) * 6;
-                const rotateX = ((y - centerY) / centerY) * -6;
-                card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(15px)`;
+            card.addEventListener('mousemove', e => {
+                const r = card.getBoundingClientRect();
+                const x = e.clientX - r.left, y = e.clientY - r.top;
+                const rotY = ((x - r.width/2) / (r.width/2)) * 6;
+                const rotX = ((y - r.height/2) / (r.height/2)) * -6;
+                card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(15px)`;
             });
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = '';
-            });
+            card.addEventListener('mouseleave', () => card.style.transform = '');
         });
     </script>
 </body>
