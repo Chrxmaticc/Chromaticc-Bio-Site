@@ -14,18 +14,67 @@
             box-sizing: border-box;
         }
 
+        /* ---- NEW BACKGROUND LAYER with background.jpeg ---- */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: url('background.jpeg') center/cover no-repeat fixed;
+            opacity: 0.35;
+            filter: brightness(0.6) saturate(0.6);
+            animation: slowPan 50s linear infinite alternate;
+        }
+        @keyframes slowPan {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.15) translate(-3%, -2%); }
+        }
+
+        /* ---- FLOATING SILVER PARTICLES (new, subtle) ---- */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(192,192,192,0.6);
+            border-radius: 50%;
+            width: 2px;
+            height: 2px;
+            animation: rise linear infinite;
+        }
+        @keyframes rise {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(2); opacity: 0; }
+        }
+
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(180deg, #ffffff 0%, #e0e0e0 30%, #808080 60%, #1a1a1a 85%, #000000 100%);
+            /* Gradient with semi‑transparent colors so background.jpeg shows through */
+            background: linear-gradient(180deg,
+                rgba(255,255,255,0.92) 0%,
+                rgba(224,224,224,0.9) 30%,
+                rgba(128,128,128,0.85) 60%,
+                rgba(26,26,26,0.9) 85%,
+                rgba(0,0,0,0.95) 100%);
             background-attachment: fixed;
             color: #fff;
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
-            transition: color 0.3s;
         }
 
-        /* ---- BACKGROUND PNG SPLATTER ---- */
+        /* ---- SPLATTER (kept + floating animation) ---- */
         .splatter-container {
             position: fixed;
             top: 0;
@@ -40,32 +89,36 @@
             opacity: 0;
             transition: opacity 0.8s ease;
             user-select: none;
-            filter: drop-shadow(0 0 6px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 0 15px rgba(0,0,0,0.3));
+            animation: float 7s ease-in-out infinite;
+            animation-delay: calc(var(--delay) * 1s);
+            will-change: transform;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(var(--rot)); }
+            50% { transform: translateY(-16px) rotate(var(--rot)); }
         }
 
-        /* ---- CONTENT WRAPPER (above splatter) ---- */
+        /* ---- CONTENT WRAPPER ---- */
         .content-wrapper {
             position: relative;
             z-index: 2;
         }
 
-        /* ---- GLASS STYLES ---- */
-        .glass {
+        /* ---- GLASS STYLES (enhanced) ---- */
+        .glass, .stat-card, .bento-card, .audio-player, .faq-item, .footer {
             background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 24px;
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
         }
         .glass-strong {
-            background: rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 24px;
+            background: rgba(0, 0, 0, 0.18);
         }
 
-        /* ---- TOPBAR (transparent, glass) ---- */
+        /* ---- TOPBAR (transparent glass) ---- */
         .topbar {
             position: fixed;
             top: 0;
@@ -76,12 +129,11 @@
             justify-content: space-between;
             align-items: center;
             background: transparent;
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             z-index: 1000;
             color: #e0e0e0;
-            transition: background 0.3s;
         }
         .topbar .logo {
             display: flex;
@@ -128,30 +180,46 @@
             padding: 160px 20px 80px;
         }
         .hero h1 {
-            font-size: clamp(3.5rem, 10vw, 6.5rem);
+            font-size: clamp(3.8rem, 10vw, 7rem);
             font-weight: 900;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #000000, #ffffff, #555555, #000000);
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #000000, #ffffff, #444444, #000000);
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: gradientShift 4s ease infinite;
+            animation: gradientShift 4s ease infinite, titleGlow 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(255,255,255,0.5));
         }
         @keyframes gradientShift {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
         }
+        @keyframes titleGlow {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(255,255,255,0.5)); }
+            50% { filter: drop-shadow(0 0 50px rgba(255,255,255,0.9)); }
+        }
         .hero .subtitle {
             font-size: 1.25rem;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.75);
             margin-top: 16px;
             max-width: 600px;
+        }
+        .second-quote {
+            font-style: italic;
+            font-size: 0.95rem;
+            color: #b0b0b0;
+            margin-top: 10px;
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(8px);
+            padding: 8px 20px;
+            border-radius: 20px;
+            display: inline-block;
         }
         .beta-notice {
             font-size: 0.95rem;
             color: #c0c0c0;
-            margin-top: 30px;
+            margin-top: 20px;
             font-weight: 500;
             letter-spacing: 0.3px;
         }
@@ -171,9 +239,9 @@
         }
         .stat-card {
             background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
             border-radius: 28px;
             padding: 32px 30px;
             min-height: 190px;
@@ -183,12 +251,12 @@
             color: #fff;
             position: relative;
             overflow: hidden;
-            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
         }
         .stat-card:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
         .stat-icon {
             position: absolute;
@@ -213,7 +281,7 @@
             letter-spacing: 0.06em;
         }
 
-        /* ---- BUTTONS ---- */
+        /* ---- BUTTONS (with enhanced ripple) ---- */
         .btn-group {
             display: flex;
             gap: 1rem;
@@ -234,7 +302,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
             backdrop-filter: blur(8px);
             position: relative;
@@ -247,16 +315,21 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+            background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 60%);
             opacity: 0;
             transition: opacity 0.3s;
         }
         .btn:hover::after {
             opacity: 1;
+            animation: btnShine 0.6s;
+        }
+        @keyframes btnShine {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
         }
         .btn:hover {
             transform: scale(1.08);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.5);
         }
         .btn-outline {
             background: transparent;
@@ -271,11 +344,11 @@
             background: #5865F2;
             color: #fff;
             border: none;
-            box-shadow: 0 10px 25px rgba(88,101,242,0.3);
+            box-shadow: 0 10px 30px rgba(88,101,242,0.4);
         }
         .btn-discord:hover {
             background: #4752C4;
-            box-shadow: 0 15px 35px rgba(88,101,242,0.5);
+            box-shadow: 0 15px 40px rgba(88,101,242,0.6);
         }
 
         /* ---- AUDIO PLAYER ---- */
@@ -287,16 +360,16 @@
         .audio-player {
             width: 100%;
             max-width: 480px;
-            background: rgba(20, 20, 20, 0.5);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(20, 20, 20, 0.45);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 28px;
             padding: 24px;
             display: flex;
             flex-direction: column;
             gap: 18px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
         }
         .track-info {
             display: flex;
@@ -353,7 +426,7 @@
             accent-color: #c0c0c0;
         }
 
-        /* ---- BENTO GRID ---- */
+        /* ---- FEATURES BENTO GRID ---- */
         .features-section {
             padding: 80px 40px;
             max-width: 1300px;
@@ -375,22 +448,22 @@
         }
         .bento-card {
             background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
             border-radius: 24px;
             padding: 28px;
             display: flex;
             flex-direction: column;
             gap: 18px;
             color: #fff;
-            transition: border-color 0.3s, transform 0.2s, box-shadow 0.3s;
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
             transform-style: preserve-3d;
         }
         .bento-card:hover {
             border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-8px);
-            box-shadow: 0 25px 40px rgba(0,0,0,0.5);
+            transform: translateY(-10px);
+            box-shadow: 0 30px 50px rgba(0,0,0,0.6);
         }
         .bento-card svg {
             width: 2.2rem;
@@ -408,7 +481,7 @@
             flex: 1;
         }
 
-        /* ---- FEATURE GRID ---- */
+        /* ---- DETAILED FEATURE GRID ---- */
         .feature-grid-section {
             padding: 0 clamp(20px, 5vw, 80px) 80px;
             border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -485,13 +558,12 @@
         }
         .faq-item {
             background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 18px;
             margin-bottom: 16px;
             overflow: hidden;
-            transition: border-color 0.2s;
         }
         .faq-item:hover {
             border-color: rgba(255,255,255,0.12);
@@ -532,13 +604,13 @@
             text-align: center;
             padding: 40px;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.5);
             font-size: 0.85rem;
             background: rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
         }
         .footer a {
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             margin: 0 8px;
         }
@@ -548,42 +620,28 @@
 
         /* ---- RESPONSIVE ---- */
         @media (max-width: 900px) {
-            .stats-row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .feature-grid {
-                grid-template-columns: 1fr;
-            }
-            .feature:nth-child(odd), .feature:nth-child(even) {
-                padding: 36px 0;
-                border-left: none;
-            }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .feature-grid { grid-template-columns: 1fr; }
+            .feature:nth-child(odd), .feature:nth-child(even) { padding: 36px 0; border-left: none; }
         }
         @media (max-width: 520px) {
-            .stats-row {
-                grid-template-columns: 1fr;
-            }
-            .bento-grid {
-                grid-template-columns: 1fr;
-            }
-            .topbar {
-                padding: 12px 20px;
-            }
-            .hero h1 {
-                font-size: 2.8rem;
-            }
+            .stats-row { grid-template-columns: 1fr; }
+            .bento-grid { grid-template-columns: 1fr; }
+            .topbar { padding: 12px 20px; }
+            .hero h1 { font-size: 2.8rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- BACKGROUND PNG SPLATTER (dynamically generated) -->
+    <!-- BACKGROUND PARTICLES (new, subtle sparkles) -->
+    <div class="particles" id="particlesContainer"></div>
+
+    <!-- SPLATTER CONTAINER (dynamically filled with images) -->
     <div class="splatter-container" id="splatterContainer"></div>
 
-    <!-- CONTENT WRAPPER -->
     <div class="content-wrapper">
-
-        <!-- TOPBAR (transparent glass) -->
+        <!-- TOPBAR -->
         <header class="topbar">
             <div class="logo">
                 <img src="Chromaticc.png" alt="Chromaticc Logo">
@@ -601,6 +659,7 @@
         <section class="hero">
             <h1>Chromaticc</h1>
             <p class="subtitle">Make profile pages easily with customization, better then guns.lol.</p>
+            <p class="second-quote">&ldquo;If the owner can customize their own site, you can on your profile.&rdquo;</p>
             <p class="beta-notice">Chromaticc is in beta, see the stats!</p>
 
             <div class="stats-section">
@@ -609,17 +668,14 @@
                         <div class="stat-value" data-target="8" data-decimals="0" data-suffix="+">0+</div>
                         <div class="stat-label">Profiles Created</div>
                         <svg class="stat-icon" viewBox="0 0 150 150" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="30" y="20" width="90" height="100" rx="16"/>
-                            <path d="M55 55 L75 72 L55 90"/>
-                            <path d="M80 92 L100 92"/>
+                            <rect x="30" y="20" width="90" height="100" rx="16"/><path d="M55 55 L75 72 L55 90"/><path d="M80 92 L100 92"/>
                         </svg>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" data-target="2" data-decimals="0" data-suffix="K+">0K+</div>
                         <div class="stat-label">Active Users</div>
                         <svg class="stat-icon" viewBox="0 0 150 150" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round">
-                            <circle cx="55" cy="65" r="20"/>
-                            <path d="M30 120 C30 90, 85 90, 85 120"/>
+                            <circle cx="55" cy="65" r="20"/><path d="M30 120 C30 90, 85 90, 85 120"/>
                         </svg>
                     </div>
                     <div class="stat-card">
@@ -693,61 +749,51 @@
         <section class="features-section">
             <h2>Everything you need, for free.</h2>
             <div class="bento-grid">
-                <!-- Card 1 -->
                 <div class="bento-card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                     <h3>Full Customization</h3>
                     <p>Move, resize, rotate every element. Drag & drop editor.</p>
                 </div>
-                <!-- Card 2 -->
                 <div class="bento-card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
                     <h3>Custom Fonts & Text</h3>
                     <p>Gradient, neon, regular. Upload your TTF files.</p>
                 </div>
-                <!-- Card 3 -->
                 <div class="bento-card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                     <h3>Video Backgrounds</h3>
                     <p>Set any video or animated GIF as your profile background.</p>
                 </div>
-                <!-- Card 4 -->
                 <div class="bento-card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                     <h3>Glassmorphism Toggle</h3>
                     <p>One click to switch your cards to sleek glass effect.</p>
                 </div>
-                <!-- Card 5 -->
                 <div class="bento-card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
                     <h3>Custom Cursors</h3>
                     <p>Visitors see your custom cursor on your profile page.</p>
                 </div>
-                <!-- Card 6 -->
                 <div class="bento-card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 2a10 10 0 0 1 10 10h-10V2z"/></svg>
                     <h3>Discord Rich Presence</h3>
                     <p>Sync your status, activity, and badges automatically.</p>
                 </div>
-                <!-- Card 7 -->
                 <div class="bento-card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     <h3>Spotify Sync</h3>
                     <p>Show what you're listening to live on your profile.</p>
                 </div>
-                <!-- Card 8 -->
                 <div class="bento-card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                     <h3>Lyric Sync Embed</h3>
                     <p>Auto‑sync lyrics to your uploaded audio tracks.</p>
                 </div>
-                <!-- Card 9 -->
                 <div class="bento-card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     <h3>Custom Subdomains</h3>
                     <p>Free subdomain like you.pages.dev or connect your own.</p>
                 </div>
-                <!-- Card 10 -->
                 <div class="bento-card">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                     <h3>Profile Badges</h3>
@@ -850,7 +896,19 @@
     </div>
 
     <script>
-        // ---- SPLATTER GENERATION ----
+        // ---- NEW: Create subtle floating particles (silver sparkles) ----
+        const particlesContainer = document.getElementById('particlesContainer');
+        for (let i = 0; i < 40; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 8 + 6) + 's';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // ---- SPLATTER GENERATION (enhanced with more images) ----
         const pngSources = [
             'Chromaticc.png',
             'Chromaticc-Happy.png',
@@ -858,7 +916,7 @@
             'Chromaticc-Doctor.png'
         ];
         const container = document.getElementById('splatterContainer');
-        const splatterCount = 16; // total images
+        const splatterCount = 24; // increased for heavier splatter
 
         for (let i = 0; i < splatterCount; i++) {
             const img = document.createElement('img');
@@ -866,18 +924,20 @@
             img.className = 'splatter-img';
             img.style.left = Math.random() * 100 + '%';
             img.style.top = Math.random() * 100 + '%';
-            const size = 60 + Math.random() * 180;
+            const size = 50 + Math.random() * 200;
             img.style.width = size + 'px';
             img.style.height = 'auto';
-            img.style.transform = `rotate(${(Math.random()*40)-20}deg)`;
-            img.style.opacity = 0.1 + Math.random() * 0.25;
+            const rot = (Math.random() * 40) - 20;
+            img.style.setProperty('--rot', rot + 'deg');
+            img.style.setProperty('--delay', Math.random() * 6);
+            img.style.opacity = 0.08 + Math.random() * 0.3;
             container.appendChild(img);
         }
 
-        // Reveal splatter images after load (fade in)
+        // Fade in splatter on load
         window.addEventListener('load', () => {
             document.querySelectorAll('.splatter-img').forEach(img => {
-                img.style.opacity = img.style.opacity; // keep calculated
+                img.style.opacity = img.style.opacity;
             });
         });
 
@@ -1027,9 +1087,9 @@
                 const y = e.clientY - rect.top;
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
-                const rotateY = ((x - centerX) / centerX) * 4;
-                const rotateX = ((y - centerY) / centerY) * -4;
-                card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`;
+                const rotateY = ((x - centerX) / centerX) * 6;
+                const rotateX = ((y - centerY) / centerY) * -6;
+                card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(15px)`;
             });
             card.addEventListener('mouseleave', () => {
                 card.style.transform = '';
