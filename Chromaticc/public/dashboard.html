@@ -537,30 +537,48 @@
 
     // Page settings modal – FIXED BACKGROUND
     document.getElementById('openPageSettings').onclick = () => document.getElementById('pageSettingsModal').style.display='flex';
-    document.getElementById('savePageSettings').onclick = async () => {
-      const bgType = document.getElementById('bgType').value;
-      const file = document.getElementById('bgFile').files[0];
-      let bgValue = document.getElementById('bgValue').value.trim();
+document.getElementById('savePageSettings').onclick = async () => {
+  const bgType = document.getElementById('bgType').value;   // 'css', 'image', 'video'
+  const file = document.getElementById('bgFile').files[0];
+  let bgValue = document.getElementById('bgValue').value.trim();
 
-      if (file) {
-        const form = new FormData(); form.append('file', file);
-        try {
-          const res = await fetch('/api/upload', { method:'POST', body:form });
-          const data = await res.json();
-          if (data.url) bgValue = (bgType==='css') ? `url(${data.url})` : data.url;
-        } catch(e) { showToast('Upload failed'); return; }
-      } else {
-        if (bgType === 'image' || bgType === 'video') {
-          if (bgValue && !bgValue.startsWith('url(')) bgValue = `url(${bgValue})`;
-        }
+  if (file) {
+    // Upload the file and use its URL
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: form });
+      const data = await res.json();
+      if (data.url) {
+        bgValue = data.url;   // raw blob URL
       }
-      pageSettings.background = { type: bgType, value: bgValue || 'linear-gradient(180deg, white, black)' };
-      pageSettings.cursor = document.getElementById('cursorUrl').value;
-      pageSettings.favicon = document.getElementById('faviconUrl').value;
-      pageSettings.overlay = document.getElementById('overlayEffect').value;
-      document.getElementById('pageSettingsModal').style.display='none';
-      showToast('Page settings saved – save layout!');
-    };
+    } catch (e) {
+      showToast('Upload failed');
+      return;
+    }
+  }
+
+  // Now construct the final CSS value based on the type
+  let finalValue = '';
+  if (bgType === 'css') {
+    // For CSS, use the value as-is (gradient, color, etc.) – NEVER wrap with url()
+    finalValue = bgValue || 'linear-gradient(180deg, white, black)';
+  } else {
+    // For image/video, wrap the URL (or leave empty)
+    if (bgValue && !bgValue.startsWith('url(')) {
+      finalValue = `url(${bgValue})`;
+    } else {
+      finalValue = bgValue || '';
+    }
+  }
+
+  pageSettings.background = { type: bgType, value: finalValue };
+  pageSettings.cursor = document.getElementById('cursorUrl').value;
+  pageSettings.favicon = document.getElementById('faviconUrl').value;
+  pageSettings.overlay = document.getElementById('overlayEffect').value;
+  document.getElementById('pageSettingsModal').style.display = 'none';
+  showToast('Page settings saved – now 💾 save the layout!');
+};
 
     document.getElementById('changePassBtn').onclick = async () => {
       const cur = document.getElementById('currentPass').value, nw = document.getElementById('newPass').value;
