@@ -1,11 +1,11 @@
 {
-  "name": "Chromaticc",
+  "name": "chromaticc",
   "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "build": "echo 'No build step'"
-  },
+  "description": "The goofiest, most powerful bio site ever.",
   "dependencies": {
-    "pg": "^8.13.0"
+    "pg": "^8.11.3",
+    "formidable": "^3.5.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0"
   }
 }
