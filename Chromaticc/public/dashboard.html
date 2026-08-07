@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chromaticc – Dashboard</title>
+  <link rel="icon" type="image/png" href="Chromaticc.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    /* ---- background.jpeg with slow pan ---- */
+    body::before {
+      content: '';
+      position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1;
+      background: url('background.jpeg') center/cover no-repeat fixed;
+      opacity:0.35; filter: brightness(0.6) saturate(0.6);
+      animation: slowPan 50s linear infinite alternate;
+    }
+    @keyframes slowPan {
+      0% { transform: scale(1) translate(0, 0); }
+      100% { transform: scale(1.15) translate(-3%, -2%); }
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(180deg,
+        rgba(255,255,255,0.92) 0%,
+        rgba(224,224,224,0.9) 30%,
+        rgba(128,128,128,0.85) 60%,
+        rgba(26,26,26,0.9) 85%,
+        rgba(0,0,0,0.95) 100%);
+      background-attachment: fixed;
+      color: #000; min-height:100vh; overflow-x:hidden; position:relative;
+    }
+
+    /* ---- silver particles ---- */
+    .particles {
+      position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none;
+    }
+    .particle {
+      position:absolute; background:rgba(192,192,192,0.7); border-radius:50%;
+      width:2px; height:2px; animation: rise linear infinite;
+    }
+    @keyframes rise {
+      0% { transform: translateY(100vh) scale(0); opacity:0; }
+      10% { opacity:1; } 90% { opacity:1; }
+      100% { transform: translateY(-10vh) scale(2); opacity:0; }
+    }
+
+    /* ---- splatter (floating PNGs) ---- */
+    .splatter-container {
+      position:fixed; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none;
+    }
+    .splatter-img {
+      position:absolute; opacity:0; transition: opacity 0.8s ease; user-select:none;
+      filter: drop-shadow(0 0 15px rgba(0,0,0,0.3));
+      animation: float 7s ease-in-out infinite;
+      animation-delay: calc(var(--delay) * 1s); will-change:transform;
+    }
+    @keyframes float {
+      0%,100%{ transform: translateY(0px) rotate(var(--rot)); }
+      50%{ transform: translateY(-16px) rotate(var(--rot)); }
+    }
+
+    /* ---- topbar (transparent glass) ---- */
+    .topbar {
+      position:fixed; top:0; left:0; width:100%; padding:16px 40px;
+      display:flex; justify-content:space-between; align-items:center;
+      background:transparent; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(255,255,255,0.08); z-index:1000; color:#fff;
+    }
+    .topbar .logo { display:flex; align-items:center; gap:12px; font-size:1.3rem; font-weight:900; }
+    .topbar .logo img { width:36px; height:36px; border-radius:8px; }
+    .topbar .logo span {
+      background:linear-gradient(135deg,#fff,#aaa);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .topbar nav { display:flex; align-items:center; gap:28px; }
+    .topbar nav a { color:#ccc; text-decoration:none; font-size:0.95rem; font-weight:500; transition:color 0.2s; }
+    .topbar nav a:hover { color:#fff; }
+    .topbar .user-info { color:#ccc; font-size:0.9rem; margin-left:auto; margin-right:20px; }
+    .logout-btn { background:none; border:1px solid #ccc; color:#ccc; padding:6px 14px; border-radius:20px; cursor:pointer; font-size:0.85rem; transition:0.2s; }
+    .logout-btn:hover { background:rgba(255,255,255,0.1); color:#fff; }
+
+    /* ---- main layout ---- */
+    .dashboard {
+      padding:100px 20px 40px;
+      display:flex; flex-direction:column; align-items:center;
+      position:relative; z-index:2;
+    }
+    .dashboard h1 {
+      font-size:2.8rem; font-weight:900; margin-bottom:30px;
+      background:linear-gradient(135deg,#000,#fff,#444); background-size:200% auto;
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .panel-tabs {
+      display:flex; gap:12px; margin-bottom:30px;
+    }
+    .panel-tab {
+      padding:12px 24px; border-radius:30px; border:1px solid rgba(0,0,0,0.2);
+      background:rgba(255,255,255,0.2); backdrop-filter:blur(12px);
+      color:#000; font-weight:600; cursor:pointer; transition:0.2s;
+    }
+    .panel-tab.active {
+      background:rgba(0,0,0,0.8); color:#fff; border-color:#000;
+    }
+
+    /* ---- panels ---- */
+    .panel {
+      display:none; width:100%; max-width:800px;
+      background: rgba(255,255,255,0.15); backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,0.2); border-radius:28px;
+      padding:30px; color:#000; box-shadow:0 20px 40px rgba(0,0,0,0.3);
+    }
+    .panel.active { display:block; }
+
+    .panel h2 { font-size:1.6rem; margin-bottom:20px; }
+    .stat-card { background:rgba(255,255,255,0.3); border-radius:16px; padding:20px; margin-bottom:16px; }
+    .toggle-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.1); }
+    .toggle-label { font-weight:600; }
+    .toggle-switch { width:48px; height:26px; background:#ccc; border-radius:13px; position:relative; cursor:pointer; }
+    .toggle-switch.on { background:#4ade80; }
+    .toggle-switch::after { content:''; position:absolute; width:22px; height:22px; background:white; border-radius:50%; top:2px; left:2px; transition:0.2s; }
+    .toggle-switch.on::after { left:24px; }
+
+    .btn {
+      padding:0.8rem 1.8rem; border-radius:14px; font-weight:600; font-size:0.95rem;
+      background:linear-gradient(135deg,#e0e0e0,#808080); border:none; cursor:pointer;
+      color:#0a0a0a; box-shadow:0 10px 25px rgba(0,0,0,0.2); transition:0.2s;
+      display:inline-block; text-decoration:none;
+    }
+    .btn:hover { transform:scale(1.03); box-shadow:0 15px 30px rgba(0,0,0,0.4); }
+    .btn.danger { background:#b00020; color:#fff; }
+
+    .footer {
+      text-align:center; padding:40px; border-top:1px solid rgba(0,0,0,0.2);
+      color:#000; font-size:0.85rem; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px);
+      position:relative; z-index:2; margin-top:40px;
+    }
+    .footer a { color:#000; text-decoration:underline; margin:0 8px; font-weight:600; }
+
+    @media(max-width:520px){ .topbar{padding:12px 20px;} .panel{padding:20px;} }
+  </style>
+</head>
+<body>
+<div class="particles" id="particlesContainer"></div>
+<div class="splatter-container" id="splatterContainer"></div>
+
+<div style="position:relative; z-index:2;">
+  <header class="topbar">
+    <div class="logo">
+      <img src="Chromaticc.png" alt="Chromaticc Logo">
+      <span>Chromaticc</span>
+    </div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="#">Features</a>
+      <a href="dashboard.html">Dashboard</a>
+    </nav>
+    <span class="user-info" id="usernameDisplay"></span>
+    <button class="logout-btn" id="logoutBtn">Logout</button>
+  </header>
+
+  <div class="dashboard">
+    <h1>Your Dashboard</h1>
+    <div class="panel-tabs">
+      <button class="panel-tab active" data-panel="general">General</button>
+      <button class="panel-tab" data-panel="sandbox">Sandbox</button>
+      <button class="panel-tab" data-panel="settings">Settings</button>
+    </div>
+
+    <!-- General Panel -->
+    <div class="panel active" id="generalPanel">
+      <h2>General Overview</h2>
+      <div class="stat-card">
+        <p><strong>Profile Views</strong> <span id="viewCount">1,337</span></p>
+      </div>
+      <div class="stat-card">
+        <p><strong>Total Widgets</strong> <span id="widgetCount">0</span></p>
+      </div>
+      <h3 style="margin-top:20px;">Bio Settings</h3>
+      <textarea id="bioInput" placeholder="Write your bio..." style="width:100%; min-height:80px; background:rgba(255,255,255,0.3); border:1px solid rgba(0,0,0,0.2); border-radius:12px; padding:12px; font-family:inherit; margin-bottom:12px;"></textarea>
+      <button class="btn" id="saveBioBtn">Save Bio</button>
+
+      <div style="margin-top:20px;">
+        <h3>Quick Toggles</h3>
+        <div class="toggle-row">
+          <span class="toggle-label">Glassmorphism on profile</span>
+          <div class="toggle-switch on" id="toggleGlass"></div>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-label">Music auto‑play</span>
+          <div class="toggle-switch" id="toggleMusic"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sandbox Panel (Edit Mode) -->
+    <div class="panel" id="sandboxPanel">
+      <h2>Sandbox – Edit your profile</h2>
+      <p>Enter the visual editor to drag, drop, and code your profile page. <strong>25+ pre‑built widgets</strong> are waiting for you.</p>
+      <div style="margin:24px 0;">
+        <a href="#" class="btn" id="enterEditMode">🔧 Enter Edit Mode</a>
+      </div>
+      <p style="font-size:0.9rem; color:#333;">You'll be taken to <code>yourusername/edit</code> where you can fully customize everything.</p>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="panel" id="settingsPanel">
+      <h2>Account Settings</h2>
+      <form id="passwordForm">
+        <input type="password" id="currentPassword" placeholder="Current password" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid rgba(0,0,0,0.2); background:rgba(255,255,255,0.3);">
+        <input type="password" id="newPassword" placeholder="New password" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid rgba(0,0,0,0.2); background:rgba(255,255,255,0.3);">
+        <button type="submit" class="btn">Change Password</button>
+        <div class="error-msg" id="settingsError" style="color:#b00020; margin-top:8px;"></div>
+      </form>
+      <hr style="margin:24px 0; border-color:rgba(0,0,0,0.2);">
+      <button class="btn danger" id="deleteAccountBtn">Delete Account</button>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Chromaticc &copy; 2026 — <a href="#">GitHub</a> · <a href="https://discord.gg/chrxmaticc" target="_blank">Discord</a></p>
+  </footer>
+</div>
+
+<script>
+  // ---- particles & splatter ----
+  (function(){
+    const pc = document.getElementById('particlesContainer');
+    for(let i=0;i<40;i++){
+      const p = document.createElement('div'); p.className='particle';
+      p.style.left=Math.random()*100+'%'; p.style.top=Math.random()*100+'%';
+      p.style.animationDuration=(Math.random()*8+6)+'s';
+      p.style.animationDelay=Math.random()*5+'s';
+      pc.appendChild(p);
+    }
+    const sources = ['Chromaticc.png','Chromaticc-Happy.png','Chromaticc-Speaker.png','Chromaticc-Doctor.png'];
+    const sc = document.getElementById('splatterContainer');
+    for(let i=0;i<24;i++){
+      const img = document.createElement('img'); img.src=sources[i%sources.length];
+      img.className='splatter-img';
+      img.style.left=Math.random()*100+'%'; img.style.top=Math.random()*100+'%';
+      img.style.width=(50+Math.random()*200)+'px';
+      img.style.setProperty('--rot',((Math.random()*40)-20)+'deg');
+      img.style.setProperty('--delay',Math.random()*6);
+      img.style.opacity=0.08+Math.random()*0.3;
+      sc.appendChild(img);
+    }
+    window.addEventListener('load',()=>{
+      document.querySelectorAll('.splatter-img').forEach(i=>i.style.opacity=i.style.opacity);
+    });
+  })();
+
+  // ---- Check login & get user info ----
+  const token = localStorage.getItem('chromaticc_token');
+  const userStr = localStorage.getItem('chromaticc_user');
+  if (!token || !userStr) {
+    window.location.href = '/accounts.html';
+  }
+  const user = JSON.parse(userStr);
+  document.getElementById('usernameDisplay').textContent = `@${user.username}`;
+
+  // ---- Panel switching ----
+  const tabs = document.querySelectorAll('.panel-tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const panelId = tab.dataset.panel + 'Panel';
+      panels.forEach(p => p.classList.remove('active'));
+      document.getElementById(panelId).classList.add('active');
+    });
+  });
+
+  // ---- Enter Edit Mode (sandbox) ----
+  document.getElementById('enterEditMode').addEventListener('click', (e) => {
+    e.preventDefault();
+    // Go to /username/edit
+    window.location.href = `/${user.username}/edit`;
+  });
+
+  // ---- Save Bio (general) ----
+  document.getElementById('saveBioBtn').addEventListener('click', async () => {
+    const bio = document.getElementById('bioInput').value;
+    try {
+      const res = await fetch('/api/bio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ bio })
+      });
+      if (!res.ok) throw new Error('Failed to save bio');
+      alert('Bio saved!');
+    } catch (err) {
+      alert('Could not save bio.');
+    }
+  });
+
+  // ---- Toggle switches (visual only for now) ----
+  document.getElementById('toggleGlass').addEventListener('click', function() {
+    this.classList.toggle('on');
+  });
+  document.getElementById('toggleMusic').addEventListener('click', function() {
+    this.classList.toggle('on');
+  });
+
+  // ---- Change Password ----
+  document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const current = document.getElementById('currentPassword').value;
+    const newPass = document.getElementById('newPassword').value;
+    const errorEl = document.getElementById('settingsError');
+    try {
+      const res = await fetch('/api/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword: current, newPassword: newPass })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed');
+      alert('Password changed!');
+      e.target.reset();
+    } catch (err) {
+      errorEl.textContent = err.message;
+    }
+  });
+
+  // ---- Delete Account (just a placeholder) ----
+  document.getElementById('deleteAccountBtn').addEventListener('click', () => {
+    if (confirm('Are you sure? This cannot be undone.')) {
+      fetch('/api/delete-account', {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(() => {
+        localStorage.clear();
+        window.location.href = '/';
+      }).catch(() => alert('Could not delete account.'));
+    }
+  });
+
+  // ---- Logout ----
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location.href = '/';
+  });
+</script>
+</body>
+</html>
