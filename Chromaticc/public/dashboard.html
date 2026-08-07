@@ -598,22 +598,34 @@ function applySettings(widget) {
 
     // Page settings modal
     document.getElementById('openPageSettings').onclick = () => document.getElementById('pageSettingsModal').style.display='flex';
-    document.getElementById('savePageSettings').onclick = () => {
-      const bgType = document.getElementById('bgType').value;
-      const bgFile = document.getElementById('bgFile').files[0];
-      const bgColor = document.getElementById('bgColor').value;
-      // Convert files to base64 if needed
-      const updateSettings = (key, value) => { pageSettings[key] = value; };
-      updateSettings('background', { type: bgType, value: bgColor });
-      if (bgFile) {
-        const reader = new FileReader();
-        reader.onload = () => { pageSettings.background.value = reader.result; };
-        reader.readAsDataURL(bgFile);
-      }
-      // cursor, favicon, overlay... (same pattern)
-      document.getElementById('pageSettingsModal').style.display='none';
-      alert('Page settings saved. Save layout to persist.');
-    };
+    document.getElementById('savePageSettings').onclick = async () => {
+  const bgType = document.getElementById('bgType').value;
+  const bgFileInput = document.getElementById('bgFile');
+  const bgColor = document.getElementById('bgColor').value.trim();
+
+  let bgValue = bgColor;
+
+  if (bgFileInput.files.length > 0) {
+    // Wait for FileReader to finish reading the background file
+    bgValue = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(bgFileInput.files[0]);
+    });
+  }
+
+  pageSettings.background = {
+    type: bgType,
+    value: bgValue
+  };
+
+  // Similar handling for cursor and favicon files (if you add them later)
+  // For now they are still text inputs
+
+  document.getElementById('pageSettingsModal').style.display = 'none';
+  alert('Page settings saved. Don’t forget to 💾 Save the layout!');
+};
 
     // Account settings
     document.getElementById('changePassBtn').onclick = async () => {
