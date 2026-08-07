@@ -7,10 +7,9 @@
   <link rel="icon" type="image/png" href="Chromaticc.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-
-    /* ---- background.jpeg with slow pan ---- */
     body::before {
       content: '';
       position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1;
@@ -22,20 +21,14 @@
       0% { transform: scale(1) translate(0, 0); }
       100% { transform: scale(1.15) translate(-3%, -2%); }
     }
-
     body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background: linear-gradient(180deg,
-        rgba(255,255,255,0.92) 0%,
-        rgba(224,224,224,0.9) 30%,
-        rgba(128,128,128,0.85) 60%,
-        rgba(26,26,26,0.9) 85%,
+        rgba(255,255,255,0.92) 0%, rgba(224,224,224,0.9) 30%,
+        rgba(128,128,128,0.85) 60%, rgba(26,26,26,0.9) 85%,
         rgba(0,0,0,0.95) 100%);
-      background-attachment: fixed;
-      color: #000; min-height:100vh; overflow-x:hidden; position:relative;
+      background-attachment: fixed; color:#000; min-height:100vh; overflow-x:hidden;
     }
-
-    /* ---- silver particles ---- */
     .particles {
       position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none;
     }
@@ -48,27 +41,23 @@
       10% { opacity:1; } 90% { opacity:1; }
       100% { transform: translateY(-10vh) scale(2); opacity:0; }
     }
-
-    /* ---- splatter (floating PNGs) ---- */
     .splatter-container {
       position:fixed; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none;
     }
     .splatter-img {
-      position:absolute; opacity:0; transition: opacity 0.8s ease; user-select:none;
-      filter: drop-shadow(0 0 15px rgba(0,0,0,0.3));
-      animation: float 7s ease-in-out infinite;
-      animation-delay: calc(var(--delay) * 1s); will-change:transform;
+      position:absolute; opacity:0; transition:opacity 0.8s; user-select:none;
+      filter:drop-shadow(0 0 15px rgba(0,0,0,0.3));
+      animation:float 7s ease-in-out infinite;
+      animation-delay:calc(var(--delay)*1s); will-change:transform;
     }
     @keyframes float {
-      0%,100%{ transform: translateY(0px) rotate(var(--rot)); }
-      50%{ transform: translateY(-16px) rotate(var(--rot)); }
+      0%,100%{ transform:translateY(0px) rotate(var(--rot)); }
+      50%{ transform:translateY(-16px) rotate(var(--rot)); }
     }
-
-    /* ---- topbar (transparent glass) ---- */
     .topbar {
       position:fixed; top:0; left:0; width:100%; padding:16px 40px;
       display:flex; justify-content:space-between; align-items:center;
-      background:transparent; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      background:transparent; backdrop-filter:blur(20px);
       border-bottom:1px solid rgba(255,255,255,0.08); z-index:1000; color:#fff;
     }
     .topbar .logo { display:flex; align-items:center; gap:12px; font-size:1.3rem; font-weight:900; }
@@ -78,77 +67,111 @@
       -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
     }
     .topbar nav { display:flex; align-items:center; gap:28px; }
-    .topbar nav a { color:#ccc; text-decoration:none; font-size:0.95rem; font-weight:500; transition:color 0.2s; }
+    .topbar nav a { color:#ccc; text-decoration:none; font-size:0.95rem; font-weight:500; transition:0.2s; }
     .topbar nav a:hover { color:#fff; }
     .topbar .user-info { color:#ccc; font-size:0.9rem; margin-left:auto; margin-right:20px; }
-    .logout-btn { background:none; border:1px solid #ccc; color:#ccc; padding:6px 14px; border-radius:20px; cursor:pointer; font-size:0.85rem; transition:0.2s; }
+    .logout-btn {
+      background:none; border:1px solid #ccc; color:#ccc; padding:6px 14px;
+      border-radius:20px; cursor:pointer; font-size:0.85rem; transition:0.2s;
+    }
     .logout-btn:hover { background:rgba(255,255,255,0.1); color:#fff; }
 
-    /* ---- main layout ---- */
     .dashboard {
-      padding:100px 20px 40px;
-      display:flex; flex-direction:column; align-items:center;
+      padding:100px 20px 40px; display:flex; flex-direction:column; align-items:center;
       position:relative; z-index:2;
     }
-    .dashboard h1 {
-      font-size:2.8rem; font-weight:900; margin-bottom:30px;
+    h1 {
+      font-size:2.8rem; font-weight:900; margin-bottom:10px;
       background:linear-gradient(135deg,#000,#fff,#444); background-size:200% auto;
       -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
     }
-    .panel-tabs {
-      display:flex; gap:12px; margin-bottom:30px;
-    }
-    .panel-tab {
+    .tab-bar { display:flex; gap:12px; margin-bottom:30px; }
+    .tab {
       padding:12px 24px; border-radius:30px; border:1px solid rgba(0,0,0,0.2);
       background:rgba(255,255,255,0.2); backdrop-filter:blur(12px);
       color:#000; font-weight:600; cursor:pointer; transition:0.2s;
     }
-    .panel-tab.active {
-      background:rgba(0,0,0,0.8); color:#fff; border-color:#000;
-    }
+    .tab.active { background:rgba(0,0,0,0.8); color:#fff; border-color:#000; }
 
-    /* ---- panels ---- */
     .panel {
-      display:none; width:100%; max-width:800px;
-      background: rgba(255,255,255,0.15); backdrop-filter:blur(20px);
+      display:none; width:100%; max-width:1200px;
+      background:rgba(255,255,255,0.15); backdrop-filter:blur(20px);
       border:1px solid rgba(255,255,255,0.2); border-radius:28px;
       padding:30px; color:#000; box-shadow:0 20px 40px rgba(0,0,0,0.3);
     }
     .panel.active { display:block; }
 
-    .panel h2 { font-size:1.6rem; margin-bottom:20px; }
-    .stat-card { background:rgba(255,255,255,0.3); border-radius:16px; padding:20px; margin-bottom:16px; }
-    .toggle-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(0,0,0,0.1); }
-    .toggle-label { font-weight:600; }
-    .toggle-switch { width:48px; height:26px; background:#ccc; border-radius:13px; position:relative; cursor:pointer; }
-    .toggle-switch.on { background:#4ade80; }
-    .toggle-switch::after { content:''; position:absolute; width:22px; height:22px; background:white; border-radius:50%; top:2px; left:2px; transition:0.2s; }
-    .toggle-switch.on::after { left:24px; }
-
-    .btn {
-      padding:0.8rem 1.8rem; border-radius:14px; font-weight:600; font-size:0.95rem;
-      background:linear-gradient(135deg,#e0e0e0,#808080); border:none; cursor:pointer;
-      color:#0a0a0a; box-shadow:0 10px 25px rgba(0,0,0,0.2); transition:0.2s;
-      display:inline-block; text-decoration:none;
+    .edit-layout { display:flex; height:70vh; gap:16px; }
+    .widget-sidebar {
+      width:200px; background:rgba(255,255,255,0.3); border-radius:16px;
+      padding:12px; overflow-y:auto; flex-shrink:0;
     }
-    .btn:hover { transform:scale(1.03); box-shadow:0 15px 30px rgba(0,0,0,0.4); }
+    .widget-list-item {
+      padding:8px 10px; margin:4px 0; border-radius:8px; cursor:pointer;
+      background:rgba(255,255,255,0.5); font-size:0.85rem; transition:0.2s;
+    }
+    .widget-list-item:hover { background:rgba(0,0,0,0.1); }
+    .canvas-area {
+      flex:1; background:rgba(255,255,255,0.2); border-radius:16px;
+      position:relative; overflow:hidden;
+    }
+    .canvas-widget {
+      position:absolute; background:rgba(255,255,255,0.6); border:1px solid #000;
+      border-radius:12px; min-width:80px; min-height:40px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:0.8rem; cursor:move; user-select:none;
+      backdrop-filter:blur(4px); overflow:hidden;
+    }
+    .canvas-widget.selected { border-color:#ff3c78; box-shadow:0 0 10px rgba(255,60,120,0.5); }
+    .resize-handle {
+      position:absolute; width:12px; height:12px; background:#000;
+      border-radius:2px; opacity:0.5;
+    }
+    .resize-handle.ne { top:-6px; right:-6px; cursor:ne-resize; }
+    .resize-handle.se { bottom:-6px; right:-6px; cursor:se-resize; }
+    .resize-handle.sw { bottom:-6px; left:-6px; cursor:sw-resize; }
+    .resize-handle.nw { top:-6px; left:-6px; cursor:nw-resize; }
+    .rotate-handle {
+      position:absolute; top:-24px; left:50%; transform:translateX(-50%);
+      width:16px; height:16px; background:#ff3c78; border-radius:50%; cursor:grab;
+    }
+    .settings-panel {
+      width:260px; background:rgba(255,255,255,0.3); border-radius:16px;
+      padding:16px; overflow-y:auto; flex-shrink:0;
+    }
+    .settings-panel input, .settings-panel select, .settings-panel textarea {
+      width:100%; padding:8px; margin:6px 0; border-radius:8px; border:1px solid rgba(0,0,0,0.2);
+      background:rgba(255,255,255,0.5); font-size:0.85rem;
+    }
+    .btn {
+      padding:8px 16px; border-radius:14px; font-weight:600; font-size:0.9rem;
+      background:linear-gradient(135deg,#e0e0e0,#808080); border:none; cursor:pointer;
+      color:#0a0a0a; transition:0.2s; margin:4px;
+    }
+    .btn:hover { transform:scale(1.02); }
     .btn.danger { background:#b00020; color:#fff; }
 
-    .footer {
-      text-align:center; padding:40px; border-top:1px solid rgba(0,0,0,0.2);
-      color:#000; font-size:0.85rem; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px);
-      position:relative; z-index:2; margin-top:40px;
+    .modal-overlay {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);
+      display:flex; align-items:center; justify-content:center; z-index:2000;
     }
-    .footer a { color:#000; text-decoration:underline; margin:0 8px; font-weight:600; }
+    .modal {
+      background:rgba(255,255,255,0.8); backdrop-filter:blur(20px);
+      border-radius:24px; padding:30px; max-width:500px; width:90%;
+    }
 
-    @media(max-width:520px){ .topbar{padding:12px 20px;} .panel{padding:20px;} }
+    @media(max-width:768px){
+      .edit-layout { flex-direction:column; height:auto; }
+      .widget-sidebar, .settings-panel { width:100%; }
+    }
   </style>
 </head>
 <body>
 <div class="particles" id="particlesContainer"></div>
 <div class="splatter-container" id="splatterContainer"></div>
 
-<div style="position:relative; z-index:2;">
+<div style="position:relative;z-index:2;">
   <header class="topbar">
     <div class="logo">
       <img src="Chromaticc.png" alt="Chromaticc Logo">
@@ -164,70 +187,94 @@
   </header>
 
   <div class="dashboard">
-    <h1>Your Dashboard</h1>
-    <div class="panel-tabs">
-      <button class="panel-tab active" data-panel="general">General</button>
-      <button class="panel-tab" data-panel="sandbox">Sandbox</button>
-      <button class="panel-tab" data-panel="settings">Settings</button>
+    <h1>Dashboard</h1>
+    <div class="tab-bar">
+      <button class="tab active" data-panel="general">General</button>
+      <button class="tab" data-panel="edit">Edit Mode</button>
+      <button class="tab" data-panel="settings">Settings</button>
     </div>
 
     <!-- General Panel -->
-    <div class="panel active" id="generalPanel">
-      <h2>General Overview</h2>
-      <div class="stat-card">
-        <p><strong>Profile Views</strong> <span id="viewCount">1,337</span></p>
-      </div>
-      <div class="stat-card">
-        <p><strong>Total Widgets</strong> <span id="widgetCount">0</span></p>
-      </div>
-      <h3 style="margin-top:20px;">Bio Settings</h3>
-      <textarea id="bioInput" placeholder="Write your bio..." style="width:100%; min-height:80px; background:rgba(255,255,255,0.3); border:1px solid rgba(0,0,0,0.2); border-radius:12px; padding:12px; font-family:inherit; margin-bottom:12px;"></textarea>
-      <button class="btn" id="saveBioBtn">Save Bio</button>
+    <div class="panel active" id="panel-general">
+      <h2>Profile Overview</h2>
+      <p>Views: <strong id="viewCount">--</strong></p>
+      <h3>Quick Toggles</h3>
+      <label><input type="checkbox" id="globalGlass"> Enable Glassmorphism on profile</label><br>
+      <label><input type="checkbox" id="clickToEnter"> Click‑to‑Enter Audio</label><br>
+      <button class="btn" id="openPageSettings">⚙️ Page Settings (Background, Cursor, Favicon)</button>
+    </div>
 
-      <div style="margin-top:20px;">
-        <h3>Quick Toggles</h3>
-        <div class="toggle-row">
-          <span class="toggle-label">Glassmorphism on profile</span>
-          <div class="toggle-switch on" id="toggleGlass"></div>
-        </div>
-        <div class="toggle-row">
-          <span class="toggle-label">Music auto‑play</span>
-          <div class="toggle-switch" id="toggleMusic"></div>
+    <!-- Edit Mode Panel (the beast) -->
+    <div class="panel" id="panel-edit">
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+        <button class="btn" id="saveLayoutBtn">💾 Save Layout</button>
+        <button class="btn danger" id="clearCanvasBtn">Clear All</button>
+      </div>
+      <div class="edit-layout">
+        <!-- Widget sidebar -->
+        <div class="widget-sidebar" id="widgetList"></div>
+        <!-- Canvas -->
+        <div class="canvas-area" id="canvas"></div>
+        <!-- Settings panel for selected widget -->
+        <div class="settings-panel" id="settingsPanel">
+          <h3>Widget Settings</h3>
+          <p id="noWidgetSelected">Select a widget to edit</p>
+          <div id="widgetSettingsForm" style="display:none;"></div>
         </div>
       </div>
     </div>
 
-    <!-- Sandbox Panel (Edit Mode) -->
-    <div class="panel" id="sandboxPanel">
-      <h2>Sandbox – Edit your profile</h2>
-      <p>Enter the visual editor to drag, drop, and code your profile page. <strong>25+ pre‑built widgets</strong> are waiting for you.</p>
-      <div style="margin:24px 0;">
-        <a href="#" class="btn" id="enterEditMode">🔧 Enter Edit Mode</a>
-      </div>
-      <p style="font-size:0.9rem; color:#333;">You'll be taken to <code>yourusername/edit</code> where you can fully customize everything.</p>
-    </div>
-
-    <!-- Settings Panel -->
-    <div class="panel" id="settingsPanel">
+    <!-- Settings Panel (account) -->
+    <div class="panel" id="panel-settings">
       <h2>Account Settings</h2>
-      <form id="passwordForm">
-        <input type="password" id="currentPassword" placeholder="Current password" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid rgba(0,0,0,0.2); background:rgba(255,255,255,0.3);">
-        <input type="password" id="newPassword" placeholder="New password" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid rgba(0,0,0,0.2); background:rgba(255,255,255,0.3);">
-        <button type="submit" class="btn">Change Password</button>
-        <div class="error-msg" id="settingsError" style="color:#b00020; margin-top:8px;"></div>
-      </form>
-      <hr style="margin:24px 0; border-color:rgba(0,0,0,0.2);">
+      <input type="password" id="currentPass" placeholder="Current password"><br>
+      <input type="password" id="newPass" placeholder="New password"><br>
+      <button class="btn" id="changePassBtn">Change Password</button>
+      <hr>
       <button class="btn danger" id="deleteAccountBtn">Delete Account</button>
     </div>
   </div>
 
-  <footer class="footer">
-    <p>Chromaticc &copy; 2026 — <a href="#">GitHub</a> · <a href="https://discord.gg/chrxmaticc" target="_blank">Discord</a></p>
-  </footer>
+  <!-- Page Settings Modal -->
+  <div class="modal-overlay" id="pageSettingsModal" style="display:none;">
+    <div class="modal">
+      <h2>Profile Page Settings</h2>
+      <label>Background Type:
+        <select id="bgType">
+          <option value="solid">Solid Color</option>
+          <option value="gradient">Gradient</option>
+          <option value="image">Image</option>
+          <option value="video">Video</option>
+          <option value="animated">Animated GIF</option>
+        </select>
+      </label>
+      <input type="text" id="bgValue" placeholder="Color/gradient/URL">
+      <label>Custom Cursor URL: <input type="text" id="cursorUrl"></label>
+      <label>Favicon URL: <input type="text" id="faviconUrl"></label>
+      <label>Overlay Effect:
+        <select id="overlayEffect">
+          <option value="none">None</option>
+          <option value="rain">Rain</option>
+          <option value="sparkles">Sparkles</option>
+          <option value="custom">Custom GIF</option>
+        </select>
+      </label>
+      <input type="text" id="overlayValue" placeholder="GIF URL if custom">
+      <button class="btn" id="savePageSettings">Save</button>
+      <button class="btn" onclick="document.getElementById('pageSettingsModal').style.display='none'">Close</button>
+    </div>
+  </div>
 </div>
 
 <script>
-  // ---- particles & splatter ----
+  // ─── AUTH & INIT ───────────────────────────
+  const token = localStorage.getItem('chromaticc_token');
+  const user = JSON.parse(localStorage.getItem('chromaticc_user') || '{}');
+  if (!token || !user.username) window.location.href = '/accounts.html';
+  document.getElementById('usernameDisplay').textContent = `@${user.username}`;
+  document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); window.location.href = '/'; };
+
+  // ─── PARTICLES & SPLATTER ─────────────────
   (function(){
     const pc = document.getElementById('particlesContainer');
     for(let i=0;i<40;i++){
@@ -249,103 +296,307 @@
       img.style.opacity=0.08+Math.random()*0.3;
       sc.appendChild(img);
     }
-    window.addEventListener('load',()=>{
-      document.querySelectorAll('.splatter-img').forEach(i=>i.style.opacity=i.style.opacity);
-    });
   })();
 
-  // ---- Check login & get user info ----
-  const token = localStorage.getItem('chromaticc_token');
-  const userStr = localStorage.getItem('chromaticc_user');
-  if (!token || !userStr) {
-    window.location.href = '/accounts.html';
-  }
-  const user = JSON.parse(userStr);
-  document.getElementById('usernameDisplay').textContent = `@${user.username}`;
-
-  // ---- Panel switching ----
-  const tabs = document.querySelectorAll('.panel-tab');
-  const panels = document.querySelectorAll('.panel');
-  tabs.forEach(tab => {
+  // ─── PANEL SWITCHING ──────────────────────
+  document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      const panelId = tab.dataset.panel + 'Panel';
-      panels.forEach(p => p.classList.remove('active'));
+      const panelId = 'panel-' + tab.dataset.panel;
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       document.getElementById(panelId).classList.add('active');
     });
   });
 
-  // ---- Enter Edit Mode (sandbox) ----
-  document.getElementById('enterEditMode').addEventListener('click', (e) => {
-    e.preventDefault();
-    // Go to /username/edit
-    window.location.href = `/${user.username}/edit`;
-  });
+  // ─── 40+ WIDGET DEFINITIONS ───────────────
+  const widgetTypes = [
+    // Text widgets
+    { type: 'text', name: 'Plain Text', icon: '🔤', default: { content: 'Hello world', fontSize: 16, color: '#000', bold: false } },
+    { type: 'gradient-text', name: 'Gradient Text', icon: '🌈', default: { content: 'Gradient', gradient: 'linear-gradient(90deg, red, blue)', fontSize: 20 } },
+    { type: 'neon-text', name: 'Neon Text', icon: '💡', default: { content: 'Neon', color: '#ff00ff', glow: true, fontSize: 22 } },
+    { type: 'marquee-text', name: 'Marquee Text', icon: '📜', default: { content: 'Scrolling text...', speed: 5 } },
+    // Social widgets
+    { type: 'discord', name: 'Discord Widget', icon: '🎮', default: { serverId: '' } },
+    { type: 'spotify', name: 'Spotify Embed', icon: '🎵', default: { uri: '' } },
+    { type: 'github', name: 'GitHub Card', icon: '🐙', default: { username: '' } },
+    { type: 'twitter', name: 'Twitter Feed', icon: '🐦', default: { username: '' } },
+    { type: 'instagram', name: 'Instagram Embed', icon: '📷', default: { username: '' } },
+    { type: 'youtube', name: 'YouTube Embed', icon: '▶️', default: { videoId: '' } },
+    { type: 'twitch', name: 'Twitch Stream', icon: '🎥', default: { channel: '' } },
+    { type: 'reddit', name: 'Reddit Widget', icon: '🤖', default: { subreddit: '' } },
+    { type: 'tiktok', name: 'TikTok Embed', icon: '🎶', default: { username: '' } },
+    // Media widgets
+    { type: 'image', name: 'Image', icon: '🖼️', default: { url: '', alt: 'image' } },
+    { type: 'video', name: 'Video Player', icon: '🎬', default: { url: '', autoplay: false } },
+    { type: 'audio', name: 'Audio Player', icon: '🎧', default: { url: '', title: 'My track', volume: 80 } },
+    { type: 'youtube-embed', name: 'YouTube Video', icon: '📺', default: { videoId: '' } },
+    { type: 'soundcloud', name: 'SoundCloud', icon: '☁️', default: { trackUrl: '' } },
+    // Design widgets
+    { type: 'divider', name: 'Divider', icon: '➖', default: { style: 'solid', color: '#000', width: 100 } },
+    { type: 'spacer', name: 'Spacer', icon: '⬜', default: { height: 20 } },
+    { type: 'shape', name: 'Shape', icon: '⭕', default: { shape: 'circle', color: '#000', size: 50 } },
+    // Interactive widgets
+    { type: 'clock', name: 'Clock', icon: '🕒', default: { format: '12h', showSeconds: true } },
+    { type: 'discord-status', name: 'Discord Status', icon: '🟢', default: {} },
+    { type: 'spotify-now-playing', name: 'Spotify Now Playing', icon: '🎶', default: {} },
+    { type: 'github-profile', name: 'GitHub Profile', icon: '🐱', default: { username: '' } },
+    // Badge & profile
+    { type: 'badges', name: 'Profile Badges', icon: '🏅', default: { badges: ['OG','Bug Hunter'] } },
+    // Social share card
+    { type: 'share-card', name: 'Social Share Card', icon: '📤', default: { title: 'Check me out', image: '' } },
+    // Link embed
+    { type: 'link-embed', name: 'Custom Link Embed', icon: '🔗', default: { url: '', title: 'My Link' } },
+    // Lyric sync
+    { type: 'lyric-sync', name: 'Lyric Sync Embed', icon: '🎤', default: { audioUrl: '', lrc: '' } },
+    // Click-to-enter overlay (only one)
+    { type: 'click-enter', name: 'Click-to-Enter', icon: '🚪', default: { message: 'Click anywhere to enter' } },
+    // Custom cursor (global, but can be a widget note)
+    { type: 'custom-cursor', name: 'Custom Cursor', icon: '🖱️', default: { url: '' } },
+    // Volume control bar (global or as widget)
+    { type: 'volume-control', name: 'Volume Control', icon: '🔊', default: {} },
+    // Multi-page indicator (visual)
+    { type: 'page-indicator', name: 'Page Indicator', icon: '📄', default: { current: 1, total: 1 } },
+    // Glassmorphism toggle (global)
+    { type: 'glass-toggle', name: 'Glassmorphism', icon: '🪟', default: { enabled: true } },
+    // Overlay effect (global)
+    { type: 'overlay-effect', name: 'Overlay Effect', icon: '✨', default: { effect: 'sparkles', url: '' } },
+    // Background widget (for individual backgrounds)
+    { type: 'background', name: 'Background Section', icon: '🎨', default: { type: 'gradient', value: 'linear-gradient(white, black)' } },
+    // Code injection
+    { type: 'code', name: 'Code Widget', icon: '💻', default: { html: '', css: '', js: '' } },
+    // Social link card
+    { type: 'social-link', name: 'Social Link Card', icon: '🔗', default: { platform: 'discord', url: 'https://discord.gg/...' } },
+    // Media embed player (generic)
+    { type: 'media-embed', name: 'Media Embed', icon: '📡', default: { url: '' } },
+    // Custom font (global setting but can be applied per text)
+    { type: 'font-selector', name: 'Font Selector', icon: '🔠', default: { font: 'Inter' } },
+    // TTF upload note (will be done via global settings)
+    { type: 'ttf-upload', name: 'TTF Upload', icon: '📁', default: {} },
+    // Background animation (for profile background)
+    { type: 'bg-animation', name: 'Background Animation', icon: '🌌', default: { type: 'particles' } },
+    // and more...
+  ];
 
-  // ---- Save Bio (general) ----
-  document.getElementById('saveBioBtn').addEventListener('click', async () => {
-    const bio = document.getElementById('bioInput').value;
+  // ─── EDITOR STATE ──────────────────────────
+  let layout = [];                // array of widget instances
+  let selectedWidgetId = null;
+  let pageSettings = {};
+
+  const canvas = document.getElementById('canvas');
+  const settingsForm = document.getElementById('widgetSettingsForm');
+  const noWidgetMsg = document.getElementById('noWidgetSelected');
+
+  // Load layout from server
+  async function loadLayout() {
     try {
-      const res = await fetch('/api/bio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ bio })
-      });
-      if (!res.ok) throw new Error('Failed to save bio');
-      alert('Bio saved!');
-    } catch (err) {
-      alert('Could not save bio.');
-    }
-  });
-
-  // ---- Toggle switches (visual only for now) ----
-  document.getElementById('toggleGlass').addEventListener('click', function() {
-    this.classList.toggle('on');
-  });
-  document.getElementById('toggleMusic').addEventListener('click', function() {
-    this.classList.toggle('on');
-  });
-
-  // ---- Change Password ----
-  document.getElementById('passwordForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const current = document.getElementById('currentPassword').value;
-    const newPass = document.getElementById('newPassword').value;
-    const errorEl = document.getElementById('settingsError');
-    try {
-      const res = await fetch('/api/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ currentPassword: current, newPassword: newPass })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed');
-      alert('Password changed!');
-      e.target.reset();
-    } catch (err) {
-      errorEl.textContent = err.message;
-    }
-  });
-
-  // ---- Delete Account (just a placeholder) ----
-  document.getElementById('deleteAccountBtn').addEventListener('click', () => {
-    if (confirm('Are you sure? This cannot be undone.')) {
-      fetch('/api/delete-account', {
-        method: 'DELETE',
+      const res = await fetch('/api/get-layout', {
         headers: { 'Authorization': `Bearer ${token}` }
-      }).then(() => {
-        localStorage.clear();
-        window.location.href = '/';
-      }).catch(() => alert('Could not delete account.'));
+      });
+      if (!res.ok) throw new Error('Failed');
+      const data = await res.json();
+      layout = data.layout || [];
+      pageSettings = data.settings || {};
+      renderCanvas();
+    } catch(e) {
+      console.warn('Could not load layout, starting fresh');
+    }
+  }
+
+  // Save layout to server
+  async function saveLayout() {
+    try {
+      await fetch('/api/save-layout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ layout, settings: pageSettings })
+      });
+      alert('Layout saved!');
+    } catch(e) {
+      alert('Save failed');
+    }
+  }
+
+  // Render all widgets on canvas
+  function renderCanvas() {
+    canvas.innerHTML = '';
+    layout.forEach((w, idx) => {
+      const el = document.createElement('div');
+      el.className = 'canvas-widget';
+      el.dataset.id = w.id;
+      el.style.left = w.x + 'px';
+      el.style.top = w.y + 'px';
+      el.style.width = (w.width || 150) + 'px';
+      el.style.height = (w.height || 80) + 'px';
+      el.style.transform = `rotate(${w.rotation || 0}deg)`;
+      el.textContent = w.type + ' #' + w.id.slice(0,4);
+      el.innerHTML += '<div class="resize-handle ne"></div><div class="resize-handle se"></div><div class="resize-handle sw"></div><div class="resize-handle nw"></div><div class="rotate-handle"></div>';
+      canvas.appendChild(el);
+      makeDraggableResizable(el, w);
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectWidget(w.id);
+      });
+    });
+  }
+
+  // Apply interact.js to element
+  function makeDraggableResizable(el, widget) {
+    interact(el)
+      .draggable({
+        listeners: {
+          move(e) {
+            const dx = e.dx, dy = e.dy;
+            widget.x = (widget.x || 0) + dx;
+            widget.y = (widget.y || 0) + dy;
+            el.style.left = widget.x + 'px';
+            el.style.top = widget.y + 'px';
+          }
+        }
+      })
+      .resizable({
+        edges: { top: false, left: false, bottom: false, right: false },
+        listeners: {
+          move(e) {
+            let { x, y } = widget;
+            const width = e.rect.width;
+            const height = e.rect.height;
+            widget.width = width;
+            widget.height = height;
+            el.style.width = width + 'px';
+            el.style.height = height + 'px';
+          }
+        }
+      });
+    // Rotation via rotate handle
+    const rotateHandle = el.querySelector('.rotate-handle');
+    if (rotateHandle) {
+      interact(rotateHandle).draggable({
+        listeners: {
+          move(e) {
+            const angle = Math.atan2(e.dy, e.dx) * (180 / Math.PI);
+            widget.rotation = (widget.rotation || 0) + angle * 0.3;
+            el.style.transform = `rotate(${widget.rotation}deg)`;
+          }
+        }
+      });
+    }
+  }
+
+  // Select widget and show settings
+  function selectWidget(id) {
+    selectedWidgetId = id;
+    document.querySelectorAll('.canvas-widget').forEach(el => el.classList.remove('selected'));
+    const widgetEl = document.querySelector(`.canvas-widget[data-id="${id}"]`);
+    if (widgetEl) widgetEl.classList.add('selected');
+    const widget = layout.find(w => w.id === id);
+    if (!widget) return;
+    noWidgetMsg.style.display = 'none';
+    settingsForm.style.display = 'block';
+    // Build settings form based on widget type
+    const typeDef = widgetTypes.find(t => t.type === widget.type);
+    if (!typeDef) return;
+    let html = `<h4>${typeDef.name}</h4>`;
+    for (const [key, val] of Object.entries(typeDef.default)) {
+      html += `<label>${key}: <input type="text" data-key="${key}" value="${widget.settings?.[key] ?? val}"></label>`;
+    }
+    html += '<button class="btn" id="applySettings">Apply</button>';
+    settingsForm.innerHTML = html;
+    document.getElementById('applySettings').onclick = () => {
+      const inputs = settingsForm.querySelectorAll('input');
+      inputs.forEach(inp => {
+        const key = inp.dataset.key;
+        if (key) {
+          if (!widget.settings) widget.settings = {};
+          widget.settings[key] = inp.value;
+        }
+      });
+      renderCanvas(); // re-render to reflect text change maybe
+    };
+  }
+
+  // Add widget to layout
+  function addWidget(type) {
+    const def = widgetTypes.find(t => t.type === type);
+    if (!def) return;
+    const newWidget = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      type: type,
+      x: 50 + Math.random() * 200,
+      y: 50 + Math.random() * 200,
+      width: 150,
+      height: 80,
+      rotation: 0,
+      settings: { ...def.default }
+    };
+    layout.push(newWidget);
+    renderCanvas();
+  }
+
+  // Populate widget sidebar
+  const widgetListEl = document.getElementById('widgetList');
+  widgetTypes.forEach(wt => {
+    const item = document.createElement('div');
+    item.className = 'widget-list-item';
+    item.textContent = wt.icon + ' ' + wt.name;
+    item.onclick = () => addWidget(wt.type);
+    widgetListEl.appendChild(item);
+  });
+
+  // Canvas click deselect
+  canvas.addEventListener('click', (e) => {
+    if (e.target === canvas) {
+      selectedWidgetId = null;
+      document.querySelectorAll('.canvas-widget').forEach(el => el.classList.remove('selected'));
+      noWidgetMsg.style.display = 'block';
+      settingsForm.style.display = 'none';
     }
   });
 
-  // ---- Logout ----
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.clear();
-    window.location.href = '/';
-  });
+  // Save button
+  document.getElementById('saveLayoutBtn').onclick = saveLayout;
+  // Clear canvas
+  document.getElementById('clearCanvasBtn').onclick = () => {
+    if (confirm('Clear all widgets?')) { layout = []; renderCanvas(); }
+  };
+
+  // Page settings modal
+  document.getElementById('openPageSettings').onclick = () => {
+    document.getElementById('pageSettingsModal').style.display = 'flex';
+  };
+  document.getElementById('savePageSettings').onclick = () => {
+    pageSettings = {
+      background: { type: document.getElementById('bgType').value, value: document.getElementById('bgValue').value },
+      cursor: document.getElementById('cursorUrl').value,
+      favicon: document.getElementById('faviconUrl').value,
+      overlay: { effect: document.getElementById('overlayEffect').value, value: document.getElementById('overlayValue').value }
+    };
+    document.getElementById('pageSettingsModal').style.display = 'none';
+    alert('Page settings saved (save layout to persist)');
+  };
+
+  // Account settings (change password)
+  document.getElementById('changePassBtn').onclick = async () => {
+    const current = document.getElementById('currentPass').value;
+    const newPass = document.getElementById('newPass').value;
+    if (!current || !newPass) return alert('Fill both fields');
+    const res = await fetch('/api/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ currentPassword: current, newPassword: newPass })
+    });
+    if (res.ok) alert('Password changed!');
+    else alert('Failed');
+  };
+  document.getElementById('deleteAccountBtn').onclick = () => {
+    if (confirm('Delete your account forever?')) {
+      fetch('/api/delete-account', { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
+        .then(() => { localStorage.clear(); window.location.href = '/'; });
+    }
+  };
+
+  // Start
+  loadLayout();
 </script>
 </body>
 </html>
