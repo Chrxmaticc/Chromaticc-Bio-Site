@@ -9,6 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
+
+    /* ---- background.jpeg with slow pan ---- */
     body::before {
       content: '';
       position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1;
@@ -47,7 +49,7 @@
       100% { transform: translateY(-10vh) scale(2); opacity:0; }
     }
 
-    /* ---- splatter (floating pngs) ---- */
+    /* ---- splatter (floating character PNGs) ---- */
     .splatter-container {
       position:fixed; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none;
     }
@@ -94,8 +96,13 @@
       font-size:2rem; font-weight:800; margin-bottom:8px;
       background:linear-gradient(135deg,#000,#fff,#444); background-size:200% auto;
       -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      animation: gradientShift 4s ease infinite;
     }
-    .subtitle { font-size:0.9rem; color:#000; margin-bottom:28px; }
+    @keyframes gradientShift {
+      0%,100%{ background-position:0% 50%; }
+      50%{ background-position:100% 50%; }
+    }
+    .subtitle { font-size:0.9rem; color:#000; margin-bottom:24px; }
 
     .tab-row { display:flex; gap:0; margin-bottom:24px; }
     .tab {
@@ -124,7 +131,6 @@
 
     .error-msg { color:#b00020; font-size:0.85rem; min-height:20px; margin-top:8px; }
 
-    /* ---- footer ---- */
     .footer {
       text-align:center; padding:40px; border-top:1px solid rgba(0,0,0,0.2);
       color:#000; font-size:0.85rem; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px);
@@ -139,7 +145,7 @@
 <div class="particles" id="particlesContainer"></div>
 <div class="splatter-container" id="splatterContainer"></div>
 
-<div class="content-wrapper" style="position:relative;z-index:2;">
+<div style="position:relative; z-index:2;">
   <header class="topbar">
     <div class="logo">
       <img src="Chromaticc.png" alt="Chromaticc Logo">
@@ -161,14 +167,16 @@
         <button class="tab active" id="tabLogin">Log in</button>
         <button class="tab" id="tabSignup">Sign up</button>
       </div>
-      <!-- Login form -->
+
+      <!-- Login Form -->
       <form id="loginForm" class="form">
         <input type="text" id="loginUsername" placeholder="Username or email" required>
         <input type="password" id="loginPassword" placeholder="Password" required>
         <button type="submit" class="btn">Enter the chaos</button>
         <div class="error-msg" id="loginError"></div>
       </form>
-      <!-- Signup form (hidden initially) -->
+
+      <!-- Signup Form (hidden by default) -->
       <form id="signupForm" class="form" style="display:none;">
         <input type="text" id="signupUsername" placeholder="Username" required>
         <input type="email" id="signupEmail" placeholder="Email" required>
@@ -186,7 +194,7 @@
 </div>
 
 <script>
-  // ---- particles & splatter (same as index) ----
+  // ---- particles & splatter (same goofy magic) ----
   (function(){
     const pc = document.getElementById('particlesContainer');
     for(let i=0;i<40;i++){
@@ -213,7 +221,7 @@
     });
   })();
 
-  // ---- tab switching ----
+  // ---- Tab Switching ----
   const tabLogin = document.getElementById('tabLogin');
   const tabSignup = document.getElementById('tabSignup');
   const loginForm = document.getElementById('loginForm');
@@ -228,20 +236,18 @@
     signupForm.style.display='flex'; loginForm.style.display='none';
   });
 
-  // ---- API endpoint (adjust to your actual backend) ----
-  // Replace these with your real Cloudflare Worker / Node server URL
-  const API_BASE = '/api';  // e.g., 'https://your-worker.workers.dev/api'
-  const LOGIN_URL = API_BASE + '/login';
-  const SIGNUP_URL = API_BASE + '/signup';
-
-  // ---- check if already logged in (token stored in localStorage) ----
+  // ---- Check if already logged in ----
   const token = localStorage.getItem('chromaticc_token');
   if (token) {
-    // Optionally verify token with backend, but for now just redirect
-    window.location.href = '/dashboard.html';  // or /dashboard
+    // Already logged in -> go to dashboard
+    window.location.href = '/dashboard.html';
   }
 
-  // ---- login handler ----
+  // ---- API endpoints (served by your Vercel serverless functions) ----
+  const LOGIN_URL = '/api/login';
+  const SIGNUP_URL = '/api/signup';
+
+  // ---- Login Handler ----
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('loginUsername').value.trim();
@@ -257,17 +263,19 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
+
       // Save token and user info
       localStorage.setItem('chromaticc_token', data.token);
       localStorage.setItem('chromaticc_user', JSON.stringify(data.user));
-      // Redirect to user's personal page (e.g., /chrome)
-      window.location.href = '/chrome';  // your backend must handle this route
+
+      // Redirect to user's own profile page (e.g., /chrxmaticc)
+      window.location.href = '/' + data.user.username;
     } catch (err) {
       errorEl.textContent = err.message;
     }
   });
 
-  // ---- signup handler ----
+  // ---- Signup Handler ----
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('signupUsername').value.trim();
@@ -290,21 +298,15 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Signup failed');
-      // Auto-login after signup? or redirect to login? we'll auto-login.
+
       localStorage.setItem('chromaticc_token', data.token);
       localStorage.setItem('chromaticc_user', JSON.stringify(data.user));
-      window.location.href = '/chrome';  // fresh profile page
+
+      window.location.href = '/' + data.user.username;
     } catch (err) {
       errorEl.textContent = err.message;
     }
   });
-
-  // Helper to remove token (for logout)
-  function logout() {
-    localStorage.removeItem('chromaticc_token');
-    localStorage.removeItem('chromaticc_user');
-    window.location.href = '/accounts.html';
-  }
 </script>
 </body>
 </html>
