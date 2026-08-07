@@ -486,7 +486,7 @@
         if(key==='src'||key==='url'||key==='audioUrl'||key==='videoUrl') {
           html += `<div class="setting-row"><label>${key} (URL or upload)</label>
             <input type="text" data-key="${key}" value="${cur}" placeholder="Paste URL here...">
-            <input type="file" data-key="${key}" accept="${w.type==='image'?'image/*':w.type==='video'?'video/*':w.type==='audio'?'audio/*':'*'}">
+            <input type="file" data-key="${key}">
             ${cur ? `<small>Current: ${cur}</small>` : ''}
           </div>`;
         } else if(typeof cur==='boolean') {
