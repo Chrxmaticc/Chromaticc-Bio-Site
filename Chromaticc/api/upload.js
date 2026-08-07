@@ -3,8 +3,8 @@ import fs from 'fs';
 
 export const config = {
   api: {
-    bodyParser: false,       // mandatory for formidable
-    maxBodySize: '50mb',     // ← NOW YOU CAN UPLOAD ANY AUDIO / IMAGE
+    bodyParser: false,
+    maxBodySize: '50mb',
   },
 };
 
@@ -39,12 +39,26 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Upload failed');
+    // Try to get the response as text first, so we can log the raw error
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { error: text };
+    }
+
+    if (!response.ok) {
+      console.error('Blob upload error:', data);
+      const msg = typeof data.error === 'string'
+        ? data.error
+        : JSON.stringify(data.error || data);
+      throw new Error(msg);
+    }
 
     return res.status(200).json({ url: data.url });
   } catch (err) {
     console.error('Upload error:', err);
-    return res.status(500).json({ error: 'Upload failed' });
+    return res.status(500).json({ error: err.message || 'Upload failed' });
   }
 }
