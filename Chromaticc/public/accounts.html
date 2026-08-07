@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chromaticc – Account</title>
+  <link rel="icon" type="image/png" href="Chromaticc.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body::before {
+      content: '';
+      position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1;
+      background: url('background.jpeg') center/cover no-repeat fixed;
+      opacity:0.35; filter: brightness(0.6) saturate(0.6);
+      animation: slowPan 50s linear infinite alternate;
+    }
+    @keyframes slowPan {
+      0% { transform: scale(1) translate(0, 0); }
+      100% { transform: scale(1.15) translate(-3%, -2%); }
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(180deg,
+        rgba(255,255,255,0.92) 0%,
+        rgba(224,224,224,0.9) 30%,
+        rgba(128,128,128,0.85) 60%,
+        rgba(26,26,26,0.9) 85%,
+        rgba(0,0,0,0.95) 100%);
+      background-attachment: fixed;
+      color: #000; min-height:100vh; overflow-x:hidden; position:relative;
+    }
+
+    /* ---- silver particles ---- */
+    .particles {
+      position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none;
+    }
+    .particle {
+      position:absolute; background:rgba(192,192,192,0.7); border-radius:50%;
+      width:2px; height:2px; animation: rise linear infinite;
+    }
+    @keyframes rise {
+      0% { transform: translateY(100vh) scale(0); opacity:0; }
+      10% { opacity:1; } 90% { opacity:1; }
+      100% { transform: translateY(-10vh) scale(2); opacity:0; }
+    }
+
+    /* ---- splatter (floating pngs) ---- */
+    .splatter-container {
+      position:fixed; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none;
+    }
+    .splatter-img {
+      position:absolute; opacity:0; transition: opacity 0.8s ease; user-select:none;
+      filter: drop-shadow(0 0 15px rgba(0,0,0,0.3));
+      animation: float 7s ease-in-out infinite;
+      animation-delay: calc(var(--delay) * 1s); will-change:transform;
+    }
+    @keyframes float {
+      0%,100%{ transform: translateY(0px) rotate(var(--rot)); }
+      50%{ transform: translateY(-16px) rotate(var(--rot)); }
+    }
+
+    /* ---- topbar (truly transparent) ---- */
+    .topbar {
+      position:fixed; top:0; left:0; width:100%; padding:16px 40px;
+      display:flex; justify-content:space-between; align-items:center;
+      background:transparent; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(255,255,255,0.08); z-index:1000; color:#fff;
+    }
+    .topbar .logo { display:flex; align-items:center; gap:12px; font-size:1.3rem; font-weight:900; }
+    .topbar .logo img { width:36px; height:36px; border-radius:8px; }
+    .topbar .logo span {
+      background:linear-gradient(135deg,#fff,#aaa);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .topbar nav { display:flex; align-items:center; gap:28px; }
+    .topbar nav a { color:#ccc; text-decoration:none; font-size:0.95rem; font-weight:500; transition:color 0.2s; }
+    .topbar nav a:hover { color:#fff; }
+
+    /* ---- main container ---- */
+    .main {
+      display:flex; justify-content:center; align-items:center; min-height:100vh; padding:120px 20px 40px;
+      position:relative; z-index:2;
+    }
+    .card {
+      background: rgba(255,255,255,0.2); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      border:1px solid rgba(255,255,255,0.2); border-radius:28px;
+      padding:40px 36px; width:100%; max-width:420px;
+      color:#000; box-shadow:0 25px 50px rgba(0,0,0,0.4);
+    }
+    .card h2 {
+      font-size:2rem; font-weight:800; margin-bottom:8px;
+      background:linear-gradient(135deg,#000,#fff,#444); background-size:200% auto;
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .subtitle { font-size:0.9rem; color:#000; margin-bottom:28px; }
+
+    .tab-row { display:flex; gap:0; margin-bottom:24px; }
+    .tab {
+      flex:1; text-align:center; padding:12px; border:none; background:transparent;
+      color:#000; font-weight:600; font-size:1rem; cursor:pointer;
+      border-bottom:2px solid transparent; transition:0.2s;
+    }
+    .tab.active { border-bottom-color:#000; }
+
+    .form { display:flex; flex-direction:column; gap:16px; }
+    .form input {
+      padding:14px 16px; border-radius:14px; border:1px solid rgba(0,0,0,0.2);
+      background:rgba(255,255,255,0.3); backdrop-filter:blur(8px);
+      color:#000; font-size:0.95rem; outline:none; transition:0.2s;
+    }
+    .form input::placeholder { color:rgba(0,0,0,0.5); }
+    .form input:focus { border-color:#000; box-shadow:0 0 0 3px rgba(0,0,0,0.1); }
+
+    .btn {
+      padding:0.9rem; border-radius:14px; font-weight:600; font-size:1rem;
+      background:linear-gradient(135deg,#e0e0e0,#808080); border:none; cursor:pointer;
+      color:#0a0a0a; box-shadow:0 10px 25px rgba(0,0,0,0.3);
+      transition:transform 0.3s, box-shadow 0.3s;
+    }
+    .btn:hover { transform:scale(1.03); box-shadow:0 15px 35px rgba(0,0,0,0.5); }
+
+    .error-msg { color:#b00020; font-size:0.85rem; min-height:20px; margin-top:8px; }
+
+    /* ---- footer ---- */
+    .footer {
+      text-align:center; padding:40px; border-top:1px solid rgba(0,0,0,0.2);
+      color:#000; font-size:0.85rem; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px);
+      position:relative; z-index:2;
+    }
+    .footer a { color:#000; text-decoration:underline; margin:0 8px; font-weight:600; }
+
+    @media(max-width:520px){ .topbar{padding:12px 20px;} .card{padding:28px 20px;} }
+  </style>
+</head>
+<body>
+<div class="particles" id="particlesContainer"></div>
+<div class="splatter-container" id="splatterContainer"></div>
+
+<div class="content-wrapper" style="position:relative;z-index:2;">
+  <header class="topbar">
+    <div class="logo">
+      <img src="Chromaticc.png" alt="Chromaticc Logo">
+      <span>Chromaticc</span>
+    </div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="#">Features</a>
+      <a href="#">Dashboard</a>
+      <a href="#">Docs</a>
+    </nav>
+  </header>
+
+  <div class="main">
+    <div class="card">
+      <h2>Chromaticc</h2>
+      <p class="subtitle">Goofy, yet powerful – your profile awaits.</p>
+      <div class="tab-row">
+        <button class="tab active" id="tabLogin">Log in</button>
+        <button class="tab" id="tabSignup">Sign up</button>
+      </div>
+      <!-- Login form -->
+      <form id="loginForm" class="form">
+        <input type="text" id="loginUsername" placeholder="Username or email" required>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <button type="submit" class="btn">Enter the chaos</button>
+        <div class="error-msg" id="loginError"></div>
+      </form>
+      <!-- Signup form (hidden initially) -->
+      <form id="signupForm" class="form" style="display:none;">
+        <input type="text" id="signupUsername" placeholder="Username" required>
+        <input type="email" id="signupEmail" placeholder="Email" required>
+        <input type="password" id="signupPassword" placeholder="Password" required>
+        <input type="password" id="signupConfirm" placeholder="Confirm password" required>
+        <button type="submit" class="btn">Join the goof troop</button>
+        <div class="error-msg" id="signupError"></div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Chromaticc &copy; 2026 — <a href="#">GitHub</a> · <a href="https://discord.gg/chrxmaticc" target="_blank">Discord</a></p>
+  </footer>
+</div>
+
+<script>
+  // ---- particles & splatter (same as index) ----
+  (function(){
+    const pc = document.getElementById('particlesContainer');
+    for(let i=0;i<40;i++){
+      const p = document.createElement('div'); p.className='particle';
+      p.style.left=Math.random()*100+'%'; p.style.top=Math.random()*100+'%';
+      p.style.animationDuration=(Math.random()*8+6)+'s';
+      p.style.animationDelay=Math.random()*5+'s';
+      pc.appendChild(p);
+    }
+    const sources = ['Chromaticc.png','Chromaticc-Happy.png','Chromaticc-Speaker.png','Chromaticc-Doctor.png'];
+    const sc = document.getElementById('splatterContainer');
+    for(let i=0;i<24;i++){
+      const img = document.createElement('img'); img.src=sources[i%sources.length];
+      img.className='splatter-img';
+      img.style.left=Math.random()*100+'%'; img.style.top=Math.random()*100+'%';
+      img.style.width=(50+Math.random()*200)+'px';
+      img.style.setProperty('--rot',((Math.random()*40)-20)+'deg');
+      img.style.setProperty('--delay',Math.random()*6);
+      img.style.opacity=0.08+Math.random()*0.3;
+      sc.appendChild(img);
+    }
+    window.addEventListener('load',()=>{
+      document.querySelectorAll('.splatter-img').forEach(i=>i.style.opacity=i.style.opacity);
+    });
+  })();
+
+  // ---- tab switching ----
+  const tabLogin = document.getElementById('tabLogin');
+  const tabSignup = document.getElementById('tabSignup');
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+
+  tabLogin.addEventListener('click', ()=>{
+    tabLogin.classList.add('active'); tabSignup.classList.remove('active');
+    loginForm.style.display='flex'; signupForm.style.display='none';
+  });
+  tabSignup.addEventListener('click', ()=>{
+    tabSignup.classList.add('active'); tabLogin.classList.remove('active');
+    signupForm.style.display='flex'; loginForm.style.display='none';
+  });
+
+  // ---- API endpoint (adjust to your actual backend) ----
+  // Replace these with your real Cloudflare Worker / Node server URL
+  const API_BASE = '/api';  // e.g., 'https://your-worker.workers.dev/api'
+  const LOGIN_URL = API_BASE + '/login';
+  const SIGNUP_URL = API_BASE + '/signup';
+
+  // ---- check if already logged in (token stored in localStorage) ----
+  const token = localStorage.getItem('chromaticc_token');
+  if (token) {
+    // Optionally verify token with backend, but for now just redirect
+    window.location.href = '/dashboard.html';  // or /dashboard
+  }
+
+  // ---- login handler ----
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorEl = document.getElementById('loginError');
+    errorEl.textContent = '';
+
+    try {
+      const res = await fetch(LOGIN_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Login failed');
+      // Save token and user info
+      localStorage.setItem('chromaticc_token', data.token);
+      localStorage.setItem('chromaticc_user', JSON.stringify(data.user));
+      // Redirect to user's personal page (e.g., /chrome)
+      window.location.href = '/chrome';  // your backend must handle this route
+    } catch (err) {
+      errorEl.textContent = err.message;
+    }
+  });
+
+  // ---- signup handler ----
+  signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('signupUsername').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirm = document.getElementById('signupConfirm').value;
+    const errorEl = document.getElementById('signupError');
+    errorEl.textContent = '';
+
+    if (password !== confirm) {
+      errorEl.textContent = 'Passwords do not match';
+      return;
+    }
+
+    try {
+      const res = await fetch(SIGNUP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Signup failed');
+      // Auto-login after signup? or redirect to login? we'll auto-login.
+      localStorage.setItem('chromaticc_token', data.token);
+      localStorage.setItem('chromaticc_user', JSON.stringify(data.user));
+      window.location.href = '/chrome';  // fresh profile page
+    } catch (err) {
+      errorEl.textContent = err.message;
+    }
+  });
+
+  // Helper to remove token (for logout)
+  function logout() {
+    localStorage.removeItem('chromaticc_token');
+    localStorage.removeItem('chromaticc_user');
+    window.location.href = '/accounts.html';
+  }
+</script>
+</body>
+</html>
