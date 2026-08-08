@@ -149,14 +149,20 @@ export default async function handler(req, res) {
 
     let globalStyles = '';
     if (settings.background && settings.background.value) {
-      const bg = settings.background;
-      if (bg.type === 'image' || bg.type === 'video') {
-        const cleanUrl = bg.value.replace(/^url\(['"]?|['"]?\)$/g, '');
-        globalStyles += `body{background:url('${cleanUrl}') center/cover fixed;}`;
-      } else {
-        globalStyles += `body{background:${bg.value};}`;
-      }
-    }
+  const bg = settings.background;
+  const raw = bg.value.trim();
+
+  // If it looks like a URL or a blob, always wrap with url()
+  if (/^(https?:\/\/|blob:|data:)/i.test(raw)) {
+    globalStyles += `body{background:url('${raw}') center/cover fixed;}`;
+  } else if (bg.type === 'image' || bg.type === 'video') {
+    // fallback – but this shouldn't be needed with the above check
+    globalStyles += `body{background:url('${raw}') center/cover fixed;}`;
+  } else {
+    // CSS gradient or color – use as‑is
+    globalStyles += `body{background:${raw};}`;
+  }
+}
     if (settings.cursor) globalStyles += `body{cursor:url('${settings.cursor}'),auto;}`;
     if (settings.favicon) globalStyles += `<link rel="icon" href="${settings.favicon}">`;
 
