@@ -265,7 +265,13 @@
         <button id="duplicateBtn">📋 Duplicate</button>
         <button id="deleteBtn" class="danger">🗑 Delete</button>
         <span style="margin-left:auto;">Snap: <input type="checkbox" id="snapToggle" checked></span>
-        <span>Zoom: <input type="range" id="zoomSlider" min="50" max="200" value="100" style="width:80px;"></span>
+        <span>Zoom: 
+  <button id="zoomPhoneBtn" style="padding:4px 8px; border-radius:6px;">50%</button>
+  <button id="zoomTabletBtn" style="padding:4px 8px; border-radius:6px;">75%</button>
+  <button id="zoomDesktopBtn" style="padding:4px 8px; border-radius:6px;">100%</button>
+  <input type="range" id="zoomSlider" min="10" max="300" value="100" style="width:120px;">
+  <span id="zoomValue">100%</span>
+</span>
         <button id="previewBtn">👁 Preview</button>
         <button id="liveEditBtn">▶ Live Edit</button>
       </div>
