@@ -74,21 +74,36 @@ function renderWidget(widget) {
       return `<a href="${esc(s.url)}" target="_blank" style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); border-radius:12px; text-decoration:none; color:#000; padding:8px;">${esc(s.title)}</a>`;
     case 'lyric-sync':
       return `<div style="${style} display:flex; flex-direction:column; overflow:auto;"><audio controls src="${esc(s.audioUrl)}" style="width:100%;"></audio><pre style="margin:0; font-size:0.8rem;">${esc(s.lrc||'No lyrics')}</pre></div>`;
-    case 'click-enter':
-      let clickJS = '';
-      if (s.audioEnabled && s.audioUrl) {
-        clickJS = `<script>
-          (function(){
-            const audio = new Audio('${esc(s.audioUrl)}');
-            const overlay = document.getElementById('clickEnter');
-            if (overlay) {
-              overlay.addEventListener('click', () => { audio.play(); });
-            } else {
-              document.body.addEventListener('click', function firstClick() { audio.play(); document.body.removeEventListener('click', firstClick); });
-            }
-          })();
-        </script>`;
-      }
+     case 'click-enter':
+  let clickJS = '';
+  if (s.audioEnabled && s.audioUrl) {
+    clickJS = `<script>
+      (function(){
+        const audio = new Audio('${esc(s.audioUrl)}');
+        const overlay = document.getElementById('clickEnter');
+        if (overlay) {
+          overlay.addEventListener('click', function() {
+            audio.play().catch(function(){});
+            overlay.remove();
+          });
+        } else {
+          // If no overlay (e.g. global Click-to-Enter is off), play on first body click
+          document.body.addEventListener('click', function firstClick() {
+            audio.play().catch(function(){});
+            document.body.removeEventListener('click', firstClick);
+          });
+        }
+      })();
+    </script>`;
+  } else {
+    // Always remove overlay on click, even without audio
+    clickJS = `<script>
+      document.getElementById('clickEnter').addEventListener('click', function() {
+        this.remove();
+      });
+    </script>`;
+  }
+  return `<div id="clickEnter" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; cursor:pointer;"><h2 style="color:#fff;">${esc(s.message||'Click anywhere to enter')}</h2></div>${clickJS}`;
       return `<div id="clickEnter" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; cursor:pointer;"><h2 style="color:#fff;">${esc(s.message||'Click anywhere to enter')}</h2></div>${clickJS}`;
     case 'custom-cursor':
       return `<style>body{cursor:url('${esc(s.url)}'),auto;}</style>`;
