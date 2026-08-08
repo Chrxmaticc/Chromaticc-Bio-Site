@@ -163,6 +163,7 @@ export default async function handler(req, res) {
     globalStyles += `body{background:${raw};}`;
   }
 }
+globalStyles += `.profile-canvas { background: transparent !important; }`;
     if (settings.cursor) globalStyles += `body{cursor:url('${settings.cursor}'),auto;}`;
     if (settings.favicon) globalStyles += `<link rel="icon" href="${settings.favicon}">`;
 
