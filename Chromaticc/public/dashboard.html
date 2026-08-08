@@ -536,7 +536,7 @@
     canvas.addEventListener('click', e => { if(e.target===canvas||e.target.classList.contains('canvas-area')){ selectedId=null; document.querySelectorAll('.canvas-widget').forEach(el=>el.classList.remove('selected')); noWidget.style.display='block'; settingsDiv.style.display='none'; } });
 
     // Page settings modal – FIXED BACKGROUND
-    document.getElementById('openPageSettings').onclick = () => document.getElementById('pageSettingsModal').style.display='flex';
+  document.getElementById('openPageSettings').onclick = () => document.getElementById('pageSettingsModal').style.display='flex';
 document.getElementById('savePageSettings').onclick = async () => {
   const bgType = document.getElementById('bgType').value;   // 'css', 'image', 'video'
   const file = document.getElementById('bgFile').files[0];
