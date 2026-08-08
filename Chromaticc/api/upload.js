@@ -4,8 +4,8 @@ import fs from 'fs';
 
 export const config = {
   api: {
-    bodyParser: false,
-    maxBodySize: '50mb',
+    bodyParser: false,       // let formidable handle the multipart
+    maxBodySize: '100mb',    // never 413 again
   },
 };
 
@@ -24,10 +24,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // The SDK reads the file, detects MIME type, and sets Content-Type correctly
-    const blob = await put(file.originalFilename, fs.readFileSync(file.filepath), {
+    const fileBuffer = fs.readFileSync(file.filepath);
+
+    // The SDK uses the BLOB_READ_WRITE_TOKEN env var automatically
+    const blob = await put(file.originalFilename, fileBuffer, {
       access: 'public',
-      contentType: file.mimetype,   // use the detected MIME type from the upload
+      contentType: file.mimetype,
     });
 
     return res.status(200).json({ url: blob.url });
