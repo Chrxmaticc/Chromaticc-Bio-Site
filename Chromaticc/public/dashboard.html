@@ -440,9 +440,12 @@
 
     async function loadLayout() {
       try { const res = await fetch('/api/get-layout', { headers:{Authorization:`Bearer ${token}`} }); const data = await res.json(); layout = data.layout || []; pageSettings = data.settings || {}; renderCanvas(); populateSimplified(); } catch(e){}
+      layout = layout.filter(w => w.type !== 'background' && w.type !== 'bg-animation');
+      
     }
     async function saveLayout() {
       try {
+        layout = layout.filter(w => w.type !== 'background' && w.type !== 'bg-animation');
         await fetch('/api/save-layout', { method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`}, body:JSON.stringify({layout, settings:pageSettings}) });
         showToast('Layout saved!');
         // Refresh the live edit iframe if open
