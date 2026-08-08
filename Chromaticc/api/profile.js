@@ -11,17 +11,17 @@ function renderWidget(widget) {
   const s = widget.settings || {};
   const style = `position:absolute; left:${widget.x}%; top:${widget.y}%; width:${widget.w}%; height:${widget.h}%; transform:rotate(${widget.rotation||0}deg);`;
 
-  switch(widget.type) {
+  switch (widget.type) {
     case 'text':
       if (s.style === 'gradient') return `<div style="${style} font-size:${s.fontSize}px; background:${s.gradient}; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-family:${s.fontFamily||'Inter'}; font-weight:${s.bold?'bold':'normal'}; font-style:${s.italic?'italic':'normal'}; text-align:${s.align||'left'};">${esc(s.content)}</div>`;
       if (s.style === 'neon') return `<div style="${style} font-size:${s.fontSize}px; color:${s.color}; text-shadow:0 0 10px ${s.color},0 0 20px ${s.color}; font-weight:${s.bold?'bold':'normal'}; font-style:${s.italic?'italic':'normal'}; text-align:${s.align||'left'};">${esc(s.content)}</div>`;
       return `<div style="${style} font-size:${s.fontSize}px; color:${s.color}; font-weight:${s.bold?'bold':'normal'}; font-style:${s.italic?'italic':'normal'}; text-align:${s.align||'left'}; font-family:${s.fontFamily||'Inter'};">${esc(s.content)}</div>`;
 
     case 'profile-circle':
-      return `<div style="${style} display:flex; align-items:center; justify-content:center;"><img src="${esc(s.src)}" style="width:100%; height:100%; border-radius:50%; border:${s.borderWidth||2}px solid ${s.borderColor||'#000'}; object-fit:cover;"></div>`;
+      return `<div style="${style} display:flex; align-items:center; justify-content:center;"><img src="${esc(s.src)}" style="width:100%; height:100%; border-radius:50%; border:${s.borderWidth||2}px solid ${s.borderColor||'#000'}; object-fit:cover;" onerror="this.style.display='none'"></div>`;
 
     case 'image':
-      return `<img src="${esc(s.src)}" alt="${esc(s.alt)}" style="${style} object-fit:${s.objectFit||'cover'}; border-radius:12px;">`;
+      return `<img src="${esc(s.src)}" alt="${esc(s.alt)}" style="${style} object-fit:${s.objectFit||'cover'}; border-radius:12px;" onerror="this.style.display='none'">`;
 
     case 'video':
       return `<video src="${esc(s.src)}" ${s.controls?'controls':''} ${s.autoplay?'autoplay':''} ${s.loop?'loop':''} style="${style} border-radius:12px;"></video>`;
@@ -31,6 +31,12 @@ function renderWidget(widget) {
         return `<div style="${style} background:rgba(255,255,255,0.15); backdrop-filter:blur(20px); border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:6px;"><div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:600;"><span>${esc(s.title||'Unknown')}</span><span>${esc(s.artist||'')}</span></div><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
       }
       return `<div style="${style} display:flex; flex-direction:column; justify-content:center;"><strong>${esc(s.title||'Track')}</strong><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
+
+    case 'section-divider':
+      return `<div style="position:absolute; left:0; top:${widget.y}%; width:100vw; height:${widget.h}%; transform:rotate(${widget.rotation||0}deg); display:flex; align-items:center; justify-content:center;">
+        <hr style="border:none; border-top:${s.thickness||2}px ${s.style||'solid'} ${s.color||'#000'}; width:100%;">
+        ${s.label ? `<span style="position:absolute; background:inherit; padding:0 10px; color:${s.color||'#000'};">${esc(s.label)}</span>` : ''}
+      </div>`;
 
     case 'youtube':
       return `<iframe style="${style} border:0;" src="https://www.youtube.com/embed/${esc(s.videoId)}" allowfullscreen></iframe>`;
@@ -69,7 +75,21 @@ function renderWidget(widget) {
     case 'lyric-sync':
       return `<div style="${style} display:flex; flex-direction:column; overflow:auto;"><audio controls src="${esc(s.audioUrl)}" style="width:100%;"></audio><pre style="margin:0; font-size:0.8rem;">${esc(s.lrc||'No lyrics')}</pre></div>`;
     case 'click-enter':
-      return `<div id="clickEnter" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; cursor:pointer;"><h2 style="color:#fff;">${esc(s.message||'Click anywhere to enter')}</h2></div><script>document.getElementById('clickEnter').addEventListener('click',function(){this.remove();});</script>`;
+      let clickJS = '';
+      if (s.audioEnabled && s.audioUrl) {
+        clickJS = `<script>
+          (function(){
+            const audio = new Audio('${esc(s.audioUrl)}');
+            const overlay = document.getElementById('clickEnter');
+            if (overlay) {
+              overlay.addEventListener('click', () => { audio.play(); });
+            } else {
+              document.body.addEventListener('click', function firstClick() { audio.play(); document.body.removeEventListener('click', firstClick); });
+            }
+          })();
+        </script>`;
+      }
+      return `<div id="clickEnter" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; cursor:pointer;"><h2 style="color:#fff;">${esc(s.message||'Click anywhere to enter')}</h2></div>${clickJS}`;
     case 'custom-cursor':
       return `<style>body{cursor:url('${esc(s.url)}'),auto;}</style>`;
     case 'volume-control':
@@ -108,7 +128,7 @@ export default async function handler(req, res) {
     const user = userRes.rows[0];
 
     const layoutRes = await pool.query('SELECT layout_data FROM profiles WHERE user_id=$1', [user.id]);
-    const data = layoutRes.rows[0]?.layout_data || { layout:[], settings:{} };
+    const data = layoutRes.rows[0]?.layout_data || { layout: [], settings: {} };
     const widgets = data.layout || [];
     const settings = data.settings || {};
 
@@ -127,8 +147,9 @@ export default async function handler(req, res) {
 
     let clickEnterHTML = '';
     if (settings.clickToEnter) {
-      clickEnterHTML = `<div id="globalClickEnter" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; cursor:pointer;"><h2 style="color:#fff;">Click anywhere to enter</h2></div>
-      <script>document.getElementById('globalClickEnter').addEventListener('click',function(){this.remove();});</script>`;
+      clickEnterHTML = `<div id="globalClickEnter" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; cursor:pointer;"><h2 style="color:#fff;">Click anywhere to enter</h2></div>`;
+      // If there's a click-enter widget with audio, we handle the audio there; else we add a generic script
+      clickEnterHTML += `<script>document.getElementById('globalClickEnter').addEventListener('click', function(){ this.remove(); });</script>`;
     }
 
     const widgetsHTML = widgets.map(w => renderWidget(w)).join('\n');
