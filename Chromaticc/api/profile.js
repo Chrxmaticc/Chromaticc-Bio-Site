@@ -17,12 +17,12 @@ function renderWidget(widget) {
     // ── Text widgets ──
     case 'text':
       if (s.style === 'gradient') {
-        return `<div style="${style} font-size:${s.fontSize}px; background:${s.gradient}; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-family:${s.fontFamily || 'Inter'}; font-weight:${s.bold ? 'bold' : 'normal'}; font-style:${s.italic ? 'italic' : 'normal'}; text-align:${s.align || 'left'};">${esc(s.content)}</div>`;
+        return `<div style="${style} font-size:${s.fontSize}px; background:${s.gradient}; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-family:${s.fontFamily || 'Inter'}; font-weight:${s.bold ? 'bold' : 'normal'}; font-style:${s.italic ? 'italic' : 'normal'}; text-align:${s.align || 'left'}; overflow:hidden;">${esc(s.content)}</div>`;
       }
       if (s.style === 'neon') {
-        return `<div style="${style} font-size:${s.fontSize}px; color:${s.color}; text-shadow:0 0 10px ${s.color},0 0 20px ${s.color}; font-weight:${s.bold ? 'bold' : 'normal'}; font-style:${s.italic ? 'italic' : 'normal'}; text-align:${s.align || 'left'};">${esc(s.content)}</div>`;
+        return `<div style="${style} font-size:${s.fontSize}px; color:${s.color}; text-shadow:0 0 10px ${s.color},0 0 20px ${s.color}; font-weight:${s.bold ? 'bold' : 'normal'}; font-style:${s.italic ? 'italic' : 'normal'}; text-align:${s.align || 'left'}; overflow:hidden;">${esc(s.content)}</div>`;
       }
-      return `<div style="${style} font-size:${s.fontSize}px; color:${s.color}; font-weight:${s.bold ? 'bold' : 'normal'}; font-style:${s.italic ? 'italic' : 'normal'}; text-align:${s.align || 'left'}; font-family:${s.fontFamily || 'Inter'};">${esc(s.content)}</div>`;
+      return `<div style="${style} font-size:${s.fontSize}px; color:${s.color}; font-weight:${s.bold ? 'bold' : 'normal'}; font-style:${s.italic ? 'italic' : 'normal'}; text-align:${s.align || 'left'}; font-family:${s.fontFamily || 'Inter'}; overflow:hidden;">${esc(s.content)}</div>`;
 
     // ── Profile Circle ──
     case 'profile-circle':
@@ -37,18 +37,18 @@ function renderWidget(widget) {
 
     case 'audio':
       if (s.mode === 'glass') {
-        return `<div style="${style} background:rgba(255,255,255,0.15); backdrop-filter:blur(20px); border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:6px;">
+        return `<div style="${style} background:rgba(255,255,255,0.15); backdrop-filter:blur(20px); border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:6px; overflow:hidden;">
           <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:600;">
             <span>${esc(s.title || 'Unknown')}</span><span>${esc(s.artist || '')}</span>
           </div>
           <audio controls src="${esc(s.src)}" style="width:100%;"></audio>
         </div>`;
       }
-      return `<div style="${style} display:flex; flex-direction:column; justify-content:center;"><strong>${esc(s.title || 'Track')}</strong><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
+      return `<div style="${style} display:flex; flex-direction:column; justify-content:center; overflow:hidden;"><strong>${esc(s.title || 'Track')}</strong><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
 
-    // ── Section Divider ──
+    // ── Section Divider (spans full width, uses widget y and height) ──
     case 'section-divider':
-      return `<div style="position:absolute; left:0; top:${widget.y}%; width:100vw; height:${widget.h}%; transform:rotate(${widget.rotation || 0}deg); display:flex; align-items:center; justify-content:center;">
+      return `<div style="position:absolute; left:0; top:${widget.y}%; width:100%; height:${widget.h}%; transform:rotate(${widget.rotation || 0}deg); display:flex; align-items:center; justify-content:center; overflow:hidden;">
         <hr style="border:none; border-top:${s.thickness || 2}px ${s.style || 'solid'} ${s.color || '#000'}; width:100%;">
         ${s.label ? `<span style="position:absolute; background:inherit; padding:0 10px; color:${s.color || '#000'};">${esc(s.label)}</span>` : ''}
       </div>`;
@@ -77,31 +77,32 @@ function renderWidget(widget) {
 
     // ── Utility widgets ──
     case 'clock':
-      return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:${s.fontSize || 24}px; font-weight:bold;" id="clock-${widget.id}"></div>
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:${s.fontSize || 24}px; font-weight:bold; overflow:hidden;" id="clock-${widget.id}"></div>
         <script>(function(){const el=document.getElementById('clock-${widget.id}');setInterval(()=>{el.textContent=new Date().toLocaleTimeString('en-US',{hour12:${s.format === '12h'},second:${s.showSeconds}});},1000);})();</script>`;
 
     case 'badges':
       const badges = s.badges || ['OG', 'Beta'];
-      return `<div style="${style} display:flex; flex-wrap:wrap; gap:6px; align-items:center;">${badges.map(b => `<span style="background:#000;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px;">${esc(b)}</span>`).join('')}</div>`;
+      return `<div style="${style} display:flex; flex-wrap:wrap; gap:6px; align-items:center; overflow:hidden;">${badges.map(b => `<span style="background:#000;color:#fff;padding:4px 10px;border-radius:20px;font-size:12px;">${esc(b)}</span>`).join('')}</div>`;
 
     case 'shape':
       const shapeStyle = s.shape === 'circle' ? 'border-radius:50%;' : '';
-      return `<div style="${style} background:${s.color}; ${shapeStyle}"></div>`;
+      return `<div style="${style} background:${s.color}; ${shapeStyle} overflow:hidden;"></div>`;
 
     case 'divider':
       return `<hr style="${style} border-top:2px ${s.style} ${s.color}; width:100%; margin:0; position:absolute; top:50%; left:0; transform:translateY(-50%);">`;
 
     case 'social-link':
-      return `<a href="${esc(s.url)}" target="_blank" style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); border-radius:12px; text-decoration:none; color:#000; font-weight:600;">${esc(s.label)}</a>`;
+      return `<a href="${esc(s.url)}" target="_blank" style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); border-radius:12px; text-decoration:none; color:#000; font-weight:600; overflow:hidden;">${esc(s.label)}</a>`;
 
     case 'link-embed':
-      return `<a href="${esc(s.url)}" target="_blank" style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); border-radius:12px; text-decoration:none; color:#000; padding:8px;">${esc(s.title)}</a>`;
+      return `<a href="${esc(s.url)}" target="_blank" style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); border-radius:12px; text-decoration:none; color:#000; padding:8px; overflow:hidden;">${esc(s.title)}</a>`;
 
     case 'lyric-sync':
       return `<div style="${style} display:flex; flex-direction:column; overflow:auto;"><audio controls src="${esc(s.audioUrl)}" style="width:100%;"></audio><pre style="margin:0; font-size:0.8rem;">${esc(s.lrc || 'No lyrics')}</pre></div>`;
 
     // ── Interactive / overlay widgets ──
     case 'click-enter':
+      // Fixed overlay, not affected by widget position
       let clickJS = '';
       if (s.audioEnabled && s.audioUrl) {
         clickJS = `<script>
@@ -142,8 +143,10 @@ function renderWidget(widget) {
     case 'overlay-effect':
       return `<div style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; ${s.effect === 'rain' ? 'background:url(data:image/svg+xml,...);' : ''}${s.effect === 'sparkles' ? 'animation: sparkle 2s infinite;' : ''}"></div>`;
 
+    // ── Code Widget (now fully positionable!) ──
     case 'code':
-      return `<div>${s.html || ''}<style>${s.css || ''}</style><script>${s.js || ''}<\/script></div>`;
+      // Wrap raw HTML in a positioned container so it obeys widget position/size
+      return `<div style="${style} overflow:hidden;">${s.html || ''}<style>${s.css || ''}</style><script>${s.js || ''}<\/script></div>`;
 
     case 'font-selector':
       return `<style>body * { font-family: '${s.font}', sans-serif; }</style>`;
@@ -152,9 +155,9 @@ function renderWidget(widget) {
       return '';
 
     case 'page-indicator':
-      return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:0.9rem; color:#666;">Page ${s.current} of ${s.total}</div>`;
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:0.9rem; color:#666; overflow:hidden;">Page ${s.current} of ${s.total}</div>`;
 
-    // ── Theme Switcher (ChromeUniversal) ──
+    // ── Theme Switcher (fixed bottom‑right panel) ──
     case 'theme-switcher': {
       const themesCSS = {
         red: `*:not([class*="a-f"]):not([class*="0-9"]){background-color:#2d0000!important;color:#ffcccc!important;border-color:#550000!important}a{color:#ff6666!important}`,
@@ -165,7 +168,7 @@ function renderWidget(widget) {
         black: `*:not([class*="a-f"]):not([class*="0-9"]){background-color:#000000!important;color:#cccccc!important;border-color:#333!important}a{color:#888!important}`,
       };
       const activeThemes = s.themes || ['red', 'blue'];
-      let panelHTML = `<div id="theme-panel" style="position:fixed;bottom:20px;right:20px;z-index:99999;background:rgba(18,18,18,0.9);backdrop-filter:blur(12px);border:1px solid rgba(192,192,192,0.2);border-radius:16px;padding:12px;color:#e0e0e0;font-family:Inter,sans-serif;width:200px;box-shadow:0 10px 25px rgba(0,0,0,0.7);">
+      let panelHTML = `<div id="theme-panel" style="position:fixed; bottom:20px; right:20px; z-index:99999; background:rgba(18,18,18,0.9); backdrop-filter:blur(12px); border:1px solid rgba(192,192,192,0.2); border-radius:16px; padding:12px; color:#e0e0e0; font-family:Inter,sans-serif; width:200px; box-shadow:0 10px 25px rgba(0,0,0,0.7);">
         <h3 style="font-size:14px;margin:0 0 8px;color:#fff;">Theme</h3>
         <button onclick="document.getElementById('theme-panel').remove()" style="position:absolute;top:6px;right:8px;background:none;border:none;color:#888;cursor:pointer;font-size:16px;">✕</button>`;
       activeThemes.forEach(theme => {
@@ -176,7 +179,7 @@ function renderWidget(widget) {
     }
 
     default:
-      return `<div style="${style} border:1px dashed #ccc; display:flex; align-items:center; justify-content:center;">${widget.type}</div>`;
+      return `<div style="${style} border:1px dashed #ccc; display:flex; align-items:center; justify-content:center; overflow:hidden;">${widget.type}</div>`;
   }
 }
 
@@ -205,12 +208,11 @@ export default async function handler(req, res) {
     const widgets = data.layout || [];
     const settings = data.settings || {};
 
-    // Global styles (cursor, favicon, etc.)
     let globalStyles = '';
     if (settings.cursor) globalStyles += `body{cursor:url('${settings.cursor}'),auto;}`;
     if (settings.favicon) globalStyles += `<link rel="icon" href="${settings.favicon}">`;
 
-    // ── UNBREAKABLE BACKGROUND ENGINE ──
+    // ── Background engine ──
     let bodyStyle = '';
     if (settings.background && settings.background.value) {
       const bg = settings.background;
@@ -221,7 +223,7 @@ export default async function handler(req, res) {
       } else if (bg.type === 'image' || bg.type === 'video') {
         bgRule = `url('${raw}') center/cover fixed`;
       } else {
-        bgRule = raw;   // gradient or color
+        bgRule = raw;
       }
       bodyStyle = `background: ${bgRule} !important;`;
     }
@@ -233,10 +235,8 @@ export default async function handler(req, res) {
       <script>document.getElementById('globalClickEnter').addEventListener('click', function(){ this.remove(); });</script>`;
     }
 
-    // Render widgets
     const widgetsHTML = widgets.map(w => renderWidget(w)).join('\n');
 
-    // Build final HTML with inline body background + transparent canvas
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><title>${user.username} — Chromaticc</title>${globalStyles}
