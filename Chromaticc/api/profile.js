@@ -277,56 +277,76 @@ function renderWidget(widget) {
     }
 
     // Audio Visualizer (real‑time bars using Web Audio API)
-    case 'audio-visualizer': {
-      const widgetId = 'viz-' + widget.id;
-      return `<div style="${style} overflow:hidden;">
-        <canvas id="${widgetId}-canvas" style="width:100%; height:100%;"></canvas>
-        <audio id="${widgetId}-audio" src="${esc(s.src)}" crossorigin="anonymous" style="display:none;"></audio>
-        <script>
-          (function(){
-            const canvas = document.getElementById('${widgetId}-canvas');
-            const ctx = canvas.getContext('2d');
-            const audio = document.getElementById('${widgetId}-audio');
-            const color = '${s.color || '#ffffff'}';
-            const mode = '${s.mode || 'bars'}';
-            let audioCtx, analyser, source;
+   case 'audio-visualizer': {
+  const widgetId = 'viz-' + widget.id;
+  const src = s.src || '';
+  const color = s.color || '#ffffff';
+  const mode = s.mode || 'bars';
 
-            function startVisualizer() {
-              if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioCtx.createAnalyser();
-                source = audioCtx.createMediaElementSource(audio);
-                source.connect(analyser);
-                analyser.connect(audioCtx.destination);
-              }
-              canvas.width = canvas.offsetWidth;
-              canvas.height = canvas.offsetHeight;
-              const bufferLength = analyser.frequencyBinCount;
-              const dataArray = new Uint8Array(bufferLength);
+  // If no audio source, show a placeholder
+  if (!src) {
+    return `<div style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1); border-radius:8px; color:#fff; font-size:0.8rem; overflow:hidden;">
+      <span>🎵 No audio source – upload a track</span>
+    </div>`;
+  }
 
-              function draw() {
-                requestAnimationFrame(draw);
-                analyser.getByteFrequencyData(dataArray);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = color;
-                const barWidth = (canvas.width / bufferLength) * 2.5;
-                let x = 0;
-                for (let i = 0; i < bufferLength; i++) {
-                  const barHeight = (dataArray[i] / 255) * canvas.height;
-                  ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                  x += barWidth + 1;
-                }
+  return `<div style="${style} overflow:hidden;">
+    <canvas id="${widgetId}-canvas" style="width:100%; height:100%;"></canvas>
+    <audio id="${widgetId}-audio" src="${esc(src)}" crossorigin="anonymous" style="display:none;"></audio>
+    <script>
+      (function(){
+        const canvas = document.getElementById('${widgetId}-canvas');
+        const ctx = canvas.getContext('2d');
+        const audio = document.getElementById('${widgetId}-audio');
+        const color = '${color}';
+        const mode = '${mode}';
+        let audioCtx, analyser, source;
+
+        function startVisualizer() {
+          if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            source = audioCtx.createMediaElementSource(audio);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+          }
+          canvas.width = canvas.offsetWidth;
+          canvas.height = canvas.offsetHeight;
+          const bufferLength = analyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+
+          function draw() {
+            requestAnimationFrame(draw);
+            analyser.getByteFrequencyData(dataArray);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = color;
+            if (mode === 'bars') {
+              const barWidth = (canvas.width / bufferLength) * 2.5;
+              let x = 0;
+              for (let i = 0; i < bufferLength; i++) {
+                const barHeight = (dataArray[i] / 255) * canvas.height;
+                ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                x += barWidth + 1;
               }
-              audio.play();
-              draw();
+            } else if (mode === 'circle') {
+              // Simple circle visualizer (optional)
+              const centerX = canvas.width / 2;
+              const centerY = canvas.height / 2;
+              const radius = Math.min(canvas.width, canvas.height) / 4;
+              ctx.beginPath();
+              ctx.arc(centerX, centerY, radius + (dataArray[0] / 255) * 30, 0, 2 * Math.PI);
+              ctx.stroke();
             }
+          }
+          audio.play();
+          draw();
+        }
 
-            canvas.addEventListener('click', startVisualizer);
-          })();
-        </script>
-      </div>`;
-    }
-
+        canvas.addEventListener('click', startVisualizer);
+      })();
+    </script>
+  </div>`;
+}
     // Visitor Counter (uses your backend API)
     case 'visitor-counter': {
       const widgetId = 'vc-' + widget.id;
