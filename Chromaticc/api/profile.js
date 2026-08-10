@@ -276,22 +276,21 @@ function renderWidget(widget) {
       </div>`;
     }
 
-    // Audio Visualizer (real‑time bars using Web Audio API)
-   case 'audio-visualizer': {
+case 'audio-visualizer': {
   const widgetId = 'viz-' + widget.id;
   const src = s.src || '';
   const color = s.color || '#ffffff';
   const mode = s.mode || 'bars';
 
-  // If no audio source, show a placeholder
+  // Always render a container with a minimum height so the widget is visible
   if (!src) {
-    return `<div style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1); border-radius:8px; color:#fff; font-size:0.8rem; overflow:hidden;">
-      <span>🎵 No audio source – upload a track</span>
+    return `<div style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.08); border-radius:8px; color:#fff; font-size:0.8rem; overflow:hidden;">
+      <span>🎵 Click to upload a track</span>
     </div>`;
   }
 
   return `<div style="${style} overflow:hidden;">
-    <canvas id="${widgetId}-canvas" style="width:100%; height:100%;"></canvas>
+    <canvas id="${widgetId}-canvas" style="width:100%; height:100%; background:rgba(255,255,255,0.05);"></canvas>
     <audio id="${widgetId}-audio" src="${esc(src)}" crossorigin="anonymous" style="display:none;"></audio>
     <script>
       (function(){
@@ -300,7 +299,7 @@ function renderWidget(widget) {
         const audio = document.getElementById('${widgetId}-audio');
         const color = '${color}';
         const mode = '${mode}';
-        let audioCtx, analyser, source;
+        let audioCtx, analyser, source, animationId;
 
         function startVisualizer() {
           if (!audioCtx) {
@@ -316,7 +315,7 @@ function renderWidget(widget) {
           const dataArray = new Uint8Array(bufferLength);
 
           function draw() {
-            requestAnimationFrame(draw);
+            animationId = requestAnimationFrame(draw);
             analyser.getByteFrequencyData(dataArray);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = color;
@@ -329,16 +328,17 @@ function renderWidget(widget) {
                 x += barWidth + 1;
               }
             } else if (mode === 'circle') {
-              // Simple circle visualizer (optional)
               const centerX = canvas.width / 2;
               const centerY = canvas.height / 2;
               const radius = Math.min(canvas.width, canvas.height) / 4;
               ctx.beginPath();
               ctx.arc(centerX, centerY, radius + (dataArray[0] / 255) * 30, 0, 2 * Math.PI);
+              ctx.strokeStyle = color;
+              ctx.lineWidth = 2;
               ctx.stroke();
             }
           }
-          audio.play();
+          audio.play().catch(() => {});  // user interaction required
           draw();
         }
 
