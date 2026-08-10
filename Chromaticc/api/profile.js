@@ -94,33 +94,40 @@ function renderWidget(widget) {
 
     // ── Click‑to‑Enter / Cursor / Volume / Glass / Overlay ──
     case 'click-enter':
-      let clickJS = '';
-      if (s.audioEnabled && s.audioUrl) {
-        clickJS = `<script>
-          (function(){
-            const audio = new Audio('${esc(s.audioUrl)}');
-            const overlay = document.getElementById('clickEnter');
-            if (overlay) {
-              overlay.addEventListener('click', function(){
-                audio.play().catch(()=>{});
-                overlay.remove();
-              });
-            } else {
-              document.body.addEventListener('click', function firstClick(){
-                audio.play().catch(()=>{});
-                document.body.removeEventListener('click', firstClick);
-              });
-            }
-          })();
-        </script>`;
-      } else {
-        clickJS = `<script>
-          document.getElementById('clickEnter').addEventListener('click', function(){
-            this.remove();
+  let clickJS = '';
+  if (s.audioEnabled && s.audioUrl) {
+    clickJS = `<script>
+      (function(){
+        const audio = new Audio('${esc(s.audioUrl)}');
+        const overlay = document.getElementById('clickEnter');
+        if (overlay) {
+          overlay.addEventListener('click', function(){
+            audio.play().catch(()=>{});
+            overlay.remove();
+            // Start any audio visualizers
+            document.querySelectorAll('.audio-viz-canvas').forEach(c => c.click());
           });
-        </script>`;
-      }
-      return `<div id="clickEnter" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; cursor:pointer;"><h2 style="color:#fff;">${esc(s.message || 'Click anywhere to enter')}</h2></div>${clickJS}`;
+        } else {
+          document.body.addEventListener('click', function firstClick(){
+            audio.play().catch(()=>{});
+            document.body.removeEventListener('click', firstClick);
+            // Start any audio visualizers
+            document.querySelectorAll('.audio-viz-canvas').forEach(c => c.click());
+          });
+        }
+      })();
+    </script>`;
+  } else {
+    clickJS = `<script>
+      document.getElementById('clickEnter').addEventListener('click', function(){
+        this.remove();
+        // Start any audio visualizers
+        document.querySelectorAll('.audio-viz-canvas').forEach(c => c.click());
+      });
+    </script>`;
+  }
+      
+  return `<div id="clickEnter" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:9999; cursor:pointer;"><h2 style="color:#fff;">${esc(s.message || 'Click anywhere to enter')}</h2></div>${clickJS}`;
     case 'custom-cursor':
       return `<style>body{cursor:url('${esc(s.url)}'),auto;}</style>`;
     case 'volume-control':
