@@ -157,6 +157,63 @@ function renderWidget(widget) {
     case 'page-indicator':
       return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:0.9rem; color:#666; overflow:hidden;">Page ${s.current} of ${s.total}</div>`;
 
+      // ── Lanyard Discord Card ──
+case 'lanyard': {
+  const userId = s.userId || '';
+  const widgetId = 'lanyard-' + widget.id;
+  return `<div id="${widgetId}" style="${style} display:flex; align-items:center; justify-content:center; gap:12px; overflow:hidden; color:#fff;"></div>
+  <script>
+    (async function(){
+      const c = document.getElementById('${widgetId}');
+      try {
+        const r = await fetch('https://api.lanyard.rest/v1/users/${userId}');
+        const d = await r.json();
+        if (!d.success) throw new Error();
+        const u = d.data;
+        let html = '';
+        if (${s.showStatus}) {
+          const status = u.discord_status;
+          html += '<span style="font-size:0.9rem;">' + status + '</span>';
+        }
+        if (${s.showGame} && u.activities) {
+          const game = u.activities.find(a => a.type === 0);
+          if (game) html += '<span>🎮 ' + game.name + '</span>';
+        }
+        c.innerHTML = html || 'No data';
+      } catch(e) { c.innerHTML = '❌'; }
+    })();
+  </script>`;
+}
+
+// ── Game Library (manual) ──
+case 'game-library': {
+  const games = s.games || [];
+  return `<div style="${style} display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center; overflow:hidden;">
+    ${games.map(g => `<span style="background:rgba(255,255,255,0.15); padding:4px 10px; border-radius:12px; font-size:0.8rem; color:#fff;">${esc(g)}</span>`).join('')}
+  </div>`;
+}
+
+// ── Audio Visualizer (Canvas) ──
+case 'audio-visualizer': {
+  const widgetId = 'viz-' + widget.id;
+  return `<div style="${style} overflow:hidden;">
+    <canvas id="${widgetId}-canvas" style="width:100%; height:100%;"></canvas>
+    <audio id="${widgetId}-audio" src="${esc(s.src)}" style="display:none;"></audio>
+    <script>
+      (function(){
+        const canvas = document.getElementById('${widgetId}-canvas');
+        const ctx = canvas.getContext('2d');
+        const audio = document.getElementById('${widgetId}-audio');
+        const color = '${s.color}';
+        const mode = '${s.mode}';
+        let audioCtx, analyser, source;
+        // … rest of visualizer code (bars/circle)
+      })();
+    </script>
+  </div>`;
+}
+// (Include full visualizer JS – bars/rings reacting to audio)
+
     // ── Theme Switcher (fixed bottom‑right panel) ──
     case 'theme-switcher': {
       const themesCSS = {
