@@ -282,15 +282,14 @@ case 'audio-visualizer': {
   const color = s.color || '#ffffff';
   const mode = s.mode || 'bars';
 
-  // Always render a container with a minimum height so the widget is visible
   if (!src) {
     return `<div style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.08); border-radius:8px; color:#fff; font-size:0.8rem; overflow:hidden;">
-      <span>🎵 Click to upload a track</span>
+      <span>🎵 Upload a track in the dashboard</span>
     </div>`;
   }
 
   return `<div style="${style} overflow:hidden;">
-    <canvas id="${widgetId}-canvas" style="width:100%; height:100%; background:rgba(255,255,255,0.05);"></canvas>
+    <canvas id="${widgetId}-canvas" class="audio-viz-canvas" style="width:100%; height:100%; background:rgba(255,255,255,0.05);"></canvas>
     <audio id="${widgetId}-audio" src="${esc(src)}" crossorigin="anonymous" style="display:none;"></audio>
     <script>
       (function(){
@@ -299,9 +298,11 @@ case 'audio-visualizer': {
         const audio = document.getElementById('${widgetId}-audio');
         const color = '${color}';
         const mode = '${mode}';
-        let audioCtx, analyser, source, animationId;
+        let audioCtx, analyser, source, animationId, started = false;
 
         function startVisualizer() {
+          if (started) return;
+          started = true;
           if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioCtx.createAnalyser();
@@ -327,18 +328,10 @@ case 'audio-visualizer': {
                 ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
                 x += barWidth + 1;
               }
-            } else if (mode === 'circle') {
-              const centerX = canvas.width / 2;
-              const centerY = canvas.height / 2;
-              const radius = Math.min(canvas.width, canvas.height) / 4;
-              ctx.beginPath();
-              ctx.arc(centerX, centerY, radius + (dataArray[0] / 255) * 30, 0, 2 * Math.PI);
-              ctx.strokeStyle = color;
-              ctx.lineWidth = 2;
-              ctx.stroke();
             }
           }
-          audio.play().catch(() => {});  // user interaction required
+
+          audio.play().catch(() => {});
           draw();
         }
 
