@@ -399,6 +399,26 @@
       // ── Discord Lanyard Card (public API) ──
 { type:'lanyard', name:'Discord Status', icon:'<svg viewBox="0 0 24 24" fill="currentColor">…</svg>',
   defaults:{ userId:'', showGame:true, showStatus:true } },
+      
+      { type:'profile-card', name:'Profile Card', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg>',
+  defaults:{
+    avatar:'',
+    username:'yourusername',
+    statusText:'last seen 2 months ago',
+    roleText:'fun',
+    showRolePill:true,
+    showTechBadge:true,
+    glassEnabled:true,
+    backgroundColor:'#1e1e2e',
+    avatarPosition:'left',      // left, right, middle
+    textPosition:'left',        // left, center, right
+    techBadgeColor:'#4ade80',
+    rolePillColor:'rgba(236,72,153,0.2)',
+    borderColor:'rgba(255,255,255,0.1)',
+    avatarSize:80,
+    fontSize:16,
+    textColor:'#ffffff'
+  }, fileAccept:'image/*' }
 
 // ── Steam Game Library (manual) ──
 { type:'game-library', name:'Game Library', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
