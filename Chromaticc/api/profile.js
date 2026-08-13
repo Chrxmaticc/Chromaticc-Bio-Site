@@ -14,7 +14,7 @@ function renderWidget(widget) {
   const style = `position:absolute; left:${widget.x}%; top:${widget.y}%; width:${widget.w}%; height:${widget.h}%; transform:rotate(${widget.rotation || 0}deg);`;
 
   switch (widget.type) {
-    // ── Text widgets ──
+    // ── Core Text & Media ──
     case 'text':
       if (s.style === 'gradient') {
         return `<div style="${style} font-size:${s.fontSize}px; background:${s.gradient}; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-family:${s.fontFamily || 'Inter'}; font-weight:${s.bold ? 'bold' : 'normal'}; font-style:${s.italic ? 'italic' : 'normal'}; text-align:${s.align || 'left'}; overflow:hidden; padding:${s.padding || 0}px;">${esc(s.content)}</div>`;
@@ -24,11 +24,9 @@ function renderWidget(widget) {
       }
       return `<div style="${style} font-size:${s.fontSize}px; color:${s.color}; font-weight:${s.bold ? 'bold' : 'normal'}; font-style:${s.italic ? 'italic' : 'normal'}; text-align:${s.align || 'left'}; font-family:${s.fontFamily || 'Inter'}; overflow:hidden; padding:${s.padding || 0}px;">${esc(s.content)}</div>`;
 
-    // ── Profile Circle (simple) ──
     case 'profile-circle':
-      return `<div style="${style} display:flex; align-items:center; justify-content:center;"><img src="${esc(s.src)}" style="width:100%; height:100%; border-radius:50%; border:${s.borderWidth || 2}px solid ${s.borderColor || '#000'}; object-fit:cover;" onerror="this.style.display='none'"></div>`;
+      return `<div style="${style} display:flex; align-items:center; justify-content:center;"><img src="${esc(s.src)}" style="width:100%; height:100%; border-radius:50%; border:${s.borderWidth || 2}px solid ${s.borderColor || '#ff69b4'}; object-fit:cover;" onerror="this.style.display='none'"></div>`;
 
-    // ── Profile Card (glassmorphism) ──
     case 'profile-card': {
       const avatar = s.avatar || '';
       const username = s.username || 'yourusername';
@@ -62,7 +60,6 @@ function renderWidget(widget) {
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#a0a0a0" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="12" x2="16" y2="14"/></svg>
           </div>
         </div>
-
         <div style="flex:1; min-width:0; text-align:${textAlign};">
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:${textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start'};">
             <span style="font-weight:700; font-size:${fontSize}px; color:${textColor}; white-space:nowrap;">${esc(username)}</span>
@@ -73,7 +70,6 @@ function renderWidget(widget) {
           </div>
           <div style="font-style:italic; color:rgba(200,200,200,0.7); font-size:0.85rem; margin-top:2px;">${esc(statusText)}</div>
         </div>
-
         ${showTechBadge ? `<div style="flex-shrink:0;">
           <span style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); border-radius:20px; padding:4px 10px; display:inline-flex; align-items:center; gap:4px; color:#fff; font-size:0.75rem;">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
@@ -83,7 +79,6 @@ function renderWidget(widget) {
       </div>`;
     }
 
-    // ── Media widgets ──
     case 'image':
       return `<img src="${esc(s.src)}" alt="${esc(s.alt)}" style="${style} object-fit:${s.objectFit || 'cover'}; border-radius:12px;" onerror="this.style.display='none'">`;
     case 'video':
@@ -100,11 +95,11 @@ function renderWidget(widget) {
     // ── Section Divider ──
     case 'section-divider':
       return `<div style="position:absolute; left:0; top:${widget.y}%; width:100%; height:${widget.h}%; transform:rotate(${widget.rotation || 0}deg); display:flex; align-items:center; justify-content:center; overflow:hidden;">
-        <hr style="border:none; border-top:${s.thickness || 2}px ${s.style || 'solid'} ${s.color || '#000'}; width:100%;">
-        ${s.label ? `<span style="position:absolute; background:inherit; padding:0 10px; color:${s.color || '#000'};">${esc(s.label)}</span>` : ''}
+        <hr style="border:none; border-top:${s.thickness || 2}px ${s.style || 'solid'} ${s.color || '#ff69b4'}; width:100%;">
+        ${s.label ? `<span style="position:absolute; background:inherit; padding:0 10px; color:${s.color || '#ff69b4'};">${esc(s.label)}</span>` : ''}
       </div>`;
 
-    // ── Embeds (YouTube, Discord, Spotify, GitHub, etc.) ──
+    // ── Embeds ──
     case 'youtube':
       return `<iframe style="${style} border:0;" src="https://www.youtube.com/embed/${esc(s.videoId)}" allowfullscreen></iframe>`;
     case 'discord':
@@ -126,7 +121,7 @@ function renderWidget(widget) {
     case 'soundcloud':
       return `<iframe width="100%" height="100%" style="${style} border:0;" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(s.trackUrl)}"></iframe>`;
 
-    // ── Utility widgets ──
+    // ── Utility & Visual ──
     case 'clock':
       return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:${s.fontSize || 24}px; font-weight:bold; overflow:hidden;" id="clock-${widget.id}"></div>
         <script>(function(){const el=document.getElementById('clock-${widget.id}');setInterval(()=>{el.textContent=new Date().toLocaleTimeString('en-US',{hour12:${s.format === '12h'},second:${s.showSeconds}});},1000);})();</script>`;
@@ -139,13 +134,13 @@ function renderWidget(widget) {
     case 'divider':
       return `<hr style="${style} border-top:2px ${s.style} ${s.color}; width:100%; margin:0; position:absolute; top:50%; left:0; transform:translateY(-50%);">`;
     case 'social-link':
-      return `<a href="${esc(s.url)}" target="_blank" style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); border-radius:12px; text-decoration:none; color:#000; font-weight:600; overflow:hidden;">${esc(s.label)}</a>`;
+      return `<a href="${esc(s.url)}" target="_blank" style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); border-radius:12px; text-decoration:none; color:#fff; font-weight:600; overflow:hidden;">${esc(s.label)}</a>`;
     case 'link-embed':
-      return `<a href="${esc(s.url)}" target="_blank" style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); border-radius:12px; text-decoration:none; color:#000; padding:8px; overflow:hidden;">${esc(s.title)}</a>`;
+      return `<a href="${esc(s.url)}" target="_blank" style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); border-radius:12px; text-decoration:none; color:#fff; padding:8px; overflow:hidden;">${esc(s.title)}</a>`;
     case 'lyric-sync':
       return `<div style="${style} display:flex; flex-direction:column; overflow:auto;"><audio controls src="${esc(s.audioUrl)}" style="width:100%;"></audio><pre style="margin:0; font-size:0.8rem;">${esc(s.lrc || 'No lyrics')}</pre></div>`;
 
-    // ── Interactive / overlay widgets ──
+    // ── Interactive / Overlay ──
     case 'click-enter': {
       let clickJS = '';
       if (s.audioEnabled && s.audioUrl) {
@@ -187,17 +182,15 @@ function renderWidget(widget) {
     case 'overlay-effect':
       return `<div style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; ${s.effect === 'rain' ? 'background:url(data:image/svg+xml,...);' : ''}${s.effect === 'sparkles' ? 'animation: sparkle 2s infinite;' : ''}"></div>`;
 
-    // ── Code Widget ──
+    // ── Code & Customization ──
     case 'code':
       return `<div style="${style} overflow:hidden;">${s.html || ''}<style>${s.css || ''}</style><script>${s.js || ''}<\/script></div>`;
-
-    // ── Font Selector / TTF Upload / Page Indicator ──
     case 'font-selector':
       return `<style>body * { font-family: '${s.font}', sans-serif; }</style>`;
     case 'ttf-upload':
       return '';
     case 'page-indicator':
-      return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:0.9rem; color:#666; overflow:hidden;">Page ${s.current} of ${s.total}</div>`;
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:0.9rem; color:#fff; overflow:hidden;">Page ${s.current} of ${s.total}</div>`;
 
     // ── Theme Switcher ──
     case 'theme-switcher': {
@@ -220,7 +213,7 @@ function renderWidget(widget) {
       return panelHTML;
     }
 
-    // ── New widgets ──
+    // ── New Functional Widgets (subset with real functionality) ──
     case 'quote-ticker':
       return `<div style="${style} overflow:hidden;"><marquee behavior="scroll" direction="${s.direction || 'left'}" scrollamount="${s.speed || 5}" style="font-size:${s.fontSize || 16}px; color:${s.color || '#fff'}; white-space:nowrap; width:100%;">${esc(s.text)}</marquee></div>`;
     case 'days-counter': {
@@ -282,21 +275,20 @@ function renderWidget(widget) {
     }
     case 'tech-stack': {
       const items = s.items || [];
-      const display = s.display || 'cards';
       const cols = s.columns || 3;
       let html = `<div style="${style} display:grid; grid-template-columns: repeat(${cols}, 1fr); gap:10px; align-items:center; justify-items:center; overflow:hidden;">`;
       items.forEach(item => {
         const icon = item.icon || '';
         const name = item.name || '?';
         const level = item.level !== undefined ? item.level : null;
-        html += `<div style="text-align:center;">${icon ? `<img src="${esc(icon)}" style="width:32px; height:32px; object-fit:contain; margin-bottom:4px;" onerror="this.style.display='none'">` : ''}<div style="font-size:0.8rem; font-weight:600;">${esc(name)}</div>${level !== null ? `<div style="background:rgba(255,255,255,0.2); border-radius:4px; height:6px; margin-top:4px;"><div style="background:#c0c0c0; height:100%; width:${level}%; border-radius:4px;"></div></div>` : ''}</div>`;
+        html += `<div style="text-align:center;">${icon ? `<img src="${esc(icon)}" style="width:32px; height:32px; object-fit:contain; margin-bottom:4px;" onerror="this.style.display='none'">` : ''}<div style="font-size:0.8rem; font-weight:600;">${esc(name)}</div>${level !== null ? `<div style="background:rgba(255,255,255,0.2); border-radius:4px; height:6px; margin-top:4px;"><div style="background:#ff69b4; height:100%; width:${level}%; border-radius:4px;"></div></div>` : ''}</div>`;
       });
       html += `</div>`;
       return html;
     }
     case 'github-stats': {
       const ghUser = s.username || '';
-      if (!ghUser) return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#888;">Enter a GitHub username</div>`;
+      if (!ghUser) return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">Enter a GitHub username</div>`;
       const widgetId = 'github-stats-' + widget.id;
       return `<div id="${widgetId}" style="${style} display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; overflow:hidden; color:#fff;"><div class="gh-loading">Loading...</div></div><script>(async function(){const container=document.getElementById('${widgetId}');try{const res=await fetch('https://api.github.com/users/${ghUser}');if(!res.ok)throw new Error();const data=await res.json();let html='';if(${s.showFollowers})html+='<div><strong>Followers</strong><br>'+(data.followers||0)+'</div>';if(${s.showRepos})html+='<div><strong>Public Repos</strong><br>'+(data.public_repos||0)+'</div>';if(${s.showStars})html+='<div><strong>Stars</strong><br>?</div>';container.innerHTML=html||'No stats enabled';}catch(e){container.innerHTML='<div style="color:#f66;">GitHub user not found</div>';}})();</script>`;
     }
@@ -317,8 +309,30 @@ function renderWidget(widget) {
       return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:${s.fontSize}px; font-weight:bold; overflow:hidden; color:#fff;">${s.title ? esc(s.title) + ': ' : ''}${text}</div>`;
     }
 
+    // ── New simple widgets (some placeholder for now) ──
+    case 'typewriter':
+      return `<div id="typewriter-${widget.id}" style="${style} font-size:${s.fontSize || 18}px; color:${s.color || '#ff69b4'}; overflow:hidden;"></div><script>(function(){const el=document.getElementById('typewriter-${widget.id}');const text='${esc(s.text || 'Hello world')}';const speed=${s.speed || 80};let i=0;function type(){if(i<text.length){el.textContent+=text.charAt(i);i++;setTimeout(type,speed);}}type();})();</script>`;
+    case 'random-quote':
+      return `<div id="rquote-${widget.id}" style="${style} display:flex; align-items:center; justify-content:center; overflow:hidden; color:#fff; font-size:1rem; padding:8px;"></div><script>(async function(){const el=document.getElementById('rquote-${widget.id}');try{const res=await fetch('${s.api || 'https://api.quotable.io/random'}');const data=await res.json();el.textContent='"'+data.content+'" — '+data.author;}catch(e){el.textContent='Could not load quote';}})();</script>`;
+    case 'qr-code':
+      return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${s.size || 120}x${s.size || 120}&data=${encodeURIComponent(s.url || '')}" style="${style} object-fit:contain;">`;
+    case 'streak-counter': {
+      const start = s.startDate ? new Date(s.startDate).getTime() : 0;
+      const now = Date.now();
+      let streak = 0;
+      if (start && now >= start) streak = Math.floor((now - start) / 86400000) + 1;
+      return `<div style="${style} display:flex; flex-direction:column; align-items:center; justify-content:center; color:${s.color || '#fff'}; font-weight:bold; overflow:hidden;">${esc(s.label || 'Streak')}: ${streak} days</div>`;
+    }
+    case 'image-carousel': {
+      const images = s.images || [];
+      const widgetId = 'carousel-' + widget.id;
+      if (images.length === 0) return `<div style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1);">No images</div>`;
+      return `<div id="${widgetId}" style="${style} overflow:hidden; position:relative;"><img src="${esc(images[0])}" style="width:100%; height:100%; object-fit:cover;"><script>(function(){const el=document.getElementById('${widgetId}');const imgs=${JSON.stringify(images)};let idx=0;setInterval(()=>{idx=(idx+1)%imgs.length;el.querySelector('img').src=imgs[idx];},3000);})();</script></div>`;
+    }
+
+    // Default fallback for any unrendered widget
     default:
-      return `<div style="${style} border:1px dashed #ccc; display:flex; align-items:center; justify-content:center; overflow:hidden;">${widget.type}</div>`;
+      return `<div style="${style} border:1px dashed #ff69b4; display:flex; align-items:center; justify-content:center; overflow:hidden; color:#fff;">${widget.type}</div>`;
   }
 }
 
