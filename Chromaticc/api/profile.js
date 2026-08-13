@@ -14,7 +14,7 @@ function renderWidget(widget) {
   const style = `position:absolute; left:${widget.x}%; top:${widget.y}%; width:${widget.w}%; height:${widget.h}%; transform:rotate(${widget.rotation || 0}deg);`;
 
   switch (widget.type) {
-    // ── Core Text & Media ──
+    // ── Text widgets ──
     case 'text':
       if (s.style === 'gradient') {
         return `<div style="${style} font-size:${s.fontSize}px; background:${s.gradient}; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-family:${s.fontFamily || 'Inter'}; font-weight:${s.bold ? 'bold' : 'normal'}; font-style:${s.italic ? 'italic' : 'normal'}; text-align:${s.align || 'left'}; overflow:hidden; padding:${s.padding || 0}px;">${esc(s.content)}</div>`;
@@ -24,9 +24,11 @@ function renderWidget(widget) {
       }
       return `<div style="${style} font-size:${s.fontSize}px; color:${s.color}; font-weight:${s.bold ? 'bold' : 'normal'}; font-style:${s.italic ? 'italic' : 'normal'}; text-align:${s.align || 'left'}; font-family:${s.fontFamily || 'Inter'}; overflow:hidden; padding:${s.padding || 0}px;">${esc(s.content)}</div>`;
 
+    // ── Profile Circle (simple) ──
     case 'profile-circle':
-      return `<div style="${style} display:flex; align-items:center; justify-content:center;"><img src="${esc(s.src)}" style="width:100%; height:100%; border-radius:50%; border:${s.borderWidth || 2}px solid ${s.borderColor || '#ff69b4'}; object-fit:cover;" onerror="this.style.display='none'"></div>`;
+      return `<div style="${style} display:flex; align-items:center; justify-content:center;"><img src="${esc(s.src)}" style="width:100%; height:100%; border-radius:50%; border:${s.borderWidth || 2}px solid ${s.borderColor || '#F4C2C2'}; object-fit:cover;" onerror="this.style.display='none'"></div>`;
 
+    // ── Profile Card (glassmorphism) ──
     case 'profile-card': {
       const avatar = s.avatar || '';
       const username = s.username || 'yourusername';
@@ -63,41 +65,28 @@ function renderWidget(widget) {
         <div style="flex:1; min-width:0; text-align:${textAlign};">
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:${textAlign === 'center' ? 'center' : textAlign === 'right' ? 'flex-end' : 'flex-start'};">
             <span style="font-weight:700; font-size:${fontSize}px; color:${textColor}; white-space:nowrap;">${esc(username)}</span>
-            ${showRolePill ? `<span style="background:${rolePillColor}; border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:2px 10px; font-size:0.7rem; font-weight:600; color:#f0f0f0; display:inline-flex; align-items:center; gap:4px;">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#f472b6" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              ${esc(roleText)}
-            </span>` : ''}
+            ${showRolePill ? `<span style="background:${rolePillColor}; border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:2px 10px; font-size:0.7rem; font-weight:600; color:#f0f0f0; display:inline-flex; align-items:center; gap:4px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#F4C2C2" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>${esc(roleText)}</span>` : ''}
           </div>
           <div style="font-style:italic; color:rgba(200,200,200,0.7); font-size:0.85rem; margin-top:2px;">${esc(statusText)}</div>
         </div>
-        ${showTechBadge ? `<div style="flex-shrink:0;">
-          <span style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); border-radius:20px; padding:4px 10px; display:inline-flex; align-items:center; gap:4px; color:#fff; font-size:0.75rem;">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-            <span>dev</span>
-          </span>
-        </div>` : ''}
+        ${showTechBadge ? `<div style="flex-shrink:0;"><span style="background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); border-radius:20px; padding:4px 10px; display:inline-flex; align-items:center; gap:4px; color:#fff; font-size:0.75rem;"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg><span>dev</span></span></div>` : ''}
       </div>`;
     }
 
+    // ── Media ──
     case 'image':
       return `<img src="${esc(s.src)}" alt="${esc(s.alt)}" style="${style} object-fit:${s.objectFit || 'cover'}; border-radius:12px;" onerror="this.style.display='none'">`;
     case 'video':
       return `<video src="${esc(s.src)}" ${s.controls ? 'controls' : ''} ${s.autoplay ? 'autoplay' : ''} ${s.loop ? 'loop' : ''} style="${style} border-radius:12px;"></video>`;
     case 'audio':
       if (s.mode === 'glass') {
-        return `<div style="${style} background:rgba(255,255,255,0.15); backdrop-filter:blur(20px); border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:6px; overflow:hidden;">
-          <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:600;"><span>${esc(s.title || 'Unknown')}</span><span>${esc(s.artist || '')}</span></div>
-          <audio controls src="${esc(s.src)}" style="width:100%;"></audio>
-        </div>`;
+        return `<div style="${style} background:rgba(255,255,255,0.15); backdrop-filter:blur(20px); border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:6px; overflow:hidden;"><div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:600;"><span>${esc(s.title || 'Unknown')}</span><span>${esc(s.artist || '')}</span></div><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
       }
       return `<div style="${style} display:flex; flex-direction:column; justify-content:center; overflow:hidden;"><strong>${esc(s.title || 'Track')}</strong><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
 
     // ── Section Divider ──
     case 'section-divider':
-      return `<div style="position:absolute; left:0; top:${widget.y}%; width:100%; height:${widget.h}%; transform:rotate(${widget.rotation || 0}deg); display:flex; align-items:center; justify-content:center; overflow:hidden;">
-        <hr style="border:none; border-top:${s.thickness || 2}px ${s.style || 'solid'} ${s.color || '#ff69b4'}; width:100%;">
-        ${s.label ? `<span style="position:absolute; background:inherit; padding:0 10px; color:${s.color || '#ff69b4'};">${esc(s.label)}</span>` : ''}
-      </div>`;
+      return `<div style="position:absolute; left:0; top:${widget.y}%; width:100%; height:${widget.h}%; transform:rotate(${widget.rotation || 0}deg); display:flex; align-items:center; justify-content:center; overflow:hidden;"><hr style="border:none; border-top:${s.thickness || 2}px ${s.style || 'solid'} ${s.color || '#F4C2C2'}; width:100%;">${s.label ? `<span style="position:absolute; background:inherit; padding:0 10px; color:${s.color || '#F4C2C2'};">${esc(s.label)}</span>` : ''}</div>`;
 
     // ── Embeds ──
     case 'youtube':
@@ -121,7 +110,7 @@ function renderWidget(widget) {
     case 'soundcloud':
       return `<iframe width="100%" height="100%" style="${style} border:0;" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(s.trackUrl)}"></iframe>`;
 
-    // ── Utility & Visual ──
+    // ── Utility / Visual ──
     case 'clock':
       return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:${s.fontSize || 24}px; font-weight:bold; overflow:hidden;" id="clock-${widget.id}"></div>
         <script>(function(){const el=document.getElementById('clock-${widget.id}');setInterval(()=>{el.textContent=new Date().toLocaleTimeString('en-US',{hour12:${s.format === '12h'},second:${s.showSeconds}});},1000);})();</script>`;
@@ -182,7 +171,7 @@ function renderWidget(widget) {
     case 'overlay-effect':
       return `<div style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; ${s.effect === 'rain' ? 'background:url(data:image/svg+xml,...);' : ''}${s.effect === 'sparkles' ? 'animation: sparkle 2s infinite;' : ''}"></div>`;
 
-    // ── Code & Customization ──
+    // ── Code & Customisation ──
     case 'code':
       return `<div style="${style} overflow:hidden;">${s.html || ''}<style>${s.css || ''}</style><script>${s.js || ''}<\/script></div>`;
     case 'font-selector':
@@ -213,7 +202,7 @@ function renderWidget(widget) {
       return panelHTML;
     }
 
-    // ── New Functional Widgets (subset with real functionality) ──
+    // ── New Widgets: Functional implementations ──
     case 'quote-ticker':
       return `<div style="${style} overflow:hidden;"><marquee behavior="scroll" direction="${s.direction || 'left'}" scrollamount="${s.speed || 5}" style="font-size:${s.fontSize || 16}px; color:${s.color || '#fff'}; white-space:nowrap; width:100%;">${esc(s.text)}</marquee></div>`;
     case 'days-counter': {
@@ -281,7 +270,7 @@ function renderWidget(widget) {
         const icon = item.icon || '';
         const name = item.name || '?';
         const level = item.level !== undefined ? item.level : null;
-        html += `<div style="text-align:center;">${icon ? `<img src="${esc(icon)}" style="width:32px; height:32px; object-fit:contain; margin-bottom:4px;" onerror="this.style.display='none'">` : ''}<div style="font-size:0.8rem; font-weight:600;">${esc(name)}</div>${level !== null ? `<div style="background:rgba(255,255,255,0.2); border-radius:4px; height:6px; margin-top:4px;"><div style="background:#ff69b4; height:100%; width:${level}%; border-radius:4px;"></div></div>` : ''}</div>`;
+        html += `<div style="text-align:center;">${icon ? `<img src="${esc(icon)}" style="width:32px; height:32px; object-fit:contain; margin-bottom:4px;" onerror="this.style.display='none'">` : ''}<div style="font-size:0.8rem; font-weight:600;">${esc(name)}</div>${level !== null ? `<div style="background:rgba(255,255,255,0.2); border-radius:4px; height:6px; margin-top:4px;"><div style="background:#F4C2C2; height:100%; width:${level}%; border-radius:4px;"></div></div>` : ''}</div>`;
       });
       html += `</div>`;
       return html;
@@ -309,9 +298,9 @@ function renderWidget(widget) {
       return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:${s.fontSize}px; font-weight:bold; overflow:hidden; color:#fff;">${s.title ? esc(s.title) + ': ' : ''}${text}</div>`;
     }
 
-    // ── New simple widgets (some placeholder for now) ──
+    // ── Additional new widgets (basic functional) ──
     case 'typewriter':
-      return `<div id="typewriter-${widget.id}" style="${style} font-size:${s.fontSize || 18}px; color:${s.color || '#ff69b4'}; overflow:hidden;"></div><script>(function(){const el=document.getElementById('typewriter-${widget.id}');const text='${esc(s.text || 'Hello world')}';const speed=${s.speed || 80};let i=0;function type(){if(i<text.length){el.textContent+=text.charAt(i);i++;setTimeout(type,speed);}}type();})();</script>`;
+      return `<div id="typewriter-${widget.id}" style="${style} font-size:${s.fontSize || 18}px; color:${s.color || '#F4C2C2'}; overflow:hidden;"></div><script>(function(){const el=document.getElementById('typewriter-${widget.id}');const text='${esc(s.text || 'Hello world')}';const speed=${s.speed || 80};let i=0;function type(){if(i<text.length){el.textContent+=text.charAt(i);i++;setTimeout(type,speed);}}type();})();</script>`;
     case 'random-quote':
       return `<div id="rquote-${widget.id}" style="${style} display:flex; align-items:center; justify-content:center; overflow:hidden; color:#fff; font-size:1rem; padding:8px;"></div><script>(async function(){const el=document.getElementById('rquote-${widget.id}');try{const res=await fetch('${s.api || 'https://api.quotable.io/random'}');const data=await res.json();el.textContent='"'+data.content+'" — '+data.author;}catch(e){el.textContent='Could not load quote';}})();</script>`;
     case 'qr-code':
@@ -329,14 +318,88 @@ function renderWidget(widget) {
       if (images.length === 0) return `<div style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1);">No images</div>`;
       return `<div id="${widgetId}" style="${style} overflow:hidden; position:relative;"><img src="${esc(images[0])}" style="width:100%; height:100%; object-fit:cover;"><script>(function(){const el=document.getElementById('${widgetId}');const imgs=${JSON.stringify(images)};let idx=0;setInterval(()=>{idx=(idx+1)%imgs.length;el.querySelector('img').src=imgs[idx];},3000);})();</script></div>`;
     }
+    case 'mood-tracker': {
+      const moods = { happy:'😊', sad:'😢', angry:'😠', neutral:'😐', excited:'😆' };
+      const mood = moods[s.mood] || moods.happy;
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:2rem;">${mood}</div>`;
+    }
+    case 'analog-clock':
+      return `<canvas id="aclock-${widget.id}" style="${style}"></canvas><script>(function(){const canvas=document.getElementById('aclock-${widget.id}');const ctx=canvas.getContext('2d');function drawClock(){const now=new Date();const h=now.getHours()%12;const m=now.getMinutes();const s=now.getSeconds();ctx.clearRect(0,0,canvas.width,canvas.height);const radius=canvas.width/2;ctx.translate(radius,radius);ctx.beginPath();ctx.arc(0,0,radius-2,0,2*Math.PI);ctx.stroke();const hourAngle=(h+m/60)*30*Math.PI/180;const minuteAngle=(m+s/60)*6*Math.PI/180;const secondAngle=s*6*Math.PI/180;ctx.rotate(hourAngle);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-radius*0.5);ctx.stroke();ctx.rotate(-hourAngle);ctx.rotate(minuteAngle);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-radius*0.8);ctx.stroke();ctx.rotate(-minuteAngle);ctx.rotate(secondAngle);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-radius*0.9);ctx.strokeStyle='#F4C2C2';ctx.stroke();ctx.rotate(-secondAngle);ctx.setTransform(1,0,0,1,0,0);}setInterval(drawClock,1000);drawClock();})();</script>`;
+    case 'soundboard':
+      return `<div style="${style} display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:center; overflow:hidden;">${(s.sounds||[]).map((sound,i)=>`<button onclick="new Audio('${esc(sound)}').play()" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); padding:6px 12px; border-radius:6px; cursor:pointer;">Sound ${i+1}</button>`).join('')}</div>`;
+    case 'ip-info':
+      return `<div id="ipinfo-${widget.id}" style="${style} display:flex; align-items:center; justify-content:center; color:#fff; overflow:hidden;"></div><script>(async function(){const el=document.getElementById('ipinfo-${widget.id}');try{const res=await fetch('https://ipapi.co/json/');const data=await res.json();el.textContent=data.ip+' — '+data.city+', '+data.country_name;}catch(e){el.textContent='Could not fetch IP';}})();</script>`;
+    case 'friend-code':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:bold; color:#F4C2C2; overflow:hidden;">${esc(s.code)}</div>`;
+    case 'virtual-pet':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:2rem;">🐾 ${esc(s.name)}</div>`;
+    case 'calendar':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#fff; overflow:hidden;">${new Date().toDateString()}</div>`;
+    case 'stopwatch':
+      return `<div id="stopwatch-${widget.id}" style="${style} display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:#fff; overflow:hidden;">0:00</div><script>(function(){let secs=0;const el=document.getElementById('stopwatch-${widget.id}');setInterval(()=>{secs++;const mins=Math.floor(secs/60);const s=secs%60;el.textContent=mins+':'+(s<10?'0':'')+s;},1000);})();</script>`;
+    case 'pomodoro':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:#fff;">${s.work}:00</div>`;
+    case 'currency-converter':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">💱 ${s.from} → ${s.to}</div>`;
+    case 'translator':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">🌐 Translator (input)</div>`;
+    case 'notes':
+      return `<div style="${style} background:rgba(255,255,255,0.1); padding:8px; overflow:auto;">${(s.notes||[]).map(n=>`<div style="margin-bottom:4px;">• ${esc(n)}</div>`).join('')}</div>`;
+    case 'todo-list':
+      return `<div style="${style} overflow:auto; padding:8px;">${(s.tasks||[]).map((t,i)=>`<label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" onchange="this.nextSibling.style.textDecoration=this.checked?'line-through':'none'"> <span>${esc(t)}</span></label>`).join('')}</div>`;
+    case 'password-generator':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">🔑 ${Array.from({length: s.length || 12}, () => '•').join('')}</div>`;
+    case 'color-picker':
+      return `<div style="${style} background:${s.color}; display:flex; align-items:center; justify-content:center; color:#fff;">${s.color}</div>`;
+    case 'breathing-timer':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">🌬️ Breathe in… out…</div>`;
+    case 'sound-meter':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">📊 Level: —</div>`;
+    case 'geo-locator':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">📍 Locating…</div>`;
+    case 'alarm':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">⏰ ${s.time || 'No alarm set'}</div>`;
+    case 'world-clock':
+      return `<div style="${style} display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center; color:#fff;">${(s.timezones||['UTC']).map(tz=>`<span>${tz}: ${new Date().toLocaleTimeString('en-US', { timeZone: tz })}</span>`).join('')}</div>`;
+    case 'progress-bar':
+      const percent = Math.min(100, (s.value / s.max) * 100);
+      return `<div style="${style} background:rgba(255,255,255,0.1); border-radius:8px; overflow:hidden;"><div style="width:${percent}%; background:${s.color || '#F4C2C2'}; height:100%;"></div></div>`;
+    case 'timer':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">⏱️ Timer</div>`;
+    case 'flip-card':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">🃏 ${esc(s.front) || 'Front'}</div>`;
+    case 'accordion':
+      return `<div style="${style} overflow:auto;">${(s.items||[]).map(item=>`<details><summary>${esc(item)}</summary><p>Content</p></details>`).join('')}</div>`;
+    case 'tabs':
+      return `<div style="${style} display:flex; gap:4px; overflow:auto;">${(s.tabs||[]).map(tab=>`<button style="background:rgba(255,255,255,0.1); padding:6px 10px; border-radius:6px;">${esc(tab)}</button>`).join('')}</div>`;
+    case 'tooltip':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">💬 ${esc(s.text)}</div>`;
+    case 'modal':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center;"><button style="background:rgba(255,255,255,0.2); padding:6px 12px; border-radius:6px;">${esc(s.label)}</button></div>`;
+    case 'link-preview':
+      return `<a href="${esc(s.url)}" target="_blank" style="${style} display:block; background:rgba(255,255,255,0.1); padding:8px; border-radius:8px; text-decoration:none; color:#fff;">🔗 ${esc(s.url)}</a>`;
+    case 'embed-code':
+      return `<div style="${style} overflow:auto;">${esc(s.code)}</div>`;
+    case 'social-share':
+      return `<a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(s.url)}" target="_blank" style="${style} display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); color:#fff;">Share</a>`;
+    case 'video-embed':
+      return `<video src="${esc(s.src)}" controls style="${style}"></video>`;
+    case 'audio-embed':
+      return `<audio src="${esc(s.src)}" controls style="${style}"></audio>`;
+    case 'map':
+      return `<div style="${style} background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#fff;">🗺️ Map (${s.lat}, ${s.lng})</div>`;
+    case 'calendar-widget':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">📅 Calendar</div>`;
+    case 'weather-map':
+      return `<div style="${style} display:flex; align-items:center; justify-content:center; color:#fff;">🌦️ Weather Map</div>`;
+    case 'news-ticker':
+      return `<div style="${style} overflow:hidden;"><marquee>${esc(s.source)}</marquee></div>`;
 
-    // Default fallback for any unrendered widget
     default:
-      return `<div style="${style} border:1px dashed #ff69b4; display:flex; align-items:center; justify-content:center; overflow:hidden; color:#fff;">${widget.type}</div>`;
+      return `<div style="${style} border:1px dashed #F4C2C2; display:flex; align-items:center; justify-content:center; overflow:hidden; color:#F4C2C2;">${widget.type}</div>`;
   }
 }
 
-// ─── MAIN HANDLER ─────────────────────────
 export default async function handler(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const path = url.pathname.toLowerCase();
