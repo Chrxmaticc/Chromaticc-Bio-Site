@@ -363,24 +363,6 @@
       });
     });
 
-    // Mode buttons
-document.getElementById('modePositionBtn').onclick = () => setEditMode('position');
-document.getElementById('modeRotateBtn').onclick = () => setEditMode('rotate');
-document.getElementById('modeResizeBtn').onclick = () => setEditMode('resize');
-
-function setEditMode(mode) {
-  editMode = mode;
-  document.getElementById('modePositionBtn').classList.toggle('active', mode === 'position');
-  document.getElementById('modeRotateBtn').classList.toggle('active', mode === 'rotate');
-  document.getElementById('modeResizeBtn').classList.toggle('active', mode === 'resize');
-  // Refresh interactivity on all widgets
-  document.querySelectorAll('.canvas-widget').forEach(el => {
-    const id = el.dataset.id;
-    const w = layout.find(w => w.id === id);
-    if (w) makeInteractive(el, w);
-  });
-}
-
     const widgetTypes = [
       { type:'text', name:'Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/><line x1="7" y1="12" x2="17" y2="12"/></svg>', defaults:{content:'Hello', style:'plain', fontSize:16, color:'#fff', gradient:'linear-gradient(90deg, #F4C2C2, #fff)', bold:false, italic:false, align:'left', fontFamily:'Inter', padding:0} },
       { type:'profile-circle', name:'Profile Circle', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>', defaults:{src:'', size:80, borderWidth:2, borderColor:'#F4C2C2'}, fileAccept:'image/*' },
@@ -628,53 +610,32 @@ function setEditMode(mode) {
       }
     }
 
-function makeInteractive(el, widget) {
-  // Destroy any existing interact instance
-  if (el._interact) el._interact.destroy();
-
-  if (editMode === 'position') {
-    el._interact = interact(el).draggable({
-      listeners: {
-        start() { pushUndo(); },
-        move(e) {
+    function makeInteractive(el, widget) {
+      if (el._interact) el._interact.destroy();
+      if (editMode === 'position') {
+        el._interact = interact(el).draggable({ listeners: { start() { pushUndo(); }, move(e) {
           let nx = widget.x + percX(e.dx), ny = widget.y + percY(e.dy);
-          if (snap) { nx = Math.round(nx/5)*5; ny = Math.round(ny/5)*5; }
-          widget.x = Math.min(100 - widget.w, Math.max(0, nx));
-          widget.y = Math.min(100 - widget.h, Math.max(0, ny));
-          el.style.left = pxX(widget.x) + 'px';
-          el.style.top = pxY(widget.y) + 'px';
-        }
-      }
-    });
-  } else if (editMode === 'resize') {
-    el._interact = interact(el).resizable({
-      edges: { top: false, left: false, bottom: false, right: false },
-      listeners: {
-        start() { pushUndo(); },
-        move(e) {
-          widget.w = percX(e.rect.width);
-          widget.h = percY(e.rect.height);
-          el.style.width = pxX(widget.w) + 'px';
-          el.style.height = pxY(widget.h) + 'px';
-        }
-      }
-    });
-  } else if (editMode === 'rotate') {
-    const rotHandle = el.querySelector('.rotate-handle');
-    if (rotHandle) {
-      el._interact = interact(rotHandle).draggable({
-        listeners: {
-          start() { pushUndo(); },
-          move(e) {
-            const angle = Math.atan2(e.dy, e.dx) * (180 / Math.PI);
-            widget.rotation = (widget.rotation || 0) + angle * 0.3;
+          if(snap){ nx = Math.round(nx/5)*5; ny = Math.round(ny/5)*5; }
+          widget.x = Math.min(100-widget.w, Math.max(0, nx));
+          widget.y = Math.min(100-widget.h, Math.max(0, ny));
+          el.style.left = pxX(widget.x)+'px'; el.style.top = pxY(widget.y)+'px';
+        }}});
+      } else if (editMode === 'resize') {
+        el._interact = interact(el).resizable({ edges: { top:false, left:false, bottom:false, right:false }, listeners: { start() { pushUndo(); }, move(e) {
+          widget.w = percX(e.rect.width); widget.h = percY(e.rect.height);
+          el.style.width = pxX(widget.w)+'px'; el.style.height = pxY(widget.h)+'px';
+        }}});
+      } else if (editMode === 'rotate') {
+        const rotHandle = el.querySelector('.rotate-handle');
+        if (rotHandle) {
+          el._interact = interact(rotHandle).draggable({ listeners: { start() { pushUndo(); }, move(e) {
+            const angle = Math.atan2(e.dy, e.dx) * (180/Math.PI);
+            widget.rotation = (widget.rotation||0) + angle*0.3;
             el.style.transform = `rotate(${widget.rotation}deg)`;
-          }
+          }}});
         }
-      });
+      }
     }
-  }
-}
 
     function selectWidget(id) {
       selectedId = id;
