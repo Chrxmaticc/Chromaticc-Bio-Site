@@ -637,7 +637,7 @@
       }
     }
 
-    function selectWidget(id) {
+        function selectWidget(id) {
       selectedId = id;
       document.querySelectorAll('.canvas-widget').forEach(e=>e.classList.remove('selected'));
       const el = document.querySelector(`.canvas-widget[data-id="${id}"]`);
