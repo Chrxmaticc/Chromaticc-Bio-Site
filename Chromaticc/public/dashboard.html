@@ -939,7 +939,49 @@
     }
     // END ADDED
 
-        // ─── Simplified save ─────────────
+
+    // ─── Zoom ─────────────────────────
+    const zoomSlider = document.getElementById('zoomSlider');
+    const zoomValueDisplay = document.getElementById('zoomValue');
+    zoomSlider.addEventListener('input', function() {
+      zoom = this.value / 100;
+      zoomValueDisplay.textContent = this.value + '%';
+      renderCanvas();
+    });
+
+    // ─── Preview Mode Toggle ──────────
+    document.getElementById('previewModeBtn').onclick = function() {
+      previewMode = previewMode === 'box' ? 'live' : 'box';
+      renderCanvas();
+    };
+
+    // ─── Device Presets ───────────────
+    const presetBtn = document.getElementById('devicePresetBtn');
+    const dropdown = document.getElementById('devicePresetDropdown');
+    presetBtn.onclick = (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); };
+    document.addEventListener('click', () => dropdown.classList.remove('open'));
+    document.querySelectorAll('.dropdown-item[data-preset]').forEach(item => {
+      item.onclick = (e) => {
+        e.stopPropagation();
+        const preset = item.dataset.preset;
+        if (preset === 'custom') {
+          const w = prompt('Width %'); const h = prompt('Height %');
+          if (w && h) applyPresetToAll(parseFloat(w), parseFloat(h));
+        } else {
+          const map = { pc:{w:30,h:20}, ipad:{w:45,h:30}, iphone:{w:70,h:40} };
+          if (map[preset]) applyPresetToAll(map[preset].w, map[preset].h);
+        }
+        dropdown.classList.remove('open');
+      };
+    });
+    function applyPresetToAll(w, h) {
+      layout.forEach(widget => { widget.w = w; widget.h = h; });
+      pushUndo();
+      renderCanvas();
+      showToast('Preset applied');
+    }
+
+    // ─── Simplified save ─────────────
     document.getElementById('saveSimplified').onclick = async () => {
       const bgType = document.getElementById('simpBgType').value;
       let bgValue = document.getElementById('simpBgValue').value.trim();
@@ -964,7 +1006,8 @@
       await fetch('/api/save-layout', { method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`}, body:JSON.stringify({layout, settings:pageSettings}) });
       showToast('Simplified saved!');
     };
-        // ─── Legacy modal ────────────────
+
+    // ─── Legacy modal ────────────────
     document.getElementById('openPageSettings').onclick = () => document.getElementById('pageSettingsModal').style.display='flex';
     document.getElementById('savePageSettings').onclick = async () => {
       const bgType = document.getElementById('bgType').value;
@@ -986,7 +1029,7 @@
       document.getElementById('pageSettingsModal').style.display='none';
       showToast('Saved – now save layout');
     };
-    
+
     // ─── Account ────────────────────
     document.getElementById('changePassBtn').onclick = async () => {
       const cur = document.getElementById('currentPass').value, nw = document.getElementById('newPass').value;
