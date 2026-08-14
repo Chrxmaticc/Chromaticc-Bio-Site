@@ -156,57 +156,6 @@
     .setting-card { background: rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:20px; }
     .setting-card label { font-weight:600; margin-bottom:6px; display:block; }
 
-    /* ADDED: Advanced editor styles */
-    .selected-widget-toolbar {
-      position: absolute;
-      top: -50px;
-      left: 0;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 6px 10px;
-      display: flex;
-      gap: 8px;
-      z-index: 10;
-      backdrop-filter: blur(12px);
-      box-shadow: var(--shadow);
-    }
-    .selected-widget-toolbar.hidden { opacity: 0; pointer-events: none; }
-    .mode-btn, .preset-btn, .preview-btn {
-      background: none;
-      border: 1px solid transparent;
-      border-radius: 8px;
-      padding: 6px 8px;
-      cursor: pointer;
-    }
-    .mode-btn.active { border-color: var(--accent); background: rgba(244,194,194,0.2); }
-    .modal-dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 200px;
-      max-height: 200px;
-      overflow-y: auto;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 8px;
-      z-index: 20;
-      display: none;
-    }
-    .modal-dropdown.open { display: block; }
-    .dropdown-item {
-      padding: 8px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .dropdown-item:hover { background: rgba(244,194,194,0.2); }
-    .dropdown-item svg { width: 18px; height: 18px; }
-    /* END ADDED */
-
     @media(max-width:900px) { .edit-layout { flex-direction:column; height:auto; } .widget-sidebar, .settings-panel { width:100%; } .canvas-container { height:400px; } }
   </style>
 </head>
@@ -261,6 +210,7 @@
       <button class="tab" data-panel="settings">Settings</button>
     </div>
 
+    <!-- General Panel -->
     <div class="panel active" id="panel-general">
       <h2>Profile Overview</h2>
       <p>Views: <strong id="viewCount">0</strong></p>
@@ -270,71 +220,80 @@
       <button class="btn" id="openPageSettings">Page Settings</button>
     </div>
 
+    <!-- Simplified Panel -->
     <div class="panel" id="panel-simplified">
       <h2>Simplified Customisation</h2>
       <div class="simplified-grid">
-        <div class="setting-card"><label>Background Type</label><select id="simpBgType"><option value="css">CSS (gradient/color)</option><option value="image">Image</option><option value="video">Video</option></select></div>
-        <div class="setting-card"><label>Background Value (CSS string or URL)</label><input type="text" id="simpBgValue" placeholder="linear-gradient(180deg, #000, #F4C2C2)"></div>
-        <div class="setting-card"><label>Or Upload Background File</label><input type="file" id="simpBgFile"></div>
-        <div class="setting-card"><label>Default Font Family</label><select id="simpFontFamily"><option>Inter</option><option>Arial</option><option>Georgia</option></select></div>
-        <div class="setting-card"><label>Default Font Size</label><input type="number" id="simpFontSize" value="16"></div>
-        <div class="setting-card"><label>Default Text Color</label><input type="text" id="simpTextColor" value="#ffffff"></div>
-        <div class="setting-card"><label>Glassmorphism</label><input type="checkbox" id="simpGlass" checked></div>
-        <div class="setting-card"><label>Custom Cursor URL</label><input type="text" id="simpCursor" placeholder="https://..."></div>
-        <div class="setting-card"><label>Favicon URL</label><input type="text" id="simpFavicon" placeholder="https://..."></div>
-        <div class="setting-card"><label>Overlay Effect</label><select id="simpOverlay"><option value="none">None</option><option value="rain">Rain</option><option value="sparkles">Sparkles</option></select></div>
+        <div class="setting-card">
+          <label>Background Type</label>
+          <select id="simpBgType"><option value="css">CSS (gradient/color)</option><option value="image">Image</option><option value="video">Video</option></select>
+        </div>
+        <div class="setting-card">
+          <label>Background Value (CSS string or URL)</label>
+          <input type="text" id="simpBgValue" placeholder="linear-gradient(180deg, #000, #F4C2C2)">
+        </div>
+        <div class="setting-card">
+          <label>Or Upload Background File</label>
+          <input type="file" id="simpBgFile">
+        </div>
+        <div class="setting-card">
+          <label>Default Font Family</label>
+          <select id="simpFontFamily"><option>Inter</option><option>Arial</option><option>Georgia</option></select>
+        </div>
+        <div class="setting-card">
+          <label>Default Font Size</label>
+          <input type="number" id="simpFontSize" value="16">
+        </div>
+        <div class="setting-card">
+          <label>Default Text Color</label>
+          <input type="text" id="simpTextColor" value="#ffffff">
+        </div>
+        <div class="setting-card">
+          <label>Glassmorphism</label>
+          <input type="checkbox" id="simpGlass" checked>
+        </div>
+        <div class="setting-card">
+          <label>Custom Cursor URL</label>
+          <input type="text" id="simpCursor" placeholder="https://...">
+        </div>
+        <div class="setting-card">
+          <label>Favicon URL</label>
+          <input type="text" id="simpFavicon" placeholder="https://...">
+        </div>
+        <div class="setting-card">
+          <label>Overlay Effect</label>
+          <select id="simpOverlay"><option value="none">None</option><option value="rain">Rain</option><option value="sparkles">Sparkles</option></select>
+        </div>
       </div>
       <button class="btn" id="saveSimplified" style="margin-top:20px;">Save Simplified Settings</button>
     </div>
 
+    <!-- Edit Mode Panel -->
     <div class="panel" id="panel-edit">
       <div class="editor-toolbar">
         <button id="saveBtn">💾 Save</button>
         <button id="undoBtn">↩ Undo</button>
         <button id="redoBtn">↪ Redo</button>
-        <select id="templateSelect"><option value="">-- Apply Template --</option><option value="gamer">Gamer</option><option value="artist">Artist</option><option value="minimal">Minimal</option><option value="retro">Retro</option><option value="neon">Neon</option></select>
+        <select id="templateSelect">
+          <option value="">-- Apply Template --</option>
+          <option value="gamer">Gamer</option>
+          <option value="artist">Artist</option>
+          <option value="minimal">Minimal</option>
+          <option value="retro">Retro</option>
+          <option value="neon">Neon</option>
+        </select>
         <button id="duplicateBtn">📋 Duplicate</button>
         <button id="deleteBtn" class="danger">🗑 Delete</button>
         <span style="margin-left:auto;">Snap: <input type="checkbox" id="snapToggle" checked></span>
         <span>Zoom: <input type="range" id="zoomSlider" min="10" max="300" value="100" style="width:120px;"><span id="zoomValue">100%</span></span>
         <button id="previewBtn">👁 Preview</button>
         <button id="liveEditBtn">▶ Live Edit</button>
-        <!-- ADDED: Preview mode toggle and device preset dropdown -->
-        <button id="previewModeBtn" class="preview-btn" title="Toggle Box/Live Preview">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
-        <div style="position:relative;">
-          <button id="devicePresetBtn" class="preset-btn" title="Device Presets">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="12" rx="2"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-            <span>Presets</span>
-          </button>
-          <div id="devicePresetDropdown" class="modal-dropdown">
-            <div class="dropdown-item" data-preset="pc">PC</div>
-            <div class="dropdown-item" data-preset="ipad">iPad</div>
-            <div class="dropdown-item" data-preset="iphone">iPhone</div>
-            <div class="dropdown-item" data-preset="custom">Custom</div>
-          </div>
-        </div>
-        <!-- END ADDED -->
       </div>
       <div class="edit-layout" style="display:flex; gap:12px;">
         <div class="widget-sidebar" id="widgetList"></div>
         <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
           <div class="canvas-container" id="canvasContainer">
             <div class="canvas-area" id="canvas"></div>
-            <!-- ADDED: Selected widget toolbar -->
-            <div id="selectedWidgetToolbar" class="selected-widget-toolbar hidden">
-              <button class="mode-btn active" data-mode="position" title="Position">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M12 3v18"/></svg>
-              </button>
-              <button class="mode-btn" data-mode="rotate" title="Rotation">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><polyline points="20 4 20 8 16 8"/></svg>
-              </button>
-              <button class="mode-btn" data-mode="resize" title="Resize">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20L20 4"/><path d="M14 4h6v6"/><path d="M4 10v6h6"/></svg>
-              </button>
-            </div>
-            <!-- END ADDED -->
           </div>
         </div>
         <div class="settings-panel" id="settingsPanel">
@@ -345,6 +304,7 @@
       </div>
     </div>
 
+    <!-- Settings Panel -->
     <div class="panel" id="panel-settings">
       <h2>Account Settings</h2>
       <input type="password" id="currentPass" placeholder="Current password"><br><br>
@@ -356,6 +316,7 @@
     </div>
   </div>
 
+  <!-- Legacy Page Settings Modal -->
   <div class="modal-overlay" id="pageSettingsModal" style="display:none;">
     <div class="modal">
       <h2>Page Settings (Legacy)</h2>
@@ -407,20 +368,8 @@
     }
 
     // ─── Views Counter ──────────────────
+    let viewCount = 0;
     const viewEl = document.getElementById('viewCount');
-    async function loadViewCount() {
-      try {
-        const res = await fetch('/api/increment-view', {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error('Failed to fetch view count');
-        const data = await res.json();
-        animateViews(data.count || 0);
-      } catch (err) {
-        animateViews(0);
-      }
-    }
     function animateViews(target) {
       let start = null;
       const duration = 1000;
@@ -432,9 +381,8 @@
       }
       requestAnimationFrame(step);
     }
-    loadViewCount();
+    animateViews(1337);
 
-    
     // ─── Tab Switching (robust) ─────────
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -481,6 +429,7 @@
       { type:'ttf-upload', name:'TTF Upload', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>', defaults:{}, fileAccept:'.ttf,.otf' },
       { type:'page-indicator', name:'Multi Page Indicator', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>', defaults:{current:1, total:1} },
       { type:'theme-switcher', name:'Theme Switcher', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20m10-10H2"/></svg>', defaults:{themes:['red','blue','purple','green','white','black']} },
+      // New 40+ widgets
       { type:'typewriter', name:'Typewriter', icon:'<svg viewBox="0 0 24 24"><path d="M5 4h14v4h-14z"/><path d="M5 8h6v4h-6z"/><path d="M11 8h8v4h-8z"/><path d="M5 12h14v4h-14z"/></svg>', defaults:{text:'Hello world', speed:80, fontSize:18, color:'#F4C2C2'} },
       { type:'random-quote', name:'Random Quote', icon:'<svg viewBox="0 0 24 24"><path d="M4 4h16v4l-4 4h4v4H4v-4l4-4V4z"/></svg>', defaults:{api:'https://api.quotable.io/random', refreshInterval:30} },
       { type:'qr-code', name:'QR Code', icon:'<svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="8" height="8" rx="1"/></svg>', defaults:{url:'', size:120} },
@@ -536,10 +485,6 @@
     let zoom = 1;
     let snap = true;
 
-    // ADDED: Advanced editor state
-    let previewMode = 'box';   // 'box' or 'live'
-    let editMode = 'position'; // 'position', 'rotate', 'resize'
-
     // ─── Helpers ──────────────────────
     const pxX = p => (p/100)*1200, pxY = p => (p/100)*800;
     const percX = px => (px/1200)*100, percY = py => (py/800)*100;
@@ -573,180 +518,90 @@
 
     // ─── Render Canvas ────────────────
     function renderWidgetPreview(w) {
-  const s = w.settings || {};
-  switch (w.type) {
-    case 'text':
-      return `<span style="font-size:${s.fontSize}px;color:${s.color};">${(s.content || '').slice(0, 12)}</span>`;
-    case 'profile-circle':
-      return s.src ? `<img src="${s.src}" style="width:40px;height:40px;border-radius:50%;">` : 'CIRCLE';
-    case 'profile-card':
-      return 'PROFILE CARD';
-    case 'image':
-      return s.src ? `<img src="${s.src}" style="max-width:100%;max-height:100%;object-fit:${s.objectFit || 'cover'};">` : 'IMAGE';
-    case 'video':
-      return 'VIDEO';
-    case 'audio':
-      return s.mode === 'glass' ? 'GLASS PLAYER' : 'AUDIO';
-    case 'section-divider':
-      return 'DIVIDER';
-    case 'youtube':
-      return 'YOUTUBE';
-    case 'discord':
-      return 'DISCORD';
-    case 'spotify':
-      return 'SPOTIFY';
-    case 'github':
-      return 'GITHUB';
-    case 'clock':
-      return 'CLOCK';
-    case 'badges':
-      return 'BADGES';
-    case 'shape':
-      return 'SHAPE';
-    case 'divider':
-      return 'DIVIDER';
-    case 'social-link':
-      return 'LINK';
-    case 'link-embed':
-      return 'LINK EMBED';
-    case 'lyric-sync':
-      return 'LYRIC SYNC';
-    case 'click-enter':
-      return 'CLICK TO ENTER';
-    case 'custom-cursor':
-      return 'CURSOR';
-    case 'volume-control':
-      return 'VOLUME';
-    case 'glass-toggle':
-      return 'GLASS TOGGLE';
-    case 'overlay-effect':
-      return 'OVERLAY';
-    case 'background':
-      return 'BACKGROUND';
-    case 'bg-animation':
-      return 'BG ANIMATION';
-    case 'code':
-      return 'CODE';
-    case 'font-selector':
-      return 'FONT';
-    case 'ttf-upload':
-      return 'TTF';
-    case 'page-indicator':
-      return 'PAGE INDICATOR';
-    case 'theme-switcher':
-      return 'THEME SWITCHER';
-    case 'quote-ticker':
-      return 'TICKER';
-    case 'days-counter':
-      return 'DAYS COUNTER';
-    case 'click-counter':
-      return 'CLICK COUNTER';
-    case 'weather':
-      return 'WEATHER';
-    case 'lanyard':
-      return 'DISCORD STATUS';
-    case 'game-library':
-      return 'GAME LIBRARY';
-    case 'audio-visualizer':
-      return 'VISUALIZER';
-    case 'visitor-counter':
-      return 'VISITOR COUNTER';
-    case 'guestbook':
-      return 'GUESTBOOK';
-    case 'mini-poll':
-      return 'POLL';
-    case 'tech-stack':
-      return 'TECH STACK';
-    case 'github-stats':
-      return 'GITHUB STATS';
-    case 'countdown':
-      return 'COUNTDOWN';
-    case 'typewriter':
-      return 'TYPEWRITER';
-    case 'random-quote':
-      return 'QUOTE';
-    case 'qr-code':
-      return 'QR CODE';
-    case 'streak-counter':
-      return 'STREAK';
-    case 'image-carousel':
-      return 'CAROUSEL';
-    case 'mood-tracker':
-      return 'MOOD';
-    case 'analog-clock':
-      return 'ANALOG CLOCK';
-    case 'soundboard':
-      return 'SOUNDBOARD';
-    case 'ip-info':
-      return 'IP INFO';
-    case 'friend-code':
-      return 'FRIEND CODE';
-    case 'virtual-pet':
-      return 'PET';
-    case 'calendar':
-      return 'CALENDAR';
-    case 'stopwatch':
-      return 'STOPWATCH';
-    case 'pomodoro':
-      return 'POMODORO';
-    case 'currency-converter':
-      return 'CURRENCY';
-    case 'translator':
-      return 'TRANSLATOR';
-    case 'notes':
-      return 'NOTES';
-    case 'todo-list':
-      return 'TODO';
-    case 'password-generator':
-      return 'PASSWORD';
-    case 'color-picker':
-      return 'COLOR';
-    case 'breathing-timer':
-      return 'BREATHING';
-    case 'sound-meter':
-      return 'SOUND METER';
-    case 'geo-locator':
-      return 'LOCATOR';
-    case 'alarm':
-      return 'ALARM';
-    case 'world-clock':
-      return 'WORLD CLOCK';
-    case 'progress-bar':
-      return 'PROGRESS';
-    case 'timer':
-      return 'TIMER';
-    case 'flip-card':
-      return 'FLIP CARD';
-    case 'accordion':
-      return 'ACCORDION';
-    case 'tabs':
-      return 'TABS';
-    case 'tooltip':
-      return 'TOOLTIP';
-    case 'modal':
-      return 'MODAL';
-    case 'link-preview':
-      return 'LINK PREVIEW';
-    case 'embed-code':
-      return 'EMBED';
-    case 'social-share':
-      return 'SHARE';
-    case 'video-embed':
-      return 'VIDEO EMBED';
-    case 'audio-embed':
-      return 'AUDIO EMBED';
-    case 'map':
-      return 'MAP';
-    case 'calendar-widget':
-      return 'CALENDAR';
-    case 'weather-map':
-      return 'WEATHER MAP';
-    case 'news-ticker':
-      return 'NEWS';
-    default:
-      return w.type.slice(0, 10);
-  }
-}
+      const s=w.settings||{};
+      switch(w.type){
+        case 'text': return `<span style="font-size:${s.fontSize}px;color:${s.color};">${(s.content||'').slice(0,12)}</span>`;
+        case 'profile-circle': return s.src ? `<img src="${s.src}" style="width:40px;height:40px;border-radius:50%;">` : 'CIRCLE';
+        case 'profile-card': return 'PROFILE CARD';
+        case 'image': return s.src ? `<img src="${s.src}" style="max-width:100%;max-height:100%;object-fit:${s.objectFit||'cover'};">` : 'IMAGE';
+        case 'video': return 'VIDEO';
+        case 'audio': return s.mode==='glass' ? 'GLASS PLAYER' : 'AUDIO';
+        case 'section-divider': return 'DIVIDER';
+        case 'clock': return 'CLOCK';
+        case 'badges': return 'BADGES';
+        case 'shape': return 'SHAPE';
+        case 'divider': return 'DIVIDER';
+        case 'social-link': return 'LINK';
+        case 'link-embed': return 'LINK EMBED';
+        case 'lyric-sync': return 'LYRIC SYNC';
+        case 'click-enter': return 'CLICK TO ENTER';
+        case 'custom-cursor': return 'CURSOR';
+        case 'volume-control': return 'VOLUME';
+        case 'glass-toggle': return 'GLASS TOGGLE';
+        case 'overlay-effect': return 'OVERLAY';
+        case 'code': return 'CODE';
+        case 'font-selector': return 'FONT';
+        case 'ttf-upload': return 'TTF';
+        case 'page-indicator': return 'PAGE INDICATOR';
+        case 'theme-switcher': return 'THEME SWITCHER';
+        case 'quote-ticker': return 'TICKER';
+        case 'days-counter': return 'DAYS COUNTER';
+        case 'click-counter': return 'CLICK COUNTER';
+        case 'weather': return 'WEATHER';
+        case 'lanyard': return 'DISCORD STATUS';
+        case 'game-library': return 'GAME LIBRARY';
+        case 'audio-visualizer': return 'VISUALIZER';
+        case 'visitor-counter': return 'VISITOR COUNTER';
+        case 'guestbook': return 'GUESTBOOK';
+        case 'mini-poll': return 'POLL';
+        case 'tech-stack': return 'TECH STACK';
+        case 'github-stats': return 'GITHUB STATS';
+        case 'countdown': return 'COUNTDOWN';
+        // New widgets previews (short)
+        case 'typewriter': return 'TYPEWRITER';
+        case 'random-quote': return 'QUOTE';
+        case 'qr-code': return 'QR CODE';
+        case 'streak-counter': return 'STREAK';
+        case 'image-carousel': return 'CAROUSEL';
+        case 'mood-tracker': return 'MOOD';
+        case 'analog-clock': return 'ANALOG CLOCK';
+        case 'soundboard': return 'SOUNDBOARD';
+        case 'ip-info': return 'IP INFO';
+        case 'friend-code': return 'FRIEND CODE';
+        case 'virtual-pet': return 'PET';
+        case 'calendar': return 'CALENDAR';
+        case 'stopwatch': return 'STOPWATCH';
+        case 'pomodoro': return 'POMODORO';
+        case 'currency-converter': return 'CURRENCY';
+        case 'translator': return 'TRANSLATOR';
+        case 'notes': return 'NOTES';
+        case 'todo-list': return 'TODO';
+        case 'password-generator': return 'PASSWORD';
+        case 'color-picker': return 'COLOR';
+        case 'breathing-timer': return 'BREATHING';
+        case 'sound-meter': return 'SOUND METER';
+        case 'geo-locator': return 'LOCATOR';
+        case 'alarm': return 'ALARM';
+        case 'world-clock': return 'WORLD CLOCK';
+        case 'progress-bar': return 'PROGRESS';
+        case 'timer': return 'TIMER';
+        case 'flip-card': return 'FLIP CARD';
+        case 'accordion': return 'ACCORDION';
+        case 'tabs': return 'TABS';
+        case 'tooltip': return 'TOOLTIP';
+        case 'modal': return 'MODAL';
+        case 'link-preview': return 'LINK PREVIEW';
+        case 'embed-code': return 'EMBED';
+        case 'social-share': return 'SHARE';
+        case 'video-embed': return 'VIDEO EMBED';
+        case 'audio-embed': return 'AUDIO EMBED';
+        case 'map': return 'MAP';
+        case 'calendar-widget': return 'CALENDAR';
+        case 'weather-map': return 'WEATHER MAP';
+        case 'news-ticker': return 'NEWS';
+        default: return w.type.slice(0,10);
+      }
+    }
 
     function renderCanvas() {
       canvas.style.transform = `scale(${zoom})`;
@@ -770,79 +625,28 @@
         makeInteractive(el, w);
         el.addEventListener('click', e => { e.stopPropagation(); selectWidget(w.id); });
       });
-
-      // ADDED: Show/hide toolbar and apply live mode
-      if (previewMode === 'live') {
-        document.querySelectorAll('.canvas-widget').forEach(el => {
-          el.style.background = 'transparent';
-          el.style.border = 'none';
-          el.style.backdropFilter = 'none';
-          el.querySelectorAll('.resize-handle, .rotate-handle').forEach(h => h.remove());
-        });
-      }
-      const toolbar = document.getElementById('selectedWidgetToolbar');
-      if (selectedId && previewMode === 'box') {
-        const w = layout.find(w => w.id === selectedId);
-        if (w) {
-          const selectedEl = canvas.querySelector(`.canvas-widget[data-id="${selectedId}"]`);
-          if (selectedEl) {
-            toolbar.classList.remove('hidden');
-            toolbar.style.top = '-50px';
-            toolbar.style.left = '0';
-            selectedEl.appendChild(toolbar);
-            toolbar.querySelectorAll('.mode-btn').forEach(btn => {
-              btn.classList.toggle('active', btn.dataset.mode === editMode);
-              btn.onclick = (e) => {
-                e.stopPropagation();
-                editMode = btn.dataset.mode;
-                toolbar.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                makeInteractive(selectedEl, w);
-              };
-            });
-          }
-        }
-      } else {
-        toolbar.classList.add('hidden');
-      }
     }
 
     function makeInteractive(el, widget) {
-      // ADDED: destroy previous interact instance if exists
-      if (el._interact) el._interact.destroy();
-
-      if (editMode === 'position') {
-        el._interact = interact(el).draggable({ listeners: { start() { pushUndo(); }, move(e) {
-          let nx = widget.x + percX(e.dx), ny = widget.y + percY(e.dy);
-          if(snap){ nx = Math.round(nx/5)*5; ny = Math.round(ny/5)*5; }
-          widget.x = Math.min(100-widget.w, Math.max(0, nx));
-          widget.y = Math.min(100-widget.h, Math.max(0, ny));
-          el.style.left = pxX(widget.x)+'px'; el.style.top = pxY(widget.y)+'px';
-        }}});
-      } else if (editMode === 'resize') {
-        el._interact = interact(el).resizable({
-          edges: { top:false, left:false, bottom:false, right:false },
-          listeners: { start() { pushUndo(); }, move(e) {
-            widget.w = percX(e.rect.width); widget.h = percY(e.rect.height);
-            el.style.width = pxX(widget.w)+'px'; el.style.height = pxY(widget.h)+'px';
-          }}
-        });
-      } else if (editMode === 'rotate') {
-        const rotHandle = el.querySelector('.rotate-handle');
-        if (rotHandle) {
-          el._interact = interact(rotHandle).draggable({
-            listeners: { start() { pushUndo(); }, move(e) {
-              const angle = Math.atan2(e.dy, e.dx) * (180/Math.PI);
-              widget.rotation = (widget.rotation||0) + angle*0.3;
-              el.style.transform = `rotate(${widget.rotation}deg)`;
-            }}
-          });
-        }
-      }
+      interact(el).draggable({ listeners: { start() { pushUndo(); }, move(e) {
+        let nx = widget.x + percX(e.dx), ny = widget.y + percY(e.dy);
+        if(snap){ nx = Math.round(nx/5)*5; ny = Math.round(ny/5)*5; }
+        widget.x = Math.min(100-widget.w, Math.max(0, nx));
+        widget.y = Math.min(100-widget.h, Math.max(0, ny));
+        el.style.left = pxX(widget.x)+'px'; el.style.top = pxY(widget.y)+'px';
+      }}}).resizable({ edges: { top:false, left:false, bottom:false, right:false }, listeners: { start() { pushUndo(); }, move(e) {
+        widget.w = percX(e.rect.width); widget.h = percY(e.rect.height);
+        el.style.width = pxX(widget.w)+'px'; el.style.height = pxY(widget.h)+'px';
+      }}});
+      const rh = el.querySelector('.rotate-handle');
+      if(rh) interact(rh).draggable({ listeners: { start() { pushUndo(); }, move(e) {
+        const angle = Math.atan2(e.dy, e.dx) * (180/Math.PI);
+        widget.rotation = (widget.rotation||0) + angle*0.3;
+        el.style.transform = `rotate(${widget.rotation}deg)`;
+      }}});
     }
 
     function selectWidget(id) {
-      // unchanged
       selectedId = id;
       document.querySelectorAll('.canvas-widget').forEach(e=>e.classList.remove('selected'));
       const el = document.querySelector(`.canvas-widget[data-id="${id}"]`);
@@ -874,19 +678,45 @@
       html += '<button class="btn" id="applySettingsBtn">Apply</button>';
       settingsDiv.innerHTML = html;
       document.getElementById('applySettingsBtn').onclick = () => applySettings(w);
-      // ADDED: re-render to show toolbar immediately
-      renderCanvas();
     }
 
     async function applySettings(widget) {
-      // unchanged
+      const inputs = settingsDiv.querySelectorAll('input,select,textarea');
+      for(const inp of inputs) {
+        const key = inp.dataset.key; if(!key) continue;
+        if(inp.type==='file' && inp.files.length>0) {
+          const file = inp.files[0];
+          const form = new FormData(); form.append('file', file);
+          try {
+            const res = await fetch('/api/upload', { method:'POST', body:form });
+            const data = await res.json();
+            if(data.url) { widget.settings[key] = data.url; showToast('Uploaded!'); }
+            else showToast('Upload failed, using URL');
+          } catch(e) { showToast('Upload error'); }
+        } else if(inp.type==='checkbox') {
+          widget.settings[key] = inp.checked;
+        } else if(key==='badges'||key==='games'||key==='tasks'||key==='notes') {
+          widget.settings[key] = inp.value.split(',').map(s=>s.trim());
+        } else {
+          widget.settings[key] = inp.value;
+        }
+      }
+      renderCanvas();
     }
 
     function addWidget(type) {
-      // unchanged
+      const def = widgetTypes.find(t=>t.type===type); if(!def) return;
+      pushUndo();
+      layout.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), type, x:10, y:10, w:20, h:15, rotation:0, settings: {...def.defaults} });
+      renderCanvas();
     }
-    function deleteSelected() { /* unchanged */ }
-    function duplicateSelected() { /* unchanged */ }
+    function deleteSelected() { if(!selectedId) return; pushUndo(); layout=layout.filter(w=>w.id!==selectedId); selectedId=null; renderCanvas(); noWidget.style.display='block'; settingsDiv.style.display='none'; }
+    function duplicateSelected() {
+      if(!selectedId) return; const w=layout.find(w=>w.id===selectedId); if(!w) return;
+      pushUndo(); const clone=JSON.parse(JSON.stringify(w));
+      clone.id=Date.now().toString(36)+Math.random().toString(36).slice(2,6); clone.x=Math.min(90,clone.x+2); clone.y=Math.min(90,clone.y+2);
+      layout.push(clone); renderCanvas();
+    }
 
     // ─── Populate sidebar ────────────
     const wl = document.getElementById('widgetList');
@@ -899,101 +729,44 @@
 
     // ─── Toolbar actions ─────────────
     document.getElementById('saveBtn').onclick = saveLayout;
-    // ... (existing event listeners)
+    document.getElementById('undoBtn').onclick = undo;
+    document.getElementById('redoBtn').onclick = redo;
+    document.getElementById('deleteBtn').onclick = deleteSelected;
+    document.getElementById('duplicateBtn').onclick = duplicateSelected;
+    document.getElementById('templateSelect').onchange = e => { if(e.target.value) applyTemplate(e.target.value); e.target.value=''; };
+    document.getElementById('snapToggle').onchange = e => snap = e.target.checked;
+    document.getElementById('zoomSlider').oninput = e => { zoom = e.target.value/100; document.getElementById('zoomValue').textContent = e.target.value+'%'; renderCanvas(); };
     document.getElementById('previewBtn').onclick = () => window.open(`/${user.username}`, '_blank');
     document.getElementById('liveEditBtn').onclick = () => {
       document.getElementById('liveEditIframe').src = `/${user.username}`;
       document.getElementById('liveEditOverlay').classList.add('open');
     };
-    // ... existing close/toggle listeners
-
-    // ADDED: Event listeners for new buttons
-    document.getElementById('previewModeBtn').onclick = function() {
-      previewMode = previewMode === 'box' ? 'live' : 'box';
-      renderCanvas();
+    document.getElementById('liveEditCloseBtn').onclick = () => {
+      document.getElementById('liveEditOverlay').classList.remove('open');
+      document.getElementById('liveEditIframe').src = '';
     };
-
-    const presetBtn = document.getElementById('devicePresetBtn');
-    const dropdown = document.getElementById('devicePresetDropdown');
-    presetBtn.onclick = (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); };
-    document.addEventListener('click', () => dropdown.classList.remove('open'));
-    document.querySelectorAll('.dropdown-item[data-preset]').forEach(item => {
-      item.onclick = (e) => {
-        e.stopPropagation();
-        const preset = item.dataset.preset;
-        if (preset === 'custom') {
-          const w = prompt('Width %'); const h = prompt('Height %');
-          if (w && h) applyPresetToAll(parseFloat(w), parseFloat(h));
-        } else {
-          const map = { pc:{w:30,h:20}, ipad:{w:45,h:30}, iphone:{w:70,h:40} };
-          if (map[preset]) applyPresetToAll(map[preset].w, map[preset].h);
-        }
-        dropdown.classList.remove('open');
-      };
+    document.getElementById('liveSidebarToggle').onclick = () => document.getElementById('liveSidebar').classList.toggle('open');
+    const liveWl = document.getElementById('liveWidgetList');
+    widgetTypes.forEach(wt => {
+      const d = document.createElement('div'); d.className='widget-item';
+      d.innerHTML = wt.icon + wt.name;
+      d.onclick = () => addWidget(wt.type);
+      liveWl.appendChild(d);
     });
-    function applyPresetToAll(w, h) {
-      layout.forEach(widget => { widget.w = w; widget.h = h; });
-      pushUndo();
-      renderCanvas();
-      showToast('Preset applied');
-    }
-    // END ADDED
-
-
-    // ─── Zoom ─────────────────────────
-    const zoomSlider = document.getElementById('zoomSlider');
-    const zoomValueDisplay = document.getElementById('zoomValue');
-    zoomSlider.addEventListener('input', function() {
-      zoom = this.value / 100;
-      zoomValueDisplay.textContent = this.value + '%';
-      renderCanvas();
-    });
-
-    // ─── Preview Mode Toggle ──────────
-    document.getElementById('previewModeBtn').onclick = function() {
-      previewMode = previewMode === 'box' ? 'live' : 'box';
-      renderCanvas();
-    };
-
-    // ─── Device Presets ───────────────
-    const presetBtn = document.getElementById('devicePresetBtn');
-    const dropdown = document.getElementById('devicePresetDropdown');
-    presetBtn.onclick = (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); };
-    document.addEventListener('click', () => dropdown.classList.remove('open'));
-    document.querySelectorAll('.dropdown-item[data-preset]').forEach(item => {
-      item.onclick = (e) => {
-        e.stopPropagation();
-        const preset = item.dataset.preset;
-        if (preset === 'custom') {
-          const w = prompt('Width %'); const h = prompt('Height %');
-          if (w && h) applyPresetToAll(parseFloat(w), parseFloat(h));
-        } else {
-          const map = { pc:{w:30,h:20}, ipad:{w:45,h:30}, iphone:{w:70,h:40} };
-          if (map[preset]) applyPresetToAll(map[preset].w, map[preset].h);
-        }
-        dropdown.classList.remove('open');
-      };
-    });
-    function applyPresetToAll(w, h) {
-      layout.forEach(widget => { widget.w = w; widget.h = h; });
-      pushUndo();
-      renderCanvas();
-      showToast('Preset applied');
-    }
 
     // ─── Simplified save ─────────────
     document.getElementById('saveSimplified').onclick = async () => {
       const bgType = document.getElementById('simpBgType').value;
       let bgValue = document.getElementById('simpBgValue').value.trim();
       const bgFile = document.getElementById('simpBgFile').files[0];
-      if (bgFile) {
+      if(bgFile) {
         const form = new FormData(); form.append('file', bgFile);
         const res = await fetch('/api/upload', { method:'POST', body:form });
         const data = await res.json();
-        if (data.url) bgValue = data.url;
+        if(data.url) bgValue = data.url;
       }
-      if (bgType === 'image' || bgType === 'video') {
-        if (bgValue.startsWith('url(')) bgValue = bgValue.slice(4, -1).replace(/^['"]|['"]$/g, '');
+      if(bgType === 'image' || bgType === 'video') {
+        if(bgValue.startsWith('url(')) bgValue = bgValue.slice(4, -1).replace(/^['"]|['"]$/g, '');
       }
       pageSettings.background = { type: bgType, value: bgValue || 'linear-gradient(180deg, #000, #F4C2C2)' };
       pageSettings.fontFamily = document.getElementById('simpFontFamily').value;
@@ -1013,14 +786,14 @@
       const bgType = document.getElementById('bgType').value;
       let bgValue = document.getElementById('bgValue').value.trim();
       const bgFile = document.getElementById('bgFile').files[0];
-      if (bgFile) {
+      if(bgFile) {
         const form = new FormData(); form.append('file', bgFile);
         const res = await fetch('/api/upload', { method:'POST', body:form });
         const data = await res.json();
-        if (data.url) bgValue = data.url;
+        if(data.url) bgValue = data.url;
       }
       let finalValue = '';
-      if (bgType === 'css') finalValue = bgValue || 'linear-gradient(180deg, #000, #F4C2C2)';
+      if(bgType === 'css') finalValue = bgValue || 'linear-gradient(180deg, #000, #F4C2C2)';
       else { if(bgValue.startsWith('url(')) finalValue = bgValue.slice(4,-1).replace(/^['"]|['"]$/g,''); else finalValue = bgValue || ''; }
       pageSettings.background = { type: bgType, value: finalValue };
       pageSettings.cursor = document.getElementById('cursorUrl').value;
@@ -1040,7 +813,6 @@
     document.getElementById('deleteAccountBtn').onclick = () => {
       if(confirm('Delete account?')) fetch('/api/delete-account', { method:'DELETE', headers:{Authorization:`Bearer ${token}`} }).then(()=>{ localStorage.clear(); window.location.href='/'; });
     };
-    document.getElementById('settingsLogoutBtn').onclick = () => { localStorage.clear(); window.location.href = '/'; };
 
     // ─── Start ──────────────────────
     loadLayout();
