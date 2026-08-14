@@ -583,43 +583,32 @@
           el.querySelectorAll('.resize-handle, .rotate-handle').forEach(h => h.remove());
         });
       }
-
       const toolbar = document.getElementById('selectedWidgetToolbar');
-      const canvasContainer = document.getElementById('canvasContainer');
-
-      // Remove toolbar from any previous parent and attach to canvasContainer
-      if (toolbar && toolbar.parentNode !== canvasContainer) {
-        canvasContainer.appendChild(toolbar);
-      }
-
       if (selectedId && previewMode === 'box') {
         const w = layout.find(w => w.id === selectedId);
-        if (w && toolbar) {
-          toolbar.classList.remove('hidden');
-          // Calculate scaled pixel position
-          const left = pxX(w.x) * zoom;
-          const top = pxY(w.y) * zoom - 50; // place above widget
-          toolbar.style.left = left + 'px';
-          toolbar.style.top = Math.max(0, top) + 'px'; // avoid clipping at top
-          toolbar.style.zIndex = '20';
-
-          toolbar.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.mode === editMode);
-            btn.onclick = (e) => {
-              e.stopPropagation();
-              editMode = btn.dataset.mode;
-              toolbar.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-              btn.classList.add('active');
-              const selectedEl = canvas.querySelector(`.canvas-widget[data-id="${selectedId}"]`);
-              if (selectedEl) makeInteractive(selectedEl, w);
-            };
-          });
-        } else {
-          toolbar.classList.add('hidden');
+        if (w) {
+          const selectedEl = canvas.querySelector(`.canvas-widget[data-id="${selectedId}"]`);
+          if (selectedEl) {
+            toolbar.classList.remove('hidden');
+            toolbar.style.top = '-50px';
+            toolbar.style.left = '0';
+            selectedEl.appendChild(toolbar);
+            toolbar.querySelectorAll('.mode-btn').forEach(btn => {
+              btn.classList.toggle('active', btn.dataset.mode === editMode);
+              btn.onclick = (e) => {
+                e.stopPropagation();
+                editMode = btn.dataset.mode;
+                toolbar.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                makeInteractive(selectedEl, w);
+              };
+            });
+          }
         }
       } else {
         toolbar.classList.add('hidden');
       }
+    }
 
     function makeInteractive(el, widget) {
       if (el._interact) el._interact.destroy();
@@ -648,7 +637,7 @@
       }
     }
 
-        function selectWidget(id) {
+    function selectWidget(id) {
       selectedId = id;
       document.querySelectorAll('.canvas-widget').forEach(e=>e.classList.remove('selected'));
       const el = document.querySelector(`.canvas-widget[data-id="${id}"]`);
