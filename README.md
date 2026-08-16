@@ -108,7 +108,7 @@ It looks goofy on the outside, but under the hood it’s a serious platform. Bui
 
 We welcome contributions! Whether it’s new widgets, bug fixes, or documentation improvements — feel free to open an issue or pull request.
 
-Join the Discord to discuss ideas: **[discord.gg/chrxmaticc](https://discord.gg/chrxmaticc)**
+Join the Discord to discuss ideas: **[discord.gg/chrxmaticc](https://discord.gg/Tz9Qqw8P6g)**
 
 ---
 
