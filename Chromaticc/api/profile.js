@@ -1,6 +1,4 @@
 import { Pool } from 'pg';
-import fs from 'fs';
-import path from 'path';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -482,58 +480,17 @@ function renderWidgetInner(widget, s, ctx) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   404 HANDLER — serves 404.html directly
-   ═══════════════════════════════════════════════════════ */
-let cached404 = null;
-function send404(res) {
-  res.statusCode = 404;
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  if (cached404) return res.end(cached404);
-  try {
-    cached404 = fs.readFileSync(path.join(process.cwd(), '404.html'), 'utf8');
-    return res.end(cached404);
-  } catch (e) {
-    return res.end(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>404</title>
-      <style>body{background:#000001;color:#fff;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;flex-direction:column;gap:20px;}a{color:#fff;}</style>
-      </head><body><h1 style="font-size:4rem;margin:0;">404</h1><p>Nothing here. <a href="/">Go home</a></p></body></html>`);
-  }
-}
-
-/* ═══════════════════════════════════════════════════════
    MAIN HANDLER
    ═══════════════════════════════════════════════════════ */
 export default async function handler(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname;
 
-  // ── Short-circuit non-bio routes ──
-  if (
-    pathname.startsWith('/api/') ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/discord') ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/static') ||
-    pathname === '/404' ||
-    pathname === '/404.html' ||
-    pathname === '/discover' ||
-    pathname === '/discover.html' ||
-    pathname === '/favicon.ico' ||
-    pathname === '/robots.txt' ||
-    pathname === '/sitemap.xml' ||
-    /\.(png|jpg|jpeg|svg|gif|webp|mp3|mp4|css|js|woff2?|ico|json|txt|xml|webmanifest|html)$/i.test(pathname)
-  ) {
-    res.statusCode = 404;
-    res.setHeader('Content-Type', 'text/plain');
-    return res.end('Not found');
-  }
-
+  // ── Only bio routes (single segment) reach here ──
   const segments = pathname.split('/').filter(Boolean);
-  if (segments.length === 0) {
-    res.writeHead(302, { Location: '/index.html' });
+  if (segments.length !== 1) {
+    res.statusCode = 404;
     return res.end();
-  }
-  if (segments.length > 1) {
-    return send404(res);
   }
 
   const slug = decodeURIComponent(segments[0]).toLowerCase();
@@ -564,13 +521,17 @@ export default async function handler(req, res) {
       }
     }
 
+    // Unknown user → plain 404 status (Vercel renders its 404 page)
     if (!userRow) {
-      console.log('[profile.js] no user for slug:', slug);
-      return send404(res);
+      res.statusCode = 404;
+      return res.end();
     }
 
     /* ── Terminated ── */
-    if (userRow.terminated) return send404(res);
+    if (userRow.terminated) {
+      res.statusCode = 404;
+      return res.end();
+    }
 
     /* ── Profile data ── */
     let profileData = {};
@@ -580,18 +541,22 @@ export default async function handler(req, res) {
         : userRow.profile_data;
     }
 
-    /* ── Hidden mode ── */
+    /* ── Hidden mode → 404 for real username if configured ── */
     const hidden = profileData.hidden || {};
     const isRealUsername = slug === userRow.username.toLowerCase();
     const isAlias = userRow.alias && slug === userRow.alias.toLowerCase();
     if (hidden.enabled && isRealUsername && hidden['404RealUsername'] && !isAlias) {
-      return send404(res);
+      res.statusCode = 404;
+      return res.end();
     }
 
-    /* ── Ban check ── */
+    /* ── Ban check: 404 if profile hidden by admin ── */
     const isBanned = userRow.banned_permanent
       || (userRow.banned_until && new Date(userRow.banned_until).getTime() > Date.now());
-    if (isBanned && !userRow.ban_keep_profile) return send404(res);
+    if (isBanned && !userRow.ban_keep_profile) {
+      res.statusCode = 404;
+      return res.end();
+    }
 
     /* ── Layout ── */
     let layoutData = { layout: [], settings: {} };
@@ -623,11 +588,11 @@ export default async function handler(req, res) {
       );
       badges = br.rows.map(r => r.badge_id);
     } catch (e) {
-      // user_badges table may not exist yet
+      // user_badges table may not exist yet — skip silently
     }
     if (isBanned && !badges.includes('banned')) badges.push('banned');
 
-    /* ── View count ── */
+    /* ── View count (fire and forget) ── */
     pool.query(
       `UPDATE profiles SET view_count = COALESCE(view_count, 0) + 1 WHERE user_id = $1`,
       [userRow.id]
@@ -790,6 +755,8 @@ ${auroraCSS}
 
   } catch (err) {
     console.error('[profile.js] unhandled error:', err);
-    return send404(res);
+    // Unexpected error → 404 status, Vercel shows its page
+    res.statusCode = 404;
+    return res.end();
   }
 }
