@@ -238,7 +238,6 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .preset-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;}
 .preset-btn{padding:8px 6px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-muted);font-size:.65rem;font-weight:700;cursor:pointer;transition:var(--transition);font-family:inherit;text-transform:uppercase;letter-spacing:.3px;}
 .preset-btn:hover{color:var(--accent);border-color:var(--border-strong);background:rgba(255,255,255,.06);}
-.preset-btn:active{transform:scale(0.96);}
 .settings-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-y:auto;backdrop-filter:blur(28px);max-height:calc(100vh - 170px);position:sticky;top:20px;}
 .settings-panel h3{font-size:.75rem;font-weight:800;margin-bottom:14px;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;}
 .settings-panel h4{font-size:.68rem;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;font-weight:800;}
@@ -294,6 +293,23 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .seo-preview .desc{font-size:.78rem;color:var(--text-muted);line-height:1.4;}
 .audio-preview{display:flex;align-items:center;gap:12px;margin-top:10px;padding:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;}
 .audio-preview audio{flex:1;height:32px;}
+
+/* ═══ WIRE MODE ═══ */
+.wire-toggle-btn{padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-muted);font-size:.75rem;font-weight:700;cursor:pointer;transition:var(--transition);font-family:inherit;display:flex;align-items:center;gap:6px;}
+.wire-toggle-btn:hover{color:var(--accent);border-color:var(--border-strong);}
+.wire-toggle-btn.active{background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border-color:transparent;box-shadow:0 0 18px rgba(255,255,255,.35);}
+.wire-overlay{position:absolute;inset:0;pointer-events:none;z-index:5;display:none;}
+.wire-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+.wire-path{fill:none;stroke:rgba(255,255,255,0.55);stroke-width:2;stroke-dasharray:6 4;animation:wireFlow 1s linear infinite;pointer-events:stroke;cursor:pointer;}
+.wire-path:hover{stroke:#fff;stroke-width:3;}
+@keyframes wireFlow{to{stroke-dashoffset:-20;}}
+.wire-port{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 0 12px rgba(255,255,255,.7);cursor:crosshair;z-index:15;pointer-events:auto;transition:transform .15s;}
+.wire-port:hover{transform:scale(1.3);}
+.wire-port.output{right:-7px;top:50%;margin-top:-7px;}
+.wire-port.input{left:-7px;top:50%;margin-top:-7px;background:#7dd3fc;box-shadow:0 0 12px rgba(125,211,252,.7);}
+.canvas-widget.wire-target{border-color:#7dd3fc !important;box-shadow:0 0 0 2px #7dd3fc,0 0 24px rgba(125,211,252,.5) !important;}
+.canvas-widget.wire-source{border-color:#fff !important;box-shadow:0 0 0 2px #fff,0 0 24px rgba(255,255,255,.5) !important;}
+
 ::-webkit-scrollbar{width:10px;height:10px;}
 ::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:6px;}
 ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#fff,#808080);border-radius:6px;border:2px solid transparent;background-clip:padding-box;}
@@ -325,24 +341,21 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     <div class="sidebar-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
     <span>Chromaticc</span>
   </div>
-
   <div class="sidebar-section">Menu</div>
   <div class="nav-item active" data-view="index"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Index</span></div>
   <div class="nav-item" data-view="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg><span>Profile</span><span class="nav-badge">NEW</span></div>
   <div class="nav-item" data-view="customize"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><span>Customize</span></div>
   <div class="nav-item" data-view="badges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/></svg><span>Badges</span><span class="nav-count" id="badgeCount">0</span></div>
   <div class="nav-item" data-view="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg><span>Stats</span></div>
-  <div class="nav-item" data-view="seo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>SEO</span><span class="nav-badge">NEW</span></div>
+  <div class="nav-item" data-view="seo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>SEO</span></div>
   <div class="nav-item" data-view="simplified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg><span>Simplified</span></div>
   <div class="nav-item" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg><span>Analytics</span></div>
   <div class="nav-item" data-view="guests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Guests</span></div>
   <div class="nav-item" data-view="templates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Templates</span></div>
-
   <div class="sidebar-section">General</div>
   <div class="nav-item" data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg><span>Settings</span></div>
   <div class="nav-item" data-view="help"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/></svg><span>Help</span></div>
   <div class="nav-item" id="logoutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Logout</span></div>
-
   <div class="sidebar-card">
     <h4>Aurora Mode</h4>
     <p>Premium animated effects on every widget.</p>
@@ -391,8 +404,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
       <div class="stat-card"><div class="stat-head"><span class="stat-label">Badges</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/></svg></div></div><div class="stat-value" data-stat="badges">—</div><div class="stat-delta" data-delta="badges">Loading…</div></div>
     </div>
     <div class="grid-2">
-      <div class="panel">
-        <div class="panel-head"><div><div class="panel-title">Account Age</div></div></div>
+      <div class="panel"><div class="panel-head"><div><div class="panel-title">Account Age</div></div></div>
         <div class="age-counter">
           <div><div class="age-value" id="ageDays">—</div><div class="age-label">Days</div></div>
           <div><div class="age-value" id="ageHours">—</div><div class="age-label">Hours</div></div>
@@ -400,8 +412,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
           <div style="flex:1;min-width:140px;"><div class="age-label">Joined</div><div style="font-size:.9rem;font-weight:600;margin-top:6px;" id="joinedDate">—</div></div>
         </div>
       </div>
-      <div class="panel">
-        <div class="panel-head"><div><div class="panel-title">Profile Completion</div></div></div>
+      <div class="panel"><div class="panel-head"><div><div class="panel-title">Profile Completion</div></div></div>
         <div class="ring-wrap">
           <div class="ring-container">
             <svg class="ring-svg" viewBox="0 0 120 120">
@@ -432,7 +443,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
   <!-- PROFILE -->
   <section class="view" id="view-profile">
     <div class="page-header">
-      <div><h1>Profile</h1><p>Shared data. Widgets pull from here via <code>{{user.*}}</code> tokens.</p></div>
+      <div><h1>Profile</h1><p>Shared data. Widgets pull from here.</p></div>
       <div class="header-actions"><button class="btn btn-primary" onclick="saveProfile()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save</button></div>
     </div>
     <div class="grid-2">
@@ -461,6 +472,14 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
       </div>
     </div>
     <div class="panel">
+      <div class="panel-head"><div><div class="panel-title">Discord Presence</div><div class="panel-sub">Shows your live Discord status on your profile</div></div><span class="panel-pill" id="discordStatusPill">Not linked</span></div>
+      <div class="field"><label>Discord User ID</label><input type="text" id="pfDiscordId" placeholder="Use /link in Discord to get yours"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="apply-btn" onclick="saveDiscordId()" style="flex:1;margin-top:0;">Save Discord ID</button>
+        <button class="apply-btn secondary" onclick="checkDiscordStatus()" style="flex:1;margin-top:0;">Check Status</button>
+      </div>
+    </div>
+    <div class="panel">
       <div class="panel-head"><div><div class="panel-title">Social Links</div></div><button class="btn btn-outline btn-sm" onclick="addSocial()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add</button></div>
       <div class="social-editor" id="socialEditor"></div>
     </div>
@@ -469,7 +488,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
   <!-- CUSTOMIZE -->
   <section class="view" id="view-customize">
     <div class="page-header">
-      <div><h1>Customize</h1><p>Changes auto-save live. Click <b>Apply</b> to commit to history.</p></div>
+      <div><h1>Customize</h1><p>Changes auto-save live. Click Apply to commit to history.</p></div>
       <div class="header-actions">
         <button class="btn btn-outline" onclick="loadLayout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>Reload</button>
         <button class="btn btn-outline" onclick="clearCanvas()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>Clear</button>
@@ -487,10 +506,17 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
           <button class="toolbar-btn" onclick="duplicateSelected()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Duplicate</button>
           <button class="toolbar-btn" onclick="deleteSelected()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>Delete</button>
           <button class="toolbar-btn" onclick="undo()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>Undo</button>
+          <div class="toolbar-divider"></div>
+          <button class="wire-toggle-btn" id="wireToggle" onclick="toggleWireMode()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Wire Mode
+          </button>
           <div class="toolbar-spacer"></div>
           <span style="font-size:.68rem;color:var(--text-dim);font-weight:600;" id="canvasCount">0 widgets</span>
         </div>
-        <div class="canvas-container" id="canvas"></div>
+        <div class="canvas-container" id="canvas">
+          <div class="wire-overlay" id="wireOverlay"><svg class="wire-svg" id="wireSvg"></svg></div>
+        </div>
       </div>
       <div class="settings-panel">
         <h3>Widget Settings</h3>
@@ -532,10 +558,10 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     <div class="grid-2">
       <div class="panel">
         <div class="panel-head"><div><div class="panel-title">Page Meta</div></div></div>
-        <div class="field"><label>Page Title</label><input type="text" id="seoTitle" placeholder="Your Name — Chromaticc"></div>
-        <div class="field"><label>Meta Description</label><textarea id="seoDesc" placeholder="Short description"></textarea></div>
-        <div class="field"><label>Keywords</label><input type="text" id="seoKeywords" placeholder="bio, links, personal"></div>
-        <div class="field"><label>Author</label><input type="text" id="seoAuthor" placeholder="Your Name"></div>
+        <div class="field"><label>Page Title</label><input type="text" id="seoTitle"></div>
+        <div class="field"><label>Meta Description</label><textarea id="seoDesc"></textarea></div>
+        <div class="field"><label>Keywords</label><input type="text" id="seoKeywords"></div>
+        <div class="field"><label>Author</label><input type="text" id="seoAuthor"></div>
         <div class="field"><label>Theme Color</label><input type="color" id="seoThemeColor" value="#000001"></div>
         <div class="field"><label style="display:flex;align-items:center;justify-content:space-between;">Index on Google <input type="checkbox" id="seoIndexable" checked></label></div>
       </div>
@@ -590,19 +616,10 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
       <div class="aurora-card">
         <h3>🎵 Click-to-Enter Audio</h3>
         <p>Plays when visitors click to enter. Accepts any file — mp3, wav, ogg, etc.</p>
-        <div class="field" style="margin-bottom:12px;">
-          <label style="color:rgba(255,255,255,.8);">Audio URL</label>
-          <input type="text" id="simpClickAudio" placeholder="https://...">
-        </div>
-        <label class="file-upload-btn" style="background:rgba(255,255,255,.1);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Upload Audio
-          <input type="file" id="simpClickAudioFile">
-        </label>
+        <div class="field" style="margin-bottom:12px;"><label style="color:rgba(255,255,255,.8);">Audio URL</label><input type="text" id="simpClickAudio" placeholder="https://..."></div>
+        <label class="file-upload-btn" style="background:rgba(255,255,255,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload Audio<input type="file" id="simpClickAudioFile"></label>
         <span class="file-upload-status" id="simpClickAudioStatus"></span>
-        <div class="audio-preview" id="simpClickAudioPreview" style="display:none;">
-          <audio id="simpClickAudioPlayer" controls></audio>
-        </div>
+        <div class="audio-preview" id="simpClickAudioPreview" style="display:none;"><audio id="simpClickAudioPlayer" controls></audio></div>
       </div>
       <div class="aurora-card">
         <h3>Hidden Mode</h3>
@@ -683,8 +700,8 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     <div class="panel">
       <div class="list-row"><div class="list-avatar">1</div><div class="list-info"><b>Fill out your Profile tab</b><small>Everything pulls from there</small></div></div>
       <div class="list-row"><div class="list-avatar">2</div><div class="list-info"><b>Add widgets in Customize</b><small>Changes auto-save live</small></div></div>
-      <div class="list-row"><div class="list-avatar">3</div><div class="list-info"><b>Click Apply to commit</b><small>Undo/redo works per Apply</small></div></div>
-      <div class="list-row"><div class="list-avatar">4</div><div class="list-info"><b>Save Layout pushes to server</b><small>Persists across reloads</small></div></div>
+      <div class="list-row"><div class="list-avatar">3</div><div class="list-info"><b>Wire Mode connects widgets</b><small>Drag output → input to link</small></div></div>
+      <div class="list-row"><div class="list-avatar">4</div><div class="list-info"><b>Link Discord for live status</b><small>Use /link in Discord</small></div></div>
       <div class="list-row"><div class="list-avatar">5</div><div class="list-info"><b>Style presets</b><small>Glass / No BG / Solid / Outline</small></div></div>
     </div>
   </section>
@@ -709,6 +726,8 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 <script>
 (function(){
 'use strict';
+
+/* ═══════════ AUTH ═══════════ */
 const token = localStorage.getItem('chromaticc_token');
 const currentUser = JSON.parse(localStorage.getItem('chromaticc_user') || '{}');
 if (!token || !currentUser.username) { window.location.href = '/accounts.html'; return; }
@@ -717,6 +736,7 @@ document.getElementById('userName').textContent = currentUser.username;
 document.getElementById('userEmail').textContent = '@' + currentUser.username;
 document.getElementById('setUsername').value = currentUser.username;
 
+/* ═══════════ THEME ═══════════ */
 const savedTheme = localStorage.getItem('chromaticc_theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
 window.toggleTheme = function(){
@@ -727,6 +747,7 @@ window.toggleTheme = function(){
   showToast('Theme: ' + next);
 };
 
+/* ═══════════ TOAST ═══════════ */
 window.showToast = function(msg){
   const t = document.getElementById('toast');
   document.getElementById('toastMsg').textContent = msg;
@@ -735,7 +756,7 @@ window.showToast = function(msg){
   window._toastT = setTimeout(() => t.classList.remove('show'), 2400);
 };
 
-/* ═══════════ AUTOSAVE STATE ═══════════ */
+/* ═══════════ AUTOSAVE ═══════════ */
 let isDirty = false;
 function markDirty(){
   isDirty = true;
@@ -824,53 +845,47 @@ async function uploadAnyFile(file, statusEl){
 
 /* ═══════════ BADGES ═══════════ */
 const BADGES = [
-  { id:'bot', name:'Bot', file:'Bot.png', rarity:'special', hint:'Default badge for unverified accounts' },
-  { id:'verified', name:'Verified', file:'Verified.png', rarity:'uncommon', hint:'Get verified by Chromaticc' },
-  { id:'discord-member', name:'Discord Member', file:'Discord-member.png', rarity:'common', hint:'Join the Chromaticc Discord server' },
+  { id:'bot', name:'Bot', file:'Bot.png', rarity:'special', hint:'Default badge' },
+  { id:'verified', name:'Verified', file:'Verified.png', rarity:'uncommon', hint:'Get verified' },
+  { id:'discord-member', name:'Discord Member', file:'Discord-member.png', rarity:'common', hint:'Join the Discord' },
   { id:'coder', name:'Coder', file:'Coder.png', rarity:'uncommon', hint:'Place a Code widget' },
-  { id:'developer', name:'Developer', file:'Developer.png', rarity:'uncommon', hint:'Link your GitHub' },
-  { id:'bug-hunter', name:'Bug Hunter', file:'Blurple-Bug-Hunter.png', rarity:'rare', hint:'Report a bug that gets fixed' },
-  { id:'ppa', name:'PPA', file:'PPA.png', rarity:'epic', hint:'Be famous and noticed by Chromaticc' },
-  { id:'staff', name:'Staff', file:'Staff.png', rarity:'epic', hint:'Official Chromaticc staff' },
+  { id:'developer', name:'Developer', file:'Developer.png', rarity:'uncommon', hint:'Link GitHub' },
+  { id:'bug-hunter', name:'Bug Hunter', file:'Blurple-Bug-Hunter.png', rarity:'rare', hint:'Report a bug' },
+  { id:'ppa', name:'PPA', file:'PPA.png', rarity:'epic', hint:'Be noticed' },
+  { id:'staff', name:'Staff', file:'Staff.png', rarity:'epic', hint:'Official staff' },
   { id:'owner', name:'Owner', file:'Owner.png', rarity:'mythic', hint:'Owner of Chromaticc' },
-  { id:'hidden', name:'Hidden', file:'Hidden.png', rarity:'special', hint:'Enable Hidden Mode' },
-  { id:'banned', name:'Banned', file:'Banned.png', rarity:'special', hint:'Account is banned' },
-  { id:'terminated', name:'Terminated', file:'Terminated.png', rarity:'special', hint:'Account has been terminated' }
+  { id:'hidden', name:'Hidden', file:'Hidden.png', rarity:'special', hint:'Hidden Mode' },
+  { id:'banned', name:'Banned', file:'Banned.png', rarity:'special', hint:'Banned' },
+  { id:'terminated', name:'Terminated', file:'Terminated.png', rarity:'special', hint:'Terminated' }
 ];
 
-/* ═══════════ WIDGET TYPES — full list ═══════════ */
+/* ═══════════ WIDGET TYPES ═══════════ */
 const widgetTypes = [
-  /* TEXT */
-  { category:'Text', type:'text', name:'Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/><line x1="7" y1="12" x2="17" y2="12"/></svg>', defaults:{content:'Hello {{user.displayName}}', fontSize:16, color:'#e8e8f0', align:'left'} },
+  { category:'Text', type:'text', name:'Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{content:'Hello {{user.displayName}}', fontSize:16, color:'#e8e8f0', align:'left'} },
   { category:'Text', type:'gradient-text', name:'Gradient Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{content:'Gradient', fontSize:20, gradient:'linear-gradient(90deg,#fff,#b0b0b0)'} },
   { category:'Text', type:'neon-text', name:'Neon Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{content:'Neon', color:'#ffffff', fontSize:22} },
   { category:'Text', type:'marquee-text', name:'Marquee', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>', defaults:{content:'Scrolling...', speed:5} },
   { category:'Text', type:'typewriter', name:'Typewriter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/></svg>', defaults:{text:'Hello world', speed:80, color:'#ffffff'} },
   { category:'Text', type:'glitch-text', name:'Glitch Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>', defaults:{content:'GLITCH', color:'#ffffff'} },
 
-  /* PROFILE */
   { category:'Profile', type:'profile-card', name:'Profile Card', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>', isContainer:true, defaults:{preset:'minimal', slots:'avatar,name,badges,tagline,location,socials,views', nameEffect:'none', frameEnabled:true, frameColor:'rgba(255,255,255,0.18)'} },
   { category:'Profile', type:'profile-circle', name:'Profile Circle', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{src:'', borderColor:'#ffffff', showPresence:true} },
   { category:'Profile', type:'badges', name:'Badges Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/></svg>', defaults:{autoFromAccount:true, badges:''} },
 
-  /* MEDIA */
-  { category:'Media', type:'image', name:'Image', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>', defaults:{src:'', alt:''} },
-  { category:'Media', type:'video', name:'Video', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', defaults:{src:'', controls:true} },
+  { category:'Media', type:'image', name:'Image', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>', defaults:{src:'', alt:''} },
+  { category:'Media', type:'video', name:'Video', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/></svg>', defaults:{src:'', controls:true} },
   { category:'Media', type:'video-embed', name:'Video Embed', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/></svg>', defaults:{src:''} },
-  { category:'Media', type:'audio', name:'Audio', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', defaults:{src:'', title:'Track'} },
+  { category:'Media', type:'audio', name:'Audio', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/></svg>', defaults:{src:'', title:'Track'} },
   { category:'Media', type:'audio-embed', name:'Audio Embed', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/></svg>', defaults:{src:''} },
-  { category:'Media', type:'audio-player', name:'Audio Player', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', defaults:{src:'', trackName:'novocaine (slowed)', albumArt:'', fallbackImage:'AudioImage.png'} },
+  { category:'Media', type:'audio-player', name:'Audio Player', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/></svg>', defaults:{src:'', trackName:'Track', albumArt:'', fallbackImage:'AudioImage.png'} },
   { category:'Media', type:'audio-viz', name:'Audio Visualizer', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', defaults:{src:'', color:'#ffffff'} },
   { category:'Media', type:'image-carousel', name:'Image Carousel', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>', defaults:{images:'', interval:3500} },
 
-  /* LINKS */
-  { category:'Links', type:'link-list', name:'Link List', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>', isContainer:true, defaults:{} },
-  { category:'Links', type:'link-row', name:'Link Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg>', hidden:true, defaults:{label:'My Link', url:'', iconUrl:'', description:''} },
-  { category:'Links', type:'link-embed', name:'Link Embed', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg>', defaults:{url:'', label:'My Link', iconUrl:'', description:''} },
+  { category:'Links', type:'link-list', name:'Link List', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>', isContainer:true, defaults:{} },
+  { category:'Links', type:'link-row', name:'Link Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3"/></svg>', hidden:true, defaults:{label:'My Link', url:'', iconUrl:'', description:''} },
+  { category:'Links', type:'link-embed', name:'Link Embed', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3"/></svg>', defaults:{url:'', label:'My Link', iconUrl:'', description:''} },
   { category:'Links', type:'social-link', name:'Social Link', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{url:'', label:'Social', iconUrl:'', description:''} },
-  { category:'Links', type:'social-row', name:'Social Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/></svg>', defaults:{links:'discord.com|discord.github.com|github', size:44} },
 
-  /* EMBEDS */
   { category:'Embeds', type:'youtube', name:'YouTube', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/></svg>', defaults:{videoId:''} },
   { category:'Embeds', type:'spotify', name:'Spotify', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{uri:''} },
   { category:'Embeds', type:'twitch', name:'Twitch', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 0L1.71 4.29v15.43h5.15V24l4.28-4.29h3.43L22.29 12V0H6z"/></svg>', defaults:{channel:''} },
@@ -879,8 +894,7 @@ const widgetTypes = [
   { category:'Embeds', type:'reddit', name:'Reddit', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{subreddit:''} },
   { category:'Embeds', type:'tiktok', name:'TikTok', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12v9"/></svg>', defaults:{username:''} },
 
-  /* UTILITY */
-  { category:'Utility', type:'clock', name:'Clock', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>', defaults:{format:'12h', showSeconds:true} },
+  { category:'Utility', type:'clock', name:'Clock', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{format:'12h', showSeconds:true} },
   { category:'Utility', type:'countdown', name:'Countdown', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{targetDate:'', label:''} },
   { category:'Utility', type:'days-counter', name:'Days Counter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{startDate:'', label:'Since'} },
   { category:'Utility', type:'visitor-counter', name:'Visitor Counter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>', defaults:{} },
@@ -894,42 +908,34 @@ const widgetTypes = [
   { category:'Utility', type:'streak-counter', name:'Streak Counter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/></svg>', defaults:{startDate:'', label:'Streak'} },
   { category:'Utility', type:'stopwatch', name:'Stopwatch', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{} },
   { category:'Utility', type:'pomodoro', name:'Pomodoro', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{work:25, break:5} },
-  { category:'Utility', type:'breathing-timer', name:'Breathing Timer', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{} },
   { category:'Utility', type:'color-picker', name:'Color Picker', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{color:'#ffffff'} },
-  { category:'Utility', type:'map-widget', name:'Map', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>', defaults:{lat:0, lng:0} },
 
-  /* SOCIAL */
-  { category:'Social', type:'lanyard', name:'Discord Presence', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>', defaults:{userId:'', showStatus:true, showGame:true} },
+  { category:'Social', type:'discord-presence', name:'Discord Presence', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>', defaults:{ showStatusDot:true, showSpotify:true, showActivity:true } },
+  { category:'Social', type:'lanyard', name:'Lanyard (Legacy)', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{userId:'', showStatus:true, showGame:true} },
   { category:'Social', type:'github-stats', name:'GitHub Stats', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/></svg>', defaults:{username:''} },
   { category:'Social', type:'tech-stack', name:'Tech Stack', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/></svg>', defaults:{items:'React,Node,TS', columns:3} },
   { category:'Social', type:'game-library', name:'Game Library', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>', defaults:{games:'Valorant,Minecraft,CS2'} },
   { category:'Social', type:'friend-code', name:'Friend Code', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>', defaults:{code:'YOUR-CODE', label:'Friend Code'} },
 
-  /* INTERACTIVE */
   { category:'Interactive', type:'guestbook', name:'Guestbook', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', defaults:{title:'Leave a message'} },
-  { category:'Interactive', type:'mini-poll', name:'Mini Poll', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/></svg>', defaults:{question:'Favorite?', options:'Yes,No'} },
+  { category:'Interactive', type:'mini-poll', name:'Mini Poll', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/></svg>', defaults:{question:'Favorite?', options:'Yes,No'} },
   { category:'Interactive', type:'flip-card', name:'Flip Card', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>', defaults:{front:'Click me', back:'Surprise!'} },
   { category:'Interactive', type:'accordion', name:'Accordion', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>', defaults:{items:'Item 1,Item 2,Item 3'} },
-  { category:'Interactive', type:'click-enter', name:'Click to Enter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>', defaults:{message:'Click anywhere to enter', audioUrl:'', autoplay:true} },
+  { category:'Interactive', type:'click-enter', name:'Click to Enter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/></svg>', defaults:{message:'Click anywhere to enter', audioUrl:'', autoplay:true} },
   { category:'Interactive', type:'virtual-pet', name:'Virtual Pet', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{name:'Chrxy'} },
   { category:'Interactive', type:'soundboard', name:'Soundboard', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/></svg>', defaults:{sounds:''} },
-  { category:'Interactive', type:'mood-tracker', name:'Mood Tracker', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>', defaults:{mood:'happy'} },
+  { category:'Interactive', type:'mood-tracker', name:'Mood Tracker', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{mood:'happy'} },
 
-  /* DECORATION */
   { category:'Decoration', type:'divider', name:'Divider', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/></svg>', defaults:{color:'#ffffff', thickness:2, style:'solid', label:''} },
   { category:'Decoration', type:'section-divider', name:'Section Divider', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/></svg>', defaults:{color:'#ffffff', thickness:2, label:''} },
   { category:'Decoration', type:'shape', name:'Shape', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>', defaults:{shape:'rect', color:'#ffffff'} },
-  { category:'Decoration', type:'overlay-effect', name:'Overlay Effect', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>', defaults:{effect:'sparkles'} },
-  { category:'Decoration', type:'background-anim', name:'Animated Background', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{type:'particles'} },
 
-  /* ADVANCED */
   { category:'Advanced', type:'code', name:'Code Widget', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>', defaults:{html:'<div style="color:#fff;font-weight:700;">Custom HTML</div>', css:'', js:''} },
   { category:'Advanced', type:'custom-cursor', name:'Custom Cursor', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>', defaults:{url:''} },
   { category:'Advanced', type:'font-selector', name:'Font Selector', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{font:'Inter'} },
   { category:'Advanced', type:'theme-switcher', name:'Theme Switcher', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{themes:'dark,light,purple'} },
   { category:'Advanced', type:'page-indicator', name:'Page Indicator', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>', defaults:{current:1, total:3} },
 
-  /* FUN */
   { category:'Fun', type:'sparkle-button', name:'Sparkle Button', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 10 22 10 17 15 19 22 12 18 5 22 7 15 2 10 9 10 12 2"/></svg>', defaults:{label:'Sparkle!', color:'#ffffff'} },
   { category:'Fun', type:'confetti-button', name:'Confetti Button', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{label:'Confetti!'} },
   { category:'Fun', type:'matrix-rain', name:'Matrix Rain', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>', defaults:{color:'#4ade80'} }
@@ -953,6 +959,8 @@ let historyIndex = -1;
 let pageSettings = {};
 let profileData = {};
 let userBadges = [];
+let wireMode = false;
+let activeWireStart = null;
 
 const canvas = document.getElementById('canvas');
 const settingsPanel = document.getElementById('widgetSettings');
@@ -1017,7 +1025,7 @@ window.saveLayout = async function(){
     const res = await fetch('/api/save-layout', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({layout, settings:pageSettings, profile:profileData})
+      body:JSON.stringify({layout, settings:pageSettings, profile:profileData, wires: pageSettings.wires || []})
     });
     if (res.ok) { showToast('Layout saved!'); markSaved(); }
     else showToast('Save failed: ' + res.status);
@@ -1028,6 +1036,7 @@ window.clearCanvas = function(){
   if (!confirm('Remove all widgets?')) return;
   layout = [];
   selectedId = null;
+  pageSettings.wires = [];
   pushHistory();
   renderCanvas();
   markDirty();
@@ -1073,6 +1082,7 @@ function buildWidgetStyle(w){
 }
 
 /* ═══════════ RENDER CANVAS ═══════════ */
+let _originalRenderCanvas;
 function renderCanvas(){
   canvas.querySelectorAll('.canvas-widget').forEach(el => el.remove());
   layout.forEach(w => {
@@ -1100,11 +1110,16 @@ function renderCanvas(){
     rot.className = 'rotate-h';
     el.appendChild(rot);
     if (w.id === selectedId) el.classList.add('selected');
-    el.addEventListener('click', e => { e.stopPropagation(); selectWidget(w.id); });
+    el.addEventListener('click', e => { e.stopPropagation(); if (!wireMode) selectWidget(w.id); });
     canvas.appendChild(el);
-    attachInteract(el, w);
+    if (!wireMode) attachInteract(el, w);
   });
   document.getElementById('canvasCount').textContent = layout.length + ' widget' + (layout.length !== 1 ? 's' : '');
+  const svg = document.getElementById('wireSvg');
+  const overlay = document.getElementById('wireOverlay');
+  if (svg) svg.innerHTML = '';
+  if (overlay) overlay.style.display = wireMode ? 'block' : 'none';
+  if (wireMode) drawWires();
 }
 
 function findWidget(id, list){
@@ -1149,7 +1164,6 @@ window.selectWidget = function(id, keepTab){
   const s = w.settings || {};
   const st = w.style;
 
-  // Preserve current tab
   const activeTabName = keepTab
     || settingsPanel.querySelector('.widget-tab.active')?.dataset.tab
     || 'content';
@@ -1254,7 +1268,6 @@ window.selectWidget = function(id, keepTab){
   html += `<button class="apply-btn" id="applyWidgetSettings">Apply Changes</button>`;
   settingsPanel.innerHTML = html;
 
-  /* Tab switching */
   settingsPanel.querySelectorAll('.widget-tab').forEach(tab => {
     tab.onclick = () => {
       settingsPanel.querySelectorAll('.widget-tab').forEach(t => t.classList.remove('active'));
@@ -1264,7 +1277,6 @@ window.selectWidget = function(id, keepTab){
     };
   });
 
-  /* LIVE AUTOSAVE: input/select/change saves to widget in memory + re-renders canvas */
   settingsPanel.querySelectorAll('[data-key]').forEach(inp => {
     const key = inp.dataset.key;
     if (!key) return;
@@ -1277,7 +1289,6 @@ window.selectWidget = function(id, keepTab){
     inp.addEventListener('change', applyVal);
   });
 
-  /* LIVE AUTOSAVE for style fields */
   settingsPanel.querySelectorAll('[data-style]').forEach(inp => {
     const path = inp.dataset.style.split('.');
     const applyVal = () => {
@@ -1292,14 +1303,12 @@ window.selectWidget = function(id, keepTab){
       }
       target[path[path.length - 1]] = val;
       markDirty();
-      // Live re-render canvas as user drags/types
       renderCanvas();
     };
     inp.addEventListener('input', applyVal);
     inp.addEventListener('change', applyVal);
   });
 
-  /* Dropdown that changes panel structure — save first, then re-render panel */
   settingsPanel.querySelectorAll('select[data-style="bg.type"], select[data-style="shadow.type"]').forEach(sel => {
     sel.addEventListener('change', () => {
       const path = sel.dataset.style.split('.');
@@ -1310,13 +1319,11 @@ window.selectWidget = function(id, keepTab){
       }
       target[path[path.length - 1]] = sel.value;
       markDirty();
-      // Re-render panel but stay on the same tab
       selectWidget(id, 'style');
       renderCanvas();
     });
   });
 
-  /* File uploads auto-upload on change */
   settingsPanel.querySelectorAll('input[type="file"]').forEach(fi => {
     const key = fi.dataset.upload;
     if (!key) return;
@@ -1342,7 +1349,6 @@ window.selectWidget = function(id, keepTab){
   };
 };
 
-/* Preset apply */
 window.applyStylePreset = function(preset){
   if (!selectedId) return;
   const w = findWidget(selectedId);
@@ -1376,7 +1382,7 @@ function attachInteract(el, widget){
   if (widget.style && widget.style.lock) return;
   interact(el).draggable({
     enabled: editMode === 'position',
-    ignoreFrom: '.handle, .rotate-h',
+    ignoreFrom: '.handle, .rotate-h, .wire-port',
     listeners: {
       move(event){
         const cr = canvas.getBoundingClientRect();
@@ -1446,7 +1452,7 @@ function attachInteract(el, widget){
 }
 
 canvas.addEventListener('click', e => {
-  if (e.target === canvas) {
+  if (e.target === canvas && !wireMode) {
     selectedId = null;
     document.querySelectorAll('.canvas-widget').forEach(el => el.classList.remove('selected'));
     noWidgetMsg.style.display = 'block';
@@ -1466,7 +1472,6 @@ window.addWidget = function(type){
     style: deepClone(WIDGET_STYLE_DEFAULTS),
     children: def.isContainer ? [] : undefined
   };
-  // Text-like widgets start with no background/border
   if (['text','gradient-text','neon-text','marquee-text','typewriter','glitch-text'].includes(type)) {
     w.style.bg = { type:'none', value:'', blur:0, opacity:1 };
     w.style.border = { width:0, color:'rgba(255,255,255,0)', style:'none', radius:0 };
@@ -1517,6 +1522,99 @@ window.setEditMode = function(mode){
   renderCanvas();
 };
 
+/* ═══════════ WIRE MODE ═══════════ */
+window.toggleWireMode = function(){
+  wireMode = !wireMode;
+  document.getElementById('wireToggle').classList.toggle('active', wireMode);
+  showToast(wireMode ? 'Wire mode ON — drag output → input to connect' : 'Wire mode OFF');
+  renderCanvas();
+};
+
+function drawWires(){
+  if (!wireMode) return;
+  const svg = document.getElementById('wireSvg');
+  const overlay = document.getElementById('wireOverlay');
+  if (!svg || !overlay) return;
+  const cRect = canvas.getBoundingClientRect();
+  overlay.style.display = 'block';
+  svg.setAttribute('viewBox', `0 0 ${cRect.width} ${cRect.height}`);
+  svg.innerHTML = '';
+
+  layout.forEach(w => {
+    const el = canvas.querySelector(`.canvas-widget[data-id="${w.id}"]`);
+    if (!el) return;
+
+    const out = document.createElement('div');
+    out.className = 'wire-port output';
+    out.dataset.port = 'output';
+    out.dataset.id = w.id;
+    out.addEventListener('mousedown', e => {
+      e.stopPropagation();
+      activeWireStart = w.id;
+      document.querySelectorAll('.canvas-widget').forEach(ce => ce.classList.remove('wire-source'));
+      el.classList.add('wire-source');
+    });
+    el.appendChild(out);
+
+    const inp = document.createElement('div');
+    inp.className = 'wire-port input';
+    inp.dataset.port = 'input';
+    inp.dataset.id = w.id;
+    inp.addEventListener('mouseup', e => {
+      e.stopPropagation();
+      if (activeWireStart && activeWireStart !== w.id) {
+        if (!pageSettings.wires) pageSettings.wires = [];
+        pageSettings.wires.push({ from: activeWireStart, to: w.id });
+        pushHistory();
+        markDirty();
+        showToast('Wired');
+        activeWireStart = null;
+        document.querySelectorAll('.canvas-widget').forEach(ce => ce.classList.remove('wire-source','wire-target'));
+        drawWires();
+      }
+    });
+    inp.addEventListener('mouseenter', () => {
+      if (activeWireStart && activeWireStart !== w.id) el.classList.add('wire-target');
+    });
+    inp.addEventListener('mouseleave', () => el.classList.remove('wire-target'));
+    el.appendChild(inp);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (activeWireStart) {
+      activeWireStart = null;
+      document.querySelectorAll('.canvas-widget').forEach(ce => ce.classList.remove('wire-source','wire-target'));
+    }
+  }, { once: true });
+
+  if (pageSettings.wires) {
+    pageSettings.wires.forEach((wire, idx) => {
+      const fromEl = canvas.querySelector(`.canvas-widget[data-id="${wire.from}"]`);
+      const toEl = canvas.querySelector(`.canvas-widget[data-id="${wire.to}"]`);
+      if (!fromEl || !toEl) return;
+      const fR = fromEl.getBoundingClientRect();
+      const tR = toEl.getBoundingClientRect();
+      const x1 = fR.right - cRect.left;
+      const y1 = fR.top + fR.height/2 - cRect.top;
+      const x2 = tR.left - cRect.left;
+      const y2 = tR.top + tR.height/2 - cRect.top;
+      const cx = (x1 + x2) / 2;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`);
+      path.setAttribute('class', 'wire-path');
+      path.addEventListener('click', () => {
+        if (confirm('Remove this wire?')) {
+          pageSettings.wires.splice(idx, 1);
+          pushHistory();
+          markDirty();
+          drawWires();
+        }
+      });
+      svg.appendChild(path);
+    });
+  }
+}
+
 /* ═══════════ PROFILE ═══════════ */
 function loadProfile(){
   document.getElementById('pfDisplayName').value = profileData.displayName || '';
@@ -1526,6 +1624,7 @@ function loadProfile(){
   document.getElementById('pfPronouns').value = profileData.pronouns || '';
   document.getElementById('pfAvatar').value = profileData.avatar || '';
   document.getElementById('pfAccentColor').value = profileData.accentColor || '#ffffff';
+  document.getElementById('pfDiscordId').value = profileData.discordId || '';
   const av = profileData.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(currentUser.username)}&backgroundColor=1a1a1a&textColor=ffffff`;
   const preview = document.getElementById('pfAvatarPreview');
   const initial = document.getElementById('pfAvatarInitial');
@@ -1535,7 +1634,15 @@ function loadProfile(){
     preview.style.display = 'none'; initial.style.display = 'block';
     initial.textContent = (profileData.displayName || currentUser.username).charAt(0).toUpperCase();
   }
+  updateDiscordPill();
   renderSocials();
+}
+
+function updateDiscordPill(){
+  const pill = document.getElementById('discordStatusPill');
+  if (!pill) return;
+  pill.textContent = profileData.discordId ? 'Linked' : 'Not linked';
+  pill.style.color = profileData.discordId ? 'var(--success)' : 'var(--text-muted)';
 }
 
 function renderSocials(){
@@ -1564,6 +1671,36 @@ function renderSocials(){
 }
 window.addSocial = () => { if (!profileData.socials) profileData.socials = []; profileData.socials.push({label:'', url:'', iconUrl:''}); renderSocials(); markDirty(); };
 window.removeSocial = i => { profileData.socials.splice(i, 1); renderSocials(); markDirty(); };
+
+window.saveDiscordId = async function(){
+  profileData.discordId = document.getElementById('pfDiscordId').value.trim();
+  if (!profileData.discordId) return showToast('Enter a Discord ID');
+  if (!/^\d{17,20}$/.test(profileData.discordId)) return showToast("That doesn't look like a Discord ID");
+  try {
+    const res = await fetch('/api/save-profile', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({ profile: profileData })
+    });
+    if (res.ok) { showToast('Discord ID saved!'); markSaved(); updateDiscordPill(); }
+    else showToast('Save failed');
+  } catch(e) { showToast('Error: ' + e.message); }
+};
+
+window.checkDiscordStatus = async function(){
+  const id = document.getElementById('pfDiscordId').value.trim() || profileData.discordId;
+  if (!id) return showToast('Save your Discord ID first');
+  showToast('Checking...');
+  try {
+    const r = await fetch('https://chromaticc-bot.onrender.com/status/' + id);
+    const d = await r.json();
+    if (d.optedOut) showToast('⚠️ Opted out — use /opt-in in Discord');
+    else if (d.tracked) showToast('✅ Being tracked! Add the widget.');
+    else showToast('Bot is up but no activity cached yet');
+  } catch(e) {
+    showToast('Bot unreachable (may be asleep)');
+  }
+};
 
 window.saveProfile = async function(){
   profileData.displayName = document.getElementById('pfDisplayName').value.trim();
@@ -1784,7 +1921,7 @@ window.saveSimplified = async function(){
   try {
     await fetch('/api/save-layout', {
       method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({layout, settings:pageSettings, profile:profileData})
+      body:JSON.stringify({layout, settings:pageSettings, profile:profileData, wires: pageSettings.wires || []})
     });
     await fetch('/api/save-profile', {
       method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
@@ -1802,7 +1939,10 @@ const templates = {
     { type:'profile-card', x:15, y:8, w:70, h:45, settings:{preset:'link-heavy', slots:'avatar,name,badges,tagline,location,socials,views'} },
     { type:'link-list', x:15, y:58, w:70, h:35, settings:{}, children:[] }
   ],
-  'discord-focused': [{ type:'profile-card', x:15, y:15, w:70, h:70, settings:{preset:'discord-focused', slots:'avatar,name,badges,tagline,socials,views'} }],
+  'discord-focused': [
+    { type:'profile-card', x:15, y:10, w:70, h:50, settings:{preset:'discord-focused', slots:'avatar,name,badges,tagline,socials,views'} },
+    { type:'discord-presence', x:15, y:65, w:70, h:14, settings:{showStatusDot:true, showSpotify:true, showActivity:true} }
+  ],
   gamer: [
     { type:'profile-card', x:15, y:10, w:70, h:50, settings:{preset:'minimal', slots:'avatar,name,badges,tagline'} },
     { type:'badges', x:15, y:65, w:70, h:10, settings:{autoFromAccount:true} }
@@ -1972,9 +2112,6 @@ function renderHonestStats(data){
   document.getElementById('detailCompletion').textContent = computeCompletion(data) + '%';
 
   document.getElementById('analyticsAll').textContent = fmt(data.views || 0);
-  document.getElementById('analyticsToday').textContent = '0';
-  document.getElementById('analyticsWeek').textContent = '0';
-  document.getElementById('analyticsMonth').textContent = '0';
   document.getElementById('anDetailViews').textContent = fmt(data.views || 0);
   document.getElementById('anDetailWidgets').textContent = fmt(data.widgets || 0);
   document.getElementById('anDetailGuestbook').textContent = fmt(data.guestbook || 0);
@@ -2002,7 +2139,7 @@ function renderAge(createdAt){
 }
 function computeCompletion(data){
   const p = data.profile || {};
-  const checks = [!!p.displayName, !!p.tagline, !!p.bio, !!p.location, !!p.avatar, !!(p.socials && p.socials.length), (data.widgets||0)>0, (data.badges||0)>0];
+  const checks = [!!p.displayName, !!p.tagline, !!p.bio, !!p.location, !!p.avatar, !!(p.socials && p.socials.length), (data.widgets||0)>0, (data.badges||0)>0, !!p.discordId];
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
 function renderCompletion(data){
@@ -2015,7 +2152,8 @@ function renderCompletion(data){
     { label:'Avatar', done: !!p.avatar },
     { label:'Social', done: !!(p.socials && p.socials.length) },
     { label:'Widget', done: (data.widgets || 0) > 0 },
-    { label:'Badge', done: (data.badges || 0) > 0 }
+    { label:'Badge', done: (data.badges || 0) > 0 },
+    { label:'Discord', done: !!p.discordId }
   ];
   const pct = Math.round((checks.filter(c => c.done).length / checks.length) * 100);
   const c = 2 * Math.PI * 52;
@@ -2075,7 +2213,6 @@ document.addEventListener('keydown', e => {
   await loadEverything();
   switchView('index');
   setInterval(loadEverything, 60000);
-  // Warn on unload if unsaved
   window.addEventListener('beforeunload', e => {
     if (isDirty) { e.preventDefault(); e.returnValue = ''; }
   });
