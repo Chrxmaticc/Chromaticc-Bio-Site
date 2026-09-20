@@ -10,58 +10,22 @@
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-
 :root{
-  --bg:#000001;
-  --surface:rgba(10,10,16,0.72);
-  --surface-2:rgba(18,18,26,0.55);
-  --surface-solid:#0a0a12;
-  --border:rgba(255,255,255,0.12);
-  --border-strong:rgba(255,255,255,0.35);
-  --text:#ececf4;
-  --text-muted:#8a8aa0;
-  --text-dim:#56566a;
-  --accent:#ffffff;
-  --accent-2:#b0b0b0;
-  --accent-glow:rgba(255,255,255,0.4);
-  --success:#4ade80;
-  --danger:#ff5566;
-  --warn:#fbbf24;
-  --info:#7dd3fc;
-  --purple:#c084fc;
-  --radius:16px;
-  --radius-sm:10px;
-  --shadow:0 8px 32px rgba(0,0,0,0.55);
-  --transition:0.2s ease;
-  --grid-line:rgba(255,255,255,0.04);
+  --bg:#000001;--surface:rgba(10,10,16,0.72);--surface-2:rgba(18,18,26,0.55);--surface-solid:#0a0a12;
+  --border:rgba(255,255,255,0.12);--border-strong:rgba(255,255,255,0.35);
+  --text:#ececf4;--text-muted:#8a8aa0;--text-dim:#56566a;
+  --accent:#ffffff;--accent-2:#b0b0b0;--accent-glow:rgba(255,255,255,0.4);
+  --success:#4ade80;--danger:#ff5566;--warn:#fbbf24;--info:#7dd3fc;--purple:#c084fc;
+  --radius:16px;--radius-sm:10px;--transition:0.2s ease;--grid-line:rgba(255,255,255,0.04);
 }
-
 [data-theme="light"]{
-  --bg:#f4f2f5;
-  --surface:rgba(255,255,255,0.85);
-  --surface-2:rgba(245,240,244,0.9);
-  --surface-solid:#ffffff;
-  --border:rgba(0,0,0,0.12);
-  --border-strong:rgba(0,0,0,0.35);
-  --text:#0a0a0a;
-  --text-muted:#6a6a80;
-  --text-dim:#8a8aa0;
-  --accent:#0a0a0a;
-  --accent-2:#444;
-  --accent-glow:rgba(0,0,0,0.3);
-  --grid-line:rgba(0,0,0,0.05);
+  --bg:#f4f2f5;--surface:rgba(255,255,255,0.85);--surface-2:rgba(245,240,244,0.9);--surface-solid:#fff;
+  --border:rgba(0,0,0,0.12);--border-strong:rgba(0,0,0,0.35);
+  --text:#0a0a0a;--text-muted:#6a6a80;--text-dim:#8a8aa0;
+  --accent:#0a0a0a;--accent-2:#444;--accent-glow:rgba(0,0,0,0.3);--grid-line:rgba(0,0,0,0.05);
 }
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;}
 
-body{
-  font-family:'Inter',system-ui,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  overflow-x:hidden;
-  transition:background .3s,color .3s;
-}
-
-/* Grid overlays */
 .grid-overlay-fine,.grid-overlay-medium,.grid-overlay-coarse,.grid-overlay-radial{position:fixed;inset:0;pointer-events:none;}
 .grid-overlay-fine{z-index:-4;background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);background-size:20px 20px;}
 .grid-overlay-medium{z-index:-3;background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);background-size:60px 60px;}
@@ -71,10 +35,9 @@ body::before{content:'';position:fixed;top:-25%;left:5%;width:70vw;height:70vw;b
 body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65vw;background:radial-gradient(circle,rgba(192,192,192,0.06),transparent 60%);filter:blur(120px);z-index:-5;pointer-events:none;animation:driftBlob 40s ease-in-out infinite reverse;}
 @keyframes driftBlob{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(5%,5%) scale(1.15);}}
 
-/* Layout */
 .app{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
 
-/* Sidebar */
+/* ═══════════ SIDEBAR ═══════════ */
 .sidebar{background:var(--surface);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto;}
 .sidebar::after{content:'';position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(180deg,transparent,var(--border-strong),transparent);pointer-events:none;}
 .sidebar-logo{display:flex;align-items:center;gap:12px;padding:10px 12px 22px;font-size:1.15rem;font-weight:800;letter-spacing:-.5px;}
@@ -90,11 +53,18 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .nav-item svg{width:18px;height:18px;flex-shrink:0;}
 .nav-item .nav-badge{margin-left:auto;font-size:.6rem;padding:2px 7px;border-radius:10px;background:var(--accent);color:var(--bg);font-weight:800;}
 .nav-item .nav-count{margin-left:auto;font-size:.65rem;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.08);color:var(--text-muted);font-weight:700;}
+.sidebar-card{margin-top:auto;background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(192,192,192,.06));border:1px solid var(--border-strong);border-radius:var(--radius);padding:18px 16px;text-align:center;position:relative;overflow:hidden;}
+.sidebar-card::before{content:'';position:absolute;inset:-50%;background:conic-gradient(from 0deg,rgba(255,255,255,.2),rgba(192,192,192,.1),rgba(255,255,255,.2));animation:spinSlow 10s linear infinite;filter:blur(40px);}
+.sidebar-card > *{position:relative;z-index:1;}
+.sidebar-card h4{font-size:.9rem;margin-bottom:6px;color:#fff;font-weight:800;}
+.sidebar-card p{font-size:.7rem;color:rgba(255,255,255,.6);margin-bottom:12px;line-height:1.5;}
+.sidebar-card button{background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:10px 16px;border-radius:10px;font-weight:800;font-size:.75rem;cursor:pointer;width:100%;font-family:inherit;text-transform:uppercase;}
+@keyframes spinSlow{to{transform:rotate(360deg);}}
 
-/* Main */
+/* ═══════════ MAIN ═══════════ */
 .main{padding:20px 28px 40px;display:flex;flex-direction:column;gap:20px;min-width:0;}
 
-/* Topbar */
+/* ═══════════ TOPBAR ═══════════ */
 .topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .search-box{flex:1;max-width:440px;min-width:180px;display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;backdrop-filter:blur(16px);transition:var(--transition);}
 .search-box:focus-within{border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(255,255,255,.1);}
@@ -107,20 +77,20 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .icon-btn svg{width:18px;height:18px;}
 .user-chip{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:5px 12px 5px 5px;cursor:pointer;backdrop-filter:blur(12px);transition:var(--transition);}
 .user-chip:hover{border-color:var(--border-strong);transform:translateY(-2px);}
-.user-chip-avatar{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#fff,#b0b0b0);display:flex;align-items:center;justify-content:center;color:#000;font-weight:800;font-size:.85rem;box-shadow:0 0 14px rgba(255,255,255,.25);overflow:hidden;}
+.user-chip-avatar{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#fff,#b0b0b0);display:flex;align-items:center;justify-content:center;color:#000;font-weight:800;font-size:.85rem;overflow:hidden;flex-shrink:0;}
 .user-chip-avatar img{width:100%;height:100%;object-fit:cover;}
 .user-chip-info{display:flex;flex-direction:column;line-height:1.2;}
 .user-chip-info b{font-size:.8rem;font-weight:700;}
 .user-chip-info small{font-size:.62rem;color:var(--text-muted);}
 .mobile-menu-btn{display:none;width:42px;height:42px;border-radius:12px;background:var(--surface-2);border:1px solid var(--border);align-items:center;justify-content:center;cursor:pointer;color:var(--text);}
 
-/* Page header */
+/* ═══════════ PAGE HEADER ═══════════ */
 .page-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;}
 .page-header h1{font-size:2.2rem;font-weight:800;letter-spacing:-.8px;background:linear-gradient(135deg,#fff,#b0b0b0,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.05;}
 .page-header p{font-size:.85rem;color:var(--text-muted);margin-top:6px;}
 .header-actions{display:flex;gap:10px;flex-wrap:wrap;}
 
-/* Buttons */
+/* ═══════════ BUTTONS ═══════════ */
 .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;font-weight:700;font-size:.82rem;cursor:pointer;border:1px solid transparent;transition:var(--transition);font-family:inherit;text-decoration:none;letter-spacing:-.2px;}
 .btn svg{width:16px;height:16px;}
 .btn-primary{background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;box-shadow:0 0 22px rgba(255,255,255,.3);}
@@ -131,7 +101,7 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .btn-danger:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,68,68,.4);}
 .btn-sm{padding:6px 12px;font-size:.72rem;border-radius:8px;}
 
-/* Panels */
+/* ═══════════ PANELS ═══════════ */
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;backdrop-filter:blur(28px);transition:var(--transition);position:relative;overflow:hidden;}
 .panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);opacity:0;transition:opacity .3s;}
 .panel:hover{border-color:var(--border-strong);}
@@ -141,9 +111,9 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .panel-sub{font-size:.7rem;color:var(--text-muted);margin-top:3px;}
 .panel-pill{padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid var(--border-strong);color:var(--accent);font-size:.65rem;font-weight:700;letter-spacing:.3px;}
 
-/* Stats grid */
+/* ═══════════ STATS ═══════════ */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;backdrop-filter:blur(28px);position:relative;overflow:hidden;transition:var(--transition);cursor:pointer;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;backdrop-filter:blur(28px);position:relative;overflow:hidden;transition:var(--transition);}
 .stat-card::after{content:'';position:absolute;bottom:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,#fff,transparent);transform:scaleX(0);transition:transform .4s ease;}
 .stat-card:hover{border-color:var(--border-strong);transform:translateY(-4px);box-shadow:0 0 32px rgba(255,255,255,.15);}
 .stat-card:hover::after{transform:scaleX(1);}
@@ -151,20 +121,70 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .stat-label{font-size:.68rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;}
 .stat-icon{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.08);border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center;color:var(--accent);}
 .stat-icon svg{width:18px;height:18px;}
-.stat-value{font-size:2rem;font-weight:800;letter-spacing:-1.2px;line-height:1;margin-bottom:10px;font-variant-numeric:tabular-nums;}
+.stat-value{font-size:2rem;font-weight:800;letter-spacing:-1.2px;line-height:1;margin-bottom:10px;font-variant-numeric:tabular-nums;transition:color .3s;}
 .stat-delta{font-size:.7rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;}
 .stat-delta.up{color:var(--success);}
+.stat-delta.flat{color:var(--text-dim);}
 
-/* Grids */
+/* ═══════════ GRIDS ═══════════ */
 .grid-2{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;}
 .grid-3{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px;}
 
-/* Views */
+/* ═══════════ VIEWS ═══════════ */
 .view{display:none;}
-.view.active{display:flex;flex-direction:column;gap:20px;animation:fadeUp .2s ease;}
+.view.active{display:flex;flex-direction:column;gap:20px;animation:fadeUp .25s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
 
-/* Form fields */
+/* ═══════════ AGE COUNTER ═══════════ */
+.age-counter{display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.age-value{font-family:'Orbitron',sans-serif;font-size:2rem;font-weight:600;letter-spacing:0.05em;background:linear-gradient(135deg,#fff,#b0b0b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-variant-numeric:tabular-nums;}
+.age-label{font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-top:6px;}
+
+/* ═══════════ RING ═══════════ */
+.ring-wrap{display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.ring-container{position:relative;width:120px;height:120px;flex-shrink:0;}
+.ring-svg{width:120px;height:120px;transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:8;}
+.ring-fill{fill:none;stroke:url(#ringGrad);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.34,1.56,.64,1);}
+.ring-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:1.4rem;font-weight:800;color:var(--accent);}
+.ring-legend{display:flex;flex-direction:column;gap:8px;font-size:.78rem;flex:1;min-width:140px;}
+.ring-legend span{display:flex;align-items:center;gap:8px;color:var(--text-muted);}
+.ring-legend i{width:10px;height:10px;border-radius:3px;background:#fff;display:inline-block;flex-shrink:0;}
+
+/* ═══════════ ACTIVITY FEED ═══════════ */
+.feed{display:flex;flex-direction:column;}
+.feed-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.feed-row:last-child{border-bottom:none;}
+.feed-dot{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem;}
+.feed-body{flex:1;min-width:0;}
+.feed-body b{display:block;font-size:.82rem;font-weight:600;margin-bottom:2px;}
+.feed-body small{display:block;font-size:.7rem;color:var(--text-muted);}
+.feed-time{font-size:.65rem;color:var(--text-dim);white-space:nowrap;font-weight:600;font-variant-numeric:tabular-nums;}
+
+/* ═══════════ BREAKDOWN ═══════════ */
+.breakdown-list{display:flex;flex-direction:column;gap:14px;}
+.breakdown-row{display:flex;flex-direction:column;gap:6px;}
+.breakdown-header{display:flex;justify-content:space-between;align-items:baseline;font-size:.78rem;}
+.breakdown-header b{font-weight:700;font-variant-numeric:tabular-nums;text-transform:capitalize;}
+.breakdown-header span{color:var(--text-muted);font-size:.7rem;font-weight:600;}
+.breakdown-bar{height:8px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;}
+.breakdown-fill{height:100%;background:linear-gradient(90deg,#fff,#b0b0b0);border-radius:6px;width:0;transition:width 1s cubic-bezier(.34,1.56,.64,1);}
+
+/* ═══════════ EMPTY STATES ═══════════ */
+.empty{text-align:center;color:var(--text-muted);padding:32px 20px;font-size:.82rem;line-height:1.6;}
+.empty svg{width:32px;height:32px;stroke:var(--text-dim);margin-bottom:10px;opacity:0.5;}
+
+/* ═══════════ TIME TRACKER ═══════════ */
+.time-tracker{background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(192,192,192,.06));border:1px solid var(--border-strong);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;}
+.time-tracker::before{content:'';position:absolute;inset:-50%;background:conic-gradient(from 0deg,rgba(255,255,255,.15),rgba(192,192,192,.08),rgba(255,255,255,.15));animation:spinSlow 12s linear infinite;filter:blur(50px);}
+.time-tracker > *{position:relative;z-index:1;}
+.time-display{font-size:2.4rem;font-weight:800;letter-spacing:-1.5px;color:#fff;margin:12px 0;font-variant-numeric:tabular-nums;text-shadow:0 0 30px rgba(255,255,255,.4);}
+.time-controls{display:flex;gap:8px;}
+.time-controls button{width:42px;height:42px;border-radius:50%;border:none;background:var(--accent);color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);}
+.time-controls button:hover{transform:scale(1.1);box-shadow:0 0 24px rgba(255,255,255,.5);}
+.time-controls button svg{width:16px;height:16px;}
+
+/* ═══════════ FORMS ═══════════ */
 .field{margin-bottom:12px;}
 .field label{display:block;font-size:.68rem;font-weight:700;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
 .field input,.field select,.field textarea{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-size:.82rem;font-family:inherit;outline:none;transition:var(--transition);}
@@ -172,18 +192,18 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(255,255,255,.08);}
 .field input[type="color"]{padding:3px;height:42px;cursor:pointer;}
 
-/* Switch */
+/* ═══════════ SWITCH ═══════════ */
 .switch{position:relative;width:46px;height:26px;background:var(--surface-2);border-radius:13px;border:1px solid var(--border);cursor:pointer;transition:var(--transition);flex-shrink:0;}
 .switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--text-muted);transition:var(--transition);}
 .switch.on{background:linear-gradient(135deg,#fff,#b0b0b0);border-color:transparent;box-shadow:0 0 14px rgba(255,255,255,.35);}
 .switch.on::after{left:22px;background:#000;}
 
-/* Checkbox */
+/* ═══════════ CHECKBOX ═══════════ */
 input[type="checkbox"]{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:6px;background:var(--surface-2);border:1px solid var(--border-strong);cursor:pointer;position:relative;transition:var(--transition);vertical-align:middle;flex-shrink:0;}
 input[type="checkbox"]:checked{background:linear-gradient(135deg,#fff,#b0b0b0);border-color:transparent;}
 input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:2px;width:6px;height:11px;border:solid #000;border-width:0 2.5px 2.5px 0;transform:rotate(45deg);}
 
-/* Aurora card */
+/* ═══════════ AURORA CARD ═══════════ */
 .aurora-card{background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(192,192,192,.06));border:1px solid var(--border-strong);border-radius:var(--radius);padding:24px;position:relative;overflow:hidden;grid-column:1/-1;}
 .aurora-card::before{content:'';position:absolute;inset:-50%;background:conic-gradient(from 0deg,rgba(255,255,255,.2),rgba(192,192,192,.1),rgba(255,255,255,.2));animation:spinSlow 10s linear infinite;filter:blur(60px);opacity:.6;}
 .aurora-card > *{position:relative;z-index:1;}
@@ -193,9 +213,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .aurora-toggle-row:last-of-type{border-bottom:none;}
 .aurora-toggle-row > span:first-child{font-size:.82rem;font-weight:600;color:#fff;}
 
-@keyframes spinSlow{to{transform:rotate(360deg);}}
-
-/* Simplified grid */
+/* ═══════════ SIMPLIFIED GRID ═══════════ */
 .simplified-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
 .setting-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;backdrop-filter:blur(28px);transition:var(--transition);}
 .setting-card:hover{border-color:var(--border-strong);transform:translateY(-2px);}
@@ -204,7 +222,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .setting-card input:focus,.setting-card select:focus{border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(255,255,255,.08);}
 .setting-card input[type="color"]{padding:3px;height:42px;cursor:pointer;border-radius:10px;}
 
-/* File upload */
+/* ═══════════ FILE UPLOAD ═══════════ */
 .file-upload-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:var(--surface-2);border:1px dashed var(--border-strong);border-radius:8px;color:var(--accent);font-size:.72rem;font-weight:700;cursor:pointer;transition:var(--transition);font-family:inherit;margin-top:6px;width:100%;justify-content:center;}
 .file-upload-btn:hover{background:rgba(255,255,255,.1);border-style:solid;}
 .file-upload-btn svg{width:13px;height:13px;}
@@ -213,14 +231,14 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .file-upload-status.uploading{color:var(--warn);}
 .file-upload-status.error{color:var(--danger);}
 
-/* Apply button */
+/* ═══════════ APPLY BUTTON ═══════════ */
 .apply-btn{width:100%;padding:11px;background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;margin-top:10px;transition:var(--transition);font-family:inherit;letter-spacing:.3px;text-transform:uppercase;}
 .apply-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.35);}
 .apply-btn.secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--border);}
 .apply-btn.secondary:hover{border-color:var(--border-strong);color:var(--accent);box-shadow:none;}
 .apply-btn.danger{background:linear-gradient(135deg,#b00020,#ff4444);color:#fff;}
 
-/* Customize layout */
+/* ═══════════ CUSTOMIZE ═══════════ */
 .customize-layout{display:grid;grid-template-columns:260px 1fr 340px;gap:14px;min-height:calc(100vh - 200px);}
 .widget-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;overflow-y:auto;backdrop-filter:blur(28px);max-height:calc(100vh - 170px);position:sticky;top:20px;}
 .widget-search{width:100%;padding:9px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-size:.78rem;font-family:inherit;outline:none;margin-bottom:10px;transition:var(--transition);}
@@ -247,7 +265,6 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .canvas-widget:hover:not(.selected){border-color:var(--border-strong);box-shadow:0 0 18px rgba(255,255,255,.15);}
 .canvas-widget.is-container{border-style:dashed;border-width:2px;}
 .canvas-widget.is-container::before{content:'CONTAINER';position:absolute;top:-9px;left:8px;font-size:.55rem;font-weight:800;letter-spacing:1px;background:var(--bg);padding:1px 6px;color:var(--accent);border-radius:4px;border:1px solid var(--accent);}
-
 .canvas-widget .handle{position:absolute;width:14px;height:14px;background:var(--accent);border-radius:4px;border:2px solid #fff;display:none;box-shadow:0 2px 8px rgba(0,0,0,.6);z-index:20;transition:transform .15s;}
 .canvas-widget .handle:hover{transform:scale(1.15);}
 .canvas-widget.selected .handle{display:block;}
@@ -259,9 +276,8 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .canvas-widget .rotate-h::before{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);width:2px;height:14px;background:var(--accent);}
 .canvas-widget.selected .rotate-h{display:block;}
 .canvas-widget .rotate-h:active{cursor:grabbing;}
-.canvas-widget .slot-indicator{position:absolute;top:2px;right:2px;font-size:.5rem;background:var(--accent);color:var(--bg);padding:1px 4px;border-radius:3px;font-weight:800;}
 
-/* Widget tabs */
+/* ═══════════ WIDGET TABS ═══════════ */
 .widget-tabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);}
 .widget-tab{padding:8px 12px;font-size:.7rem;font-weight:700;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:var(--transition);text-transform:uppercase;letter-spacing:.5px;}
 .widget-tab:hover{color:var(--text);}
@@ -269,23 +285,22 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .widget-tab-panel{display:none;}
 .widget-tab-panel.active{display:block;animation:fadeUp .15s ease;}
 
-/* Style row */
+/* ═══════════ STYLE ROW ═══════════ */
 .style-row{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:8px;margin-bottom:8px;}
 .style-row label{font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:capitalize;letter-spacing:.3px;}
 .style-row input,.style-row select{padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-size:.75rem;font-family:inherit;outline:none;transition:var(--transition);width:100%;}
 .style-row input:focus,.style-row select:focus{border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(255,255,255,.08);}
 .style-row input[type="color"]{padding:2px;height:32px;cursor:pointer;}
 .style-row input[type="range"]{padding:0;background:transparent;border:none;}
-
 .style-section{font-size:.62rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;padding:12px 0 6px;border-top:1px solid var(--border);margin-top:6px;}
 .style-section:first-child{border-top:none;margin-top:0;padding-top:0;}
 
-/* Settings panel */
+/* ═══════════ SETTINGS PANEL ═══════════ */
 .settings-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-y:auto;backdrop-filter:blur(28px);max-height:calc(100vh - 170px);position:sticky;top:20px;}
 .settings-panel h3{font-size:.75rem;font-weight:800;margin-bottom:14px;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;}
 .settings-panel h4{font-size:.68rem;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;font-weight:800;}
 
-/* Badge grid */
+/* ═══════════ BADGES ═══════════ */
 .badge-grid-dash{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
 .badge-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;transition:var(--transition);position:relative;overflow:hidden;}
 .badge-card:hover{border-color:var(--border-strong);transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
@@ -301,18 +316,16 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .rarity-mythic{background:linear-gradient(135deg,#ff64b4,#fbbf24,#7dd3fc);}
 .rarity-special{background:#787878;}
 
-/* Toast */
+/* ═══════════ TOAST ═══════════ */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--surface-solid);border:1px solid var(--border-strong);color:var(--text);padding:13px 22px;border-radius:30px;font-weight:700;font-size:.82rem;z-index:9999;transition:transform .4s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 28px rgba(255,255,255,.1);display:flex;align-items:center;gap:9px;max-width:90vw;}
 .toast.show{transform:translateX(-50%) translateY(0);}
 .toast svg{width:16px;height:16px;color:var(--accent);flex-shrink:0;}
 
-/* Modal */
+/* ═══════════ MODAL ═══════════ */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,1,.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:5000;padding:20px;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--surface-solid);border:1px solid var(--border-strong);border-radius:var(--radius);padding:28px;max-width:520px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.8);max-height:90vh;overflow-y:auto;}
 .modal h2{font-size:1.2rem;margin-bottom:16px;background:linear-gradient(135deg,#fff,#b0b0b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-
-/* Template grid */
 .template-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
 .template-tile{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:var(--transition);text-align:center;}
 .template-tile:hover{border-color:var(--accent);background:rgba(255,255,255,.06);transform:translateY(-2px);}
@@ -320,7 +333,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .template-tile h4{font-size:.85rem;font-weight:700;margin-bottom:3px;}
 .template-tile p{font-size:.65rem;color:var(--text-muted);}
 
-/* List rows */
+/* ═══════════ LIST ROWS ═══════════ */
 .list-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);transition:var(--transition);}
 .list-row:last-child{border-bottom:none;}
 .list-row:hover{padding-left:6px;}
@@ -338,7 +351,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .tag-danger{background:rgba(255,85,102,.15);color:var(--danger);}
 .tag-muted{background:rgba(255,255,255,.06);color:var(--text-muted);}
 
-/* Social row editor */
+/* ═══════════ SOCIAL EDITOR ═══════════ */
 .social-editor{display:flex;flex-direction:column;gap:8px;}
 .social-row{display:grid;grid-template-columns:1fr 1.5fr 1.2fr auto;gap:6px;align-items:center;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:8px;}
 .social-row input{background:transparent;border:none;color:var(--text);font-size:.75rem;font-family:inherit;outline:none;padding:4px 6px;border-radius:4px;width:100%;}
@@ -347,51 +360,27 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .social-row button:hover{color:var(--danger);background:rgba(255,85,102,.1);}
 .social-row button svg{width:14px;height:14px;}
 
-/* Promotion preview */
+/* ═══════════ PROMO PREVIEW ═══════════ */
 .promo-preview{background:rgba(10,10,16,.9);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:12px 16px;font-size:.75rem;color:#fff;backdrop-filter:blur(16px);display:flex;align-items:center;gap:10px;margin-top:12px;}
 .promo-preview > div:first-child{flex:1;line-height:1.4;}
 .promo-preview button{background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:1.1rem;padding:0 4px;}
 
-/* Analytics chart */
-.chart-area{width:100%;height:180px;display:block;}
+/* ═══════════ STAT DETAIL ═══════════ */
+.stat-detail{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+.stat-detail-item{padding:14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);}
+.stat-detail-item .label{font-size:.62rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.2px;font-weight:800;margin-bottom:6px;}
+.stat-detail-item .value{font-size:1.3rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent);}
 
-/* Donut */
-.progress-donut{display:flex;align-items:center;gap:18px;}
-.donut-svg{width:110px;height:110px;flex-shrink:0;}
+/* ═══════════ RAW DATA ═══════════ */
+.raw-data{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:.72rem;color:var(--text-muted);overflow-x:auto;line-height:1.6;max-height:400px;font-family:'Roboto Mono',monospace;}
 
-/* Time tracker */
-.time-tracker{background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(192,192,192,.06));border:1px solid var(--border-strong);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;}
-.time-tracker::before{content:'';position:absolute;inset:-50%;background:conic-gradient(from 0deg,rgba(255,255,255,.15),rgba(192,192,192,.08),rgba(255,255,255,.15));animation:spinSlow 12s linear infinite;filter:blur(50px);}
-.time-tracker > *{position:relative;z-index:1;}
-.time-display{font-size:2.4rem;font-weight:800;letter-spacing:-1.5px;color:#fff;margin:12px 0;font-variant-numeric:tabular-nums;text-shadow:0 0 30px rgba(255,255,255,.4);}
-.time-controls{display:flex;gap:8px;}
-.time-controls button{width:42px;height:42px;border-radius:50%;border:none;background:var(--accent);color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);}
-.time-controls button:hover{transform:scale(1.1);box-shadow:0 0 24px rgba(255,255,255,.5);}
-.time-controls button svg{width:16px;height:16px;}
-
-/* Wire mode */
-.wire-toggle-btn{padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-muted);font-size:.75rem;font-weight:700;cursor:pointer;transition:var(--transition);font-family:inherit;display:flex;align-items:center;gap:6px;}
-.wire-toggle-btn:hover{color:var(--accent);border-color:var(--border-strong);}
-.wire-toggle-btn.active{background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border-color:transparent;box-shadow:0 0 18px rgba(255,255,255,.35);}
-
-.wire-overlay{position:absolute;inset:0;pointer-events:none;z-index:5;}
-.wire-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
-.wire-path{fill:none;stroke:rgba(255,255,255,.5);stroke-width:2;stroke-dasharray:6 4;animation:wireFlow 1s linear infinite;}
-@keyframes wireFlow{to{stroke-dashoffset:-20;}}
-.wire-port{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 0 12px rgba(255,255,255,.6);cursor:crosshair;z-index:15;pointer-events:auto;}
-.wire-port.output{right:-6px;top:50%;transform:translateY(-50%);}
-.wire-port.input{left:-6px;top:50%;transform:translateY(-50%);background:#7dd3fc;}
-
-/* Slot drop indicator */
-.slot-drop{position:absolute;border:2px dashed var(--accent);border-radius:8px;background:rgba(255,255,255,.08);pointer-events:none;z-index:8;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:1px;}
-
-/* Scrollbar */
+/* ═══════════ SCROLLBAR ═══════════ */
 ::-webkit-scrollbar{width:10px;height:10px;}
 ::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:6px;}
 ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#fff,#808080);border-radius:6px;border:2px solid transparent;background-clip:padding-box;}
 ::-webkit-scrollbar-thumb:hover{background:#fff;background-clip:padding-box;}
 
-/* Responsive */
+/* ═══════════ RESPONSIVE ═══════════ */
 @media (max-width:1200px){
   .grid-2,.grid-3{grid-template-columns:1fr;}
   .stats-grid{grid-template-columns:repeat(2,1fr);}
@@ -415,12 +404,12 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
   .page-header h1{font-size:1.6rem;}
   .search-box{max-width:none;}
   .social-row{grid-template-columns:1fr;}
+  .age-value{font-size:1.5rem;}
 }
 </style>
 </head>
 <body>
 
-<!-- Grid overlays -->
 <div class="grid-overlay-fine"></div>
 <div class="grid-overlay-medium"></div>
 <div class="grid-overlay-coarse"></div>
@@ -428,14 +417,12 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 
 <div class="app">
 
-<!-- ════════ SIDEBAR ════════ -->
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="sidebar-logo-icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-        <path d="M2 17l10 5 10-5"/>
-        <path d="M2 12l10 5 10-5"/>
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
       </svg>
     </div>
     <span>Chromaticc</span>
@@ -444,141 +431,94 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
   <div class="sidebar-section">Menu</div>
 
   <div class="nav-item active" data-view="index">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="3" width="7" height="9" rx="1.5"/>
-      <rect x="14" y="3" width="7" height="5" rx="1.5"/>
-      <rect x="14" y="12" width="7" height="9" rx="1.5"/>
-      <rect x="3" y="16" width="7" height="5" rx="1.5"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
     <span>Index</span>
   </div>
 
   <div class="nav-item" data-view="profile">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="8" r="4"/>
-      <path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>
     <span>Profile</span>
     <span class="nav-badge">NEW</span>
   </div>
 
   <div class="nav-item" data-view="customize">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 20h9"/>
-      <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
     <span>Customize</span>
   </div>
 
   <div class="nav-item" data-view="badges">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/></svg>
     <span>Badges</span>
     <span class="nav-count" id="badgeCount">0</span>
   </div>
 
+  <div class="nav-item" data-view="stats">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+    <span>Stats</span>
+  </div>
+
   <div class="nav-item" data-view="simplified">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M12 1v6m0 10v6M4.22 4.22l4.24 4.24m7.08 7.08l4.24 4.24M1 12h6m10 0h6M4.22 19.78l4.24-4.24m7.08-7.08l4.24-4.24"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6M4.22 4.22l4.24 4.24m7.08 7.08l4.24 4.24M1 12h6m10 0h6M4.22 19.78l4.24-4.24m7.08-7.08l4.24-4.24"/></svg>
     <span>Simplified</span>
   </div>
 
   <div class="nav-item" data-view="analytics">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M18 20V10"/>
-      <path d="M12 20V4"/>
-      <path d="M6 20v-6"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
     <span>Analytics</span>
   </div>
 
   <div class="nav-item" data-view="guests">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-      <circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 00-3-3.87"/>
-      <path d="M16 3.13a4 4 0 010 7.75"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
     <span>Guests</span>
   </div>
 
   <div class="nav-item" data-view="templates">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-      <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-      <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-      <rect x="14" y="14" width="7" height="7" rx="1.5"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     <span>Templates</span>
   </div>
 
   <div class="sidebar-section">General</div>
 
   <div class="nav-item" data-view="settings">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
     <span>Settings</span>
   </div>
 
   <div class="nav-item" data-view="help">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
-      <line x1="12" y1="17" x2="12.01" y2="17"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     <span>Help</span>
   </div>
 
   <div class="nav-item" id="logoutBtn">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-      <polyline points="16 17 21 12 16 7"/>
-      <line x1="21" y1="12" x2="9" y2="12"/>
-    </svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     <span>Logout</span>
+  </div>
+
+  <div class="sidebar-card">
+    <h4>Aurora Mode</h4>
+    <p>Premium animated effects on every widget.</p>
+    <button onclick="switchView('simplified')">Activate</button>
   </div>
 </aside>
 
-<!-- ════════ MAIN ════════ -->
+<!-- ═══════════════ MAIN ═══════════════ -->
 <main class="main">
 
   <div class="topbar">
     <div class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </div>
 
     <div class="search-box">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <input type="text" id="searchInput" placeholder="Search widgets, settings..." />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search widgets, settings...">
       <kbd>⌘K</kbd>
     </div>
 
     <div class="topbar-spacer"></div>
 
     <div class="icon-btn" onclick="toggleTheme()" title="Toggle theme">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3"/>
-        <line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/>
-        <line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </div>
 
     <div class="user-chip">
@@ -590,160 +530,114 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     </div>
   </div>
 
-  <!-- ════════ INDEX ════════ -->
+  <!-- ═══════════ INDEX ═══════════ -->
   <section class="view active" id="view-index">
     <div class="page-header">
       <div>
         <h1>Dashboard</h1>
-        <p>Everything at a glance — plan, prioritize, and shine.</p>
+        <p id="greeting">Loading your stats…</p>
       </div>
       <div class="header-actions">
-        <button class="btn btn-outline" onclick="window.open('/' + currentUser.username, '_blank')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          View Profile
+        <button class="btn btn-outline" onclick="loadEverything(true)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          Refresh
         </button>
-        <button class="btn btn-primary" onclick="switchView('customize')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 20h9"/>
-            <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-          </svg>
-          Customize
+        <button class="btn btn-primary" onclick="window.open('/' + currentUser.username, '_blank')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          View Profile
         </button>
       </div>
     </div>
 
+    <!-- Honest stats -->
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-head"><span class="stat-label">Total Views</span>
+        <div class="stat-head"><span class="stat-label">Profile Views</span>
           <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
         </div>
-        <div class="stat-value" id="statViews">0</div>
-        <div class="stat-delta up"><span>Lifetime profile views</span></div>
+        <div class="stat-value" data-stat="views">—</div>
+        <div class="stat-delta" data-delta="views">Loading…</div>
       </div>
-      <div class="stat-card" onclick="switchView('guests')">
-        <div class="stat-head"><span class="stat-label">Guestbook</span>
-          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
-        </div>
-        <div class="stat-value" id="statGuests">0</div>
-        <div class="stat-delta"><span>Total messages received</span></div>
-      </div>
-      <div class="stat-card" onclick="switchView('customize')">
+      <div class="stat-card">
         <div class="stat-head"><span class="stat-label">Widgets</span>
           <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
         </div>
-        <div class="stat-value" id="statWidgets">0</div>
-        <div class="stat-delta"><span>On your profile</span></div>
+        <div class="stat-value" data-stat="widgets">—</div>
+        <div class="stat-delta" data-delta="widgets">Loading…</div>
       </div>
-      <div class="stat-card" onclick="switchView('badges')">
+      <div class="stat-card">
+        <div class="stat-head"><span class="stat-label">Guestbook</span>
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+        </div>
+        <div class="stat-value" data-stat="guestbook">—</div>
+        <div class="stat-delta" data-delta="guestbook">Loading…</div>
+      </div>
+      <div class="stat-card">
         <div class="stat-head"><span class="stat-label">Badges</span>
           <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/></svg></div>
         </div>
-        <div class="stat-value" id="statBadges">0</div>
-        <div class="stat-delta"><span>Earned badges</span></div>
+        <div class="stat-value" data-stat="badges">—</div>
+        <div class="stat-delta" data-delta="badges">Loading…</div>
       </div>
     </div>
 
+    <!-- Age + Completion -->
     <div class="grid-2">
       <div class="panel">
         <div class="panel-head">
-          <div><div class="panel-title">Profile Analytics</div><div class="panel-sub">Views over the last 7 days</div></div>
-          <span class="panel-pill">Weekly</span>
+          <div><div class="panel-title">Account Age</div><div class="panel-sub">Since you joined Chromaticc</div></div>
         </div>
-        <svg class="chart-area" viewBox="0 0 400 180" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4"/>
-              <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <line x1="0" y1="45" x2="400" y2="45" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <line x1="0" y1="90" x2="400" y2="90" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <line x1="0" y1="135" x2="400" y2="135" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-          <path d="M0,130 C40,110 80,85 120,95 C160,105 200,65 240,52 C280,42 320,72 360,58 L400,52 L400,180 L0,180 Z" fill="url(#chartGrad)"/>
-          <path d="M0,130 C40,110 80,85 120,95 C160,105 200,65 240,52 C280,42 320,72 360,58 L400,52" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="120" cy="95" r="4" fill="#fff" stroke="#000001" stroke-width="2"/>
-          <circle cx="240" cy="52" r="4" fill="#fff" stroke="#000001" stroke-width="2"/>
-          <circle cx="360" cy="58" r="4" fill="#fff" stroke="#000001" stroke-width="2"/>
-        </svg>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head"><div><div class="panel-title">Quick Actions</div><div class="panel-sub">Jump right in</div></div></div>
-        <div class="list-row" onclick="switchView('profile')" style="cursor:pointer;">
-          <div class="list-avatar">P</div>
-          <div class="list-info"><b>Edit Profile</b><small>Name, tagline, location, socials</small></div>
-          <span class="list-tag tag-pink">Go</span>
-        </div>
-        <div class="list-row" onclick="switchView('customize')" style="cursor:pointer;">
-          <div class="list-avatar">C</div>
-          <div class="list-info"><b>Open Customize</b><small>Add widgets to your profile</small></div>
-          <span class="list-tag tag-info">Go</span>
-        </div>
-        <div class="list-row" onclick="switchView('badges')" style="cursor:pointer;">
-          <div class="list-avatar">B</div>
-          <div class="list-info"><b>View Badges</b><small>See what you've earned</small></div>
-          <span class="list-tag tag-yellow">New</span>
-        </div>
-        <div class="list-row" onclick="switchView('simplified')" style="cursor:pointer;">
-          <div class="list-avatar">A</div>
-          <div class="list-info"><b>Aurora Mode</b><small>Premium glow effects</small></div>
-          <span class="list-tag tag-purple">Hot</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid-3">
-      <div class="panel">
-        <div class="panel-head"><div><div class="panel-title">Recent Activity</div><div class="panel-sub">Latest events</div></div></div>
-        <div class="list-row">
-          <div class="list-avatar">V</div>
-          <div class="list-info"><b>Profile viewed</b><small>Just now</small></div>
-        </div>
-        <div class="list-row">
-          <div class="list-avatar">G</div>
-          <div class="list-info"><b>New guestbook message</b><small>From @anon</small></div>
-        </div>
-        <div class="list-row">
-          <div class="list-avatar">W</div>
-          <div class="list-info"><b>Widget layout loaded</b><small>All systems go</small></div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head"><div><div class="panel-title">Profile Progress</div><div class="panel-sub">Completion</div></div></div>
-        <div class="progress-donut">
-          <svg class="donut-svg" viewBox="0 0 42 42">
-            <circle cx="21" cy="21" r="15.9155" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="5"/>
-            <circle cx="21" cy="21" r="15.9155" fill="none" stroke="url(#donutGrad)" stroke-width="5" stroke-dasharray="41, 100" stroke-dashoffset="25" stroke-linecap="round"/>
-            <defs><linearGradient id="donutGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#b0b0b0"/></linearGradient></defs>
-            <text x="21" y="24.5" text-anchor="middle" fill="#fff" font-size="8" font-weight="800">41%</text>
-          </svg>
-          <div>
-            <div style="font-size:.75rem;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#fff;display:inline-block;"></span>Completed 41%</div>
-            <div style="font-size:.75rem;color:var(--text-muted);display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);display:inline-block;"></span>Remaining 59%</div>
+        <div class="age-counter">
+          <div><div class="age-value" id="ageDays">—</div><div class="age-label">Days</div></div>
+          <div><div class="age-value" id="ageHours">—</div><div class="age-label">Hours</div></div>
+          <div><div class="age-value" id="ageMinutes">—</div><div class="age-label">Minutes</div></div>
+          <div style="flex:1;min-width:140px;">
+            <div class="age-label">Joined</div>
+            <div style="font-size:.9rem;font-weight:600;margin-top:6px;" id="joinedDate">—</div>
           </div>
         </div>
       </div>
 
+      <div class="panel">
+        <div class="panel-head">
+          <div><div class="panel-title">Profile Completion</div><div class="panel-sub">Fill everything in</div></div>
+        </div>
+        <div class="ring-wrap">
+          <div class="ring-container">
+            <svg class="ring-svg" viewBox="0 0 120 120">
+              <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#b0b0b0"/></linearGradient></defs>
+              <circle class="ring-bg" cx="60" cy="60" r="52"/>
+              <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"/>
+            </svg>
+            <div class="ring-center" id="ringPct">0%</div>
+          </div>
+          <div class="ring-legend" id="ringLegend"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity + Breakdown + Time tracker -->
+    <div class="grid-3">
+      <div class="panel">
+        <div class="panel-head"><div><div class="panel-title">Recent Activity</div><div class="panel-sub">Real events</div></div></div>
+        <div class="feed" id="activityFeed"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div><div class="panel-title">Widget Breakdown</div><div class="panel-sub">What you've placed</div></div></div>
+        <div class="breakdown-list" id="breakdownList"><div class="empty">No widgets yet.</div></div>
+      </div>
       <div class="time-tracker">
         <div class="panel-title">Time Tracker</div>
         <div class="time-display" id="timeDisplay">00:00:00</div>
         <div class="time-controls">
-          <button id="timeToggle" onclick="toggleTimer()">
-            <svg id="timeIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
-          </button>
-          <button onclick="resetTimer()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
-          </button>
+          <button id="timeToggle" onclick="toggleTimer()"><svg id="timeIcon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg></button>
+          <button onclick="resetTimer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg></button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ════════ PROFILE ════════ -->
+  <!-- ═══════════ PROFILE ═══════════ -->
   <section class="view" id="view-profile">
     <div class="page-header">
       <div>
@@ -752,12 +646,11 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
       </div>
       <div class="header-actions">
         <button class="btn btn-primary" onclick="saveProfile()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Save Profile
         </button>
       </div>
     </div>
-
     <div class="grid-2">
       <div class="panel">
         <div class="panel-head"><div><div class="panel-title">Identity</div><div class="panel-sub">Display name, tagline, bio</div></div></div>
@@ -767,7 +660,6 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
         <div class="field"><label>Location</label><input type="text" id="pfLocation" placeholder="City, Country"></div>
         <div class="field"><label>Pronouns</label><input type="text" id="pfPronouns" placeholder="they/them"></div>
       </div>
-
       <div class="panel">
         <div class="panel-head"><div><div class="panel-title">Avatar</div><div class="panel-sub">Auto-generated if empty</div></div></div>
         <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:14px;">
@@ -785,59 +677,57 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
             <span class="file-upload-status" id="pfAvatarStatus"></span>
           </div>
         </div>
-        <div class="field"><label>Accent Color (profile card frame)</label><input type="color" id="pfAccentColor" value="#ffffff"></div>
-        <p style="font-size:.68rem;color:var(--text-muted);margin-top:6px;line-height:1.5;">Leave blank for auto-sample from background.</p>
+        <div class="field"><label>Accent Color (frame)</label><input type="color" id="pfAccentColor" value="#ffffff"></div>
       </div>
     </div>
 
     <div class="panel">
       <div class="panel-head">
-        <div><div class="panel-title">Social Links</div><div class="panel-sub">Icon, label, URL — one per row</div></div>
+        <div><div class="panel-title">Social Links</div><div class="panel-sub">Icon, label, URL</div></div>
         <button class="btn btn-outline btn-sm" onclick="addSocial()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Social
+          Add
         </button>
       </div>
       <div class="social-editor" id="socialEditor"></div>
     </div>
 
     <div class="panel">
-      <div class="panel-head"><div><div class="panel-title">Token Reference</div><div class="panel-sub">Use these in any text field across widgets</div></div></div>
+      <div class="panel-head"><div><div class="panel-title">Token Reference</div><div class="panel-sub">Use in any text field</div></div></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;font-size:.75rem;">
-        ${['user.displayName','user.tagline','user.bio','user.location','user.pronouns','user.views','user.joined','discord.username','discord.status','stats.views','stats.guestbook','stats.widgets'].map(t => `<code style="background:var(--surface-2);padding:6px 10px;border-radius:6px;border:1px solid var(--border);color:var(--accent);">{{\u007b${t}\u007d}}</code>`).join('')}
+        <code style="background:var(--surface-2);padding:6px 10px;border-radius:6px;border:1px solid var(--border);color:var(--accent);">{{user.displayName}}</code>
+        <code style="background:var(--surface-2);padding:6px 10px;border-radius:6px;border:1px solid var(--border);color:var(--accent);">{{user.tagline}}</code>
+        <code style="background:var(--surface-2);padding:6px 10px;border-radius:6px;border:1px solid var(--border);color:var(--accent);">{{user.bio}}</code>
+        <code style="background:var(--surface-2);padding:6px 10px;border-radius:6px;border:1px solid var(--border);color:var(--accent);">{{user.location}}</code>
+        <code style="background:var(--surface-2);padding:6px 10px;border-radius:6px;border:1px solid var(--border);color:var(--accent);">{{user.views}}</code>
+        <code style="background:var(--surface-2);padding:6px 10px;border-radius:6px;border:1px solid var(--border);color:var(--accent);">{{stats.widgets}}</code>
       </div>
     </div>
   </section>
 
-  <!-- ════════ CUSTOMIZE ════════ -->
+  <!-- ═══════════ CUSTOMIZE ═══════════ -->
   <section class="view" id="view-customize">
     <div class="page-header">
       <div><h1>Customize</h1><p>Drag, resize, rotate. Click a widget to edit its style.</p></div>
       <div class="header-actions">
-        <button class="wire-toggle-btn" id="wireToggle" onclick="toggleWireMode()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          Wire Mode
-        </button>
         <button class="btn btn-outline" onclick="loadLayout()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
           Reload
         </button>
         <button class="btn btn-outline" onclick="clearCanvas()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-          Clear All
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          Clear
         </button>
         <button class="btn btn-primary" onclick="saveLayout()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Save Layout
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save
         </button>
       </div>
     </div>
-
     <div class="customize-layout">
       <div class="widget-sidebar" id="widgetPalette">
         <input type="text" class="widget-search" id="widgetSearch" placeholder="Search widgets...">
       </div>
-
       <div class="canvas-wrap">
         <div class="canvas-toolbar">
           <button class="toolbar-btn active" data-mode="position" onclick="setEditMode('position')">
@@ -861,11 +751,6 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
             Delete
           </button>
-          <button class="toolbar-btn" onclick="wrapSelectedInContainer()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="8" y="8" width="8" height="8"/></svg>
-            Wrap
-          </button>
-          <div class="toolbar-divider"></div>
           <button class="toolbar-btn" onclick="undo()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
             Undo
@@ -873,12 +758,8 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
           <div class="toolbar-spacer"></div>
           <span style="font-size:.68rem;color:var(--text-dim);font-weight:600;" id="canvasCount">0 widgets</span>
         </div>
-
-        <div class="canvas-container" id="canvas">
-          <div class="wire-overlay" id="wireOverlay"><svg class="wire-svg" id="wireSvg"></svg></div>
-        </div>
+        <div class="canvas-container" id="canvas"></div>
       </div>
-
       <div class="settings-panel">
         <h3>Widget Settings</h3>
         <p style="font-size:.78rem;color:var(--text-muted);" id="noWidgetMsg">Select a widget to edit its settings.</p>
@@ -887,209 +768,133 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     </div>
   </section>
 
-  <!-- ════════ BADGES ════════ -->
+  <!-- ═══════════ BADGES ═══════════ -->
   <section class="view" id="view-badges">
-    <div class="page-header">
-      <div><h1>Badges</h1><p>What you've earned, and what's out there to unlock.</p></div>
-    </div>
-
+    <div class="page-header"><div><h1>Badges</h1><p>What you've earned, and what's out there to unlock.</p></div></div>
     <div class="panel">
       <div class="panel-head"><div><div class="panel-title">Your Badges</div><div class="panel-sub">Displayed on your profile card</div></div></div>
       <div id="earnedBadges" class="badge-grid-dash"></div>
     </div>
-
     <div class="panel">
       <div class="panel-head"><div><div class="panel-title">All Badges</div><div class="panel-sub">Locked ones show how to unlock them</div></div></div>
       <div id="allBadges" class="badge-grid-dash"></div>
     </div>
   </section>
 
-  <!-- ════════ SIMPLIFIED ════════ -->
+  <!-- ═══════════ STATS ═══════════ -->
+  <section class="view" id="view-stats">
+    <div class="page-header"><div><h1>Stats</h1><p>Everything honest. Everything real. No inflated numbers.</p></div></div>
+    <div class="panel">
+      <div class="panel-head"><div><div class="panel-title">All Numbers</div><div class="panel-sub">Pulled directly from the database</div></div></div>
+      <div class="stat-detail">
+        <div class="stat-detail-item"><div class="label">Profile Views</div><div class="value" id="detailViews">—</div></div>
+        <div class="stat-detail-item"><div class="label">Widgets</div><div class="value" id="detailWidgets">—</div></div>
+        <div class="stat-detail-item"><div class="label">Guestbook</div><div class="value" id="detailGuestbook">—</div></div>
+        <div class="stat-detail-item"><div class="label">Badges</div><div class="value" id="detailBadges">—</div></div>
+        <div class="stat-detail-item"><div class="label">Days Active</div><div class="value" id="detailDays">—</div></div>
+        <div class="stat-detail-item"><div class="label">Completion</div><div class="value" id="detailCompletion">—</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div><div class="panel-title">Raw Data</div><div class="panel-sub">Exactly what the server returns for your account</div></div></div>
+      <pre id="rawData" class="raw-data">Loading…</pre>
+    </div>
+  </section>
+
+  <!-- ═══════════ SIMPLIFIED ═══════════ -->
   <section class="view" id="view-simplified">
     <div class="page-header">
-      <div><h1>Simplified</h1><p>Quick global settings for your entire profile.</p></div>
+      <div><h1>Simplified</h1><p>Quick global settings.</p></div>
       <div class="header-actions">
         <button class="btn btn-primary" onclick="saveSimplified()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Save Settings
+          Save
         </button>
       </div>
     </div>
-
     <div class="simplified-grid">
       <div class="aurora-card">
         <h3>Aurora Mode</h3>
-        <p>Give every widget a premium animated glow, gradient border, and glass effect.</p>
-        <div class="aurora-toggle-row"><span>Enable Aurora Mode</span><div class="switch" id="swAurora" onclick="toggleSwitch(this)"></div></div>
-        <div class="aurora-toggle-row"><span>Accent Color</span><input type="color" id="auroraAccent" value="#ffffff" style="width:64px;height:38px;border:none;background:transparent;cursor:pointer;border-radius:8px;"></div>
-        <div class="aurora-toggle-row"><span>Glow Intensity</span><select id="auroraGlow" style="width:130px;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:.78rem;"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="extreme">Extreme</option></select></div>
-        <div class="aurora-toggle-row"><span>Animation Speed</span><select id="auroraSpeed" style="width:130px;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:.78rem;"><option value="slow">Slow</option><option value="normal" selected>Normal</option><option value="fast">Fast</option></select></div>
-        <div class="aurora-toggle-row"><span>Glassmorphism</span><div class="switch on" id="swGlass" onclick="toggleSwitch(this)"></div></div>
+        <p>Premium animated glow + gradient border.</p>
+        <div class="aurora-toggle-row"><span>Enable Aurora</span><div class="switch" id="swAurora" onclick="toggleSwitch(this)"></div></div>
+        <div class="aurora-toggle-row"><span>Accent Color</span><input type="color" id="auroraAccent" value="#ffffff" style="width:64px;height:38px;border:none;background:transparent;cursor:pointer;"></div>
+        <div class="aurora-toggle-row"><span>Glow</span><select id="auroraGlow" style="width:130px;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:.78rem;"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="extreme">Extreme</option></select></div>
+        <div class="aurora-toggle-row"><span>Speed</span><select id="auroraSpeed" style="width:130px;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:.78rem;"><option value="slow">Slow</option><option value="normal" selected>Normal</option><option value="fast">Fast</option></select></div>
+        <div class="aurora-toggle-row"><span>Glass</span><div class="switch on" id="swGlass" onclick="toggleSwitch(this)"></div></div>
         <div class="aurora-toggle-row"><span>Hover Lift</span><div class="switch on" id="swHover" onclick="toggleSwitch(this)"></div></div>
-        <div class="aurora-toggle-row"><span>Shimmer Sweep</span><div class="switch" id="swShimmer" onclick="toggleSwitch(this)"></div></div>
+        <div class="aurora-toggle-row"><span>Shimmer</span><div class="switch" id="swShimmer" onclick="toggleSwitch(this)"></div></div>
       </div>
-
-      <div class="setting-card">
-        <label>Background Type</label>
-        <select id="simpBgType">
-          <option value="css">CSS (gradient/color)</option>
-          <option value="image">Image</option>
-          <option value="video">Video</option>
-        </select>
-      </div>
-
-      <div class="setting-card">
-        <label>Background Value</label>
-        <input type="text" id="simpBgValue" placeholder="linear-gradient(180deg, #000001, #ffffff)">
-        <label class="file-upload-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Upload Background
-          <input type="file" id="simpBgFile" accept="image/*,video/*">
-        </label>
-      </div>
-
-      <div class="setting-card">
-        <label>Font Family</label>
-        <select id="simpFontFamily">
-          <option>Inter</option><option>Arial</option><option>Georgia</option><option>Orbitron</option><option>monospace</option>
-        </select>
-      </div>
-
+      <div class="setting-card"><label>Background Type</label><select id="simpBgType"><option value="css">CSS</option><option value="image">Image</option><option value="video">Video</option></select></div>
+      <div class="setting-card"><label>Background Value</label><input type="text" id="simpBgValue" placeholder="linear-gradient(180deg,#000001,#fff)"><label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload<input type="file" id="simpBgFile" accept="image/*,video/*"></label></div>
+      <div class="setting-card"><label>Font Family</label><select id="simpFontFamily"><option>Inter</option><option>Arial</option><option>Georgia</option><option>Orbitron</option></select></div>
       <div class="setting-card"><label>Font Size</label><input type="number" id="simpFontSize" value="16"></div>
       <div class="setting-card"><label>Text Color</label><input type="color" id="simpTextColor" value="#ffffff"></div>
-
-      <div class="setting-card">
-        <label>Custom Cursor</label>
-        <input type="text" id="simpCursor" placeholder="https://...">
-        <label class="file-upload-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Upload .cur / .png
-          <input type="file" id="simpCursorFile" accept=".cur,.png,.jpg">
-        </label>
-      </div>
-
-      <div class="setting-card">
-        <label>Favicon</label>
-        <input type="text" id="simpFavicon" placeholder="https://...">
-        <label class="file-upload-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Upload Favicon
-          <input type="file" id="simpFaviconFile" accept="image/*">
-        </label>
-      </div>
-
-      <div class="setting-card">
-        <label>Overlay Effect</label>
-        <select id="simpOverlay">
-          <option value="none">None</option><option value="rain">Rain</option><option value="sparkles">Sparkles</option><option value="snow">Snow</option><option value="bubbles">Bubbles</option>
-        </select>
-      </div>
-
-      <div class="setting-card">
-        <label style="display:flex;align-items:center;justify-content:space-between;">Click-to-Enter Overlay <input type="checkbox" id="simpClickEnter"></label>
-      </div>
-
-      <div class="setting-card">
-        <label style="display:flex;align-items:center;justify-content:space-between;">Audio Autoplay After Click <input type="checkbox" id="simpAutoplay"></label>
-      </div>
-
-      <div class="setting-card" style="grid-column:1/-1;">
-        <label>Click-to-Enter Message</label>
-        <input type="text" id="simpClickEnterMsg" value="Click anywhere to enter">
-      </div>
-
-      <!-- ── HIDDEN MODE ── -->
+      <div class="setting-card"><label>Custom Cursor</label><input type="text" id="simpCursor" placeholder="https://..."><label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/></svg>Upload<input type="file" id="simpCursorFile"></label></div>
+      <div class="setting-card"><label>Favicon</label><input type="text" id="simpFavicon" placeholder="https://..."><label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/></svg>Upload<input type="file" id="simpFaviconFile" accept="image/*"></label></div>
+      <div class="setting-card"><label>Overlay Effect</label><select id="simpOverlay"><option value="none">None</option><option value="rain">Rain</option><option value="sparkles">Sparkles</option><option value="snow">Snow</option><option value="bubbles">Bubbles</option></select></div>
+      <div class="setting-card"><label style="display:flex;align-items:center;justify-content:space-between;">Click-to-Enter <input type="checkbox" id="simpClickEnter"></label></div>
+      <div class="setting-card"><label style="display:flex;align-items:center;justify-content:space-between;">Audio Autoplay <input type="checkbox" id="simpAutoplay"></label></div>
+      <div class="setting-card" style="grid-column:1/-1;"><label>Click-to-Enter Message</label><input type="text" id="simpClickEnterMsg" value="Click anywhere to enter"></div>
       <div class="aurora-card">
         <h3>Hidden Mode</h3>
-        <p>Hide your identity publicly. Your real username stops working; visitors only see an alias.</p>
-
-        <div class="aurora-toggle-row">
-          <span>Enable Hidden Mode</span>
-          <div class="switch" id="swHidden" onclick="toggleSwitch(this);toggleHiddenOptions()"></div>
-        </div>
-
+        <p>Hide your identity publicly. Visitors see an alias instead.</p>
+        <div class="aurora-toggle-row"><span>Enable Hidden Mode</span><div class="switch" id="swHidden" onclick="toggleSwitch(this);toggleHiddenOptions()"></div></div>
         <div id="hiddenOptions" style="display:none;">
-          <div class="aurora-toggle-row">
-            <span>Alias Style</span>
-            <select id="hiddenAliasStyle" style="width:160px;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:.78rem;">
-              <option value="auto">Auto (anon-4821)</option>
-              <option value="sequential">Sequential (anon-1)</option>
-              <option value="custom">Custom</option>
-              <option value="invite">Invite-style (x7k2m9)</option>
-            </select>
-          </div>
-
-          <div class="aurora-toggle-row" id="hiddenCustomRow" style="display:none;">
-            <span>Custom Alias</span>
-            <input type="text" id="hiddenCustomAlias" placeholder="ghost" style="width:160px;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:.78rem;">
-          </div>
-
-          <div class="aurora-toggle-row">
-            <span>404 my real username</span>
-            <div class="switch" id="sw404Real" onclick="toggleSwitch(this)"></div>
-          </div>
-
+          <div class="aurora-toggle-row"><span>Alias Style</span><select id="hiddenAliasStyle" style="width:160px;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:.78rem;"><option value="auto">Auto (anon-4821)</option><option value="sequential">Sequential (anon-1)</option><option value="custom">Custom</option><option value="invite">Invite-style</option></select></div>
+          <div class="aurora-toggle-row" id="hiddenCustomRow" style="display:none;"><span>Custom Alias</span><input type="text" id="hiddenCustomAlias" placeholder="ghost" style="width:160px;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:.78rem;"></div>
+          <div class="aurora-toggle-row"><span>404 my real username</span><div class="switch" id="sw404Real" onclick="toggleSwitch(this)"></div></div>
           <div style="font-size:.72rem;color:rgba(255,255,255,.55);margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1);">
-            <div>Your public URL will be: <code style="background:rgba(255,255,255,.1);padding:2px 8px;border-radius:6px;color:#fff;" id="hiddenUrlPreview">/anon-XXXX</code></div>
+            <div>Public URL: <code style="background:rgba(255,255,255,.1);padding:2px 8px;border-radius:6px;color:#fff;" id="hiddenUrlPreview">/anon-XXXX</code></div>
           </div>
         </div>
       </div>
-
-      <!-- ── PROMOTION ── -->
       <div class="setting-card" style="grid-column:1/-1;">
-        <label style="display:flex;align-items:center;justify-content:space-between;">
-          Enable Chromaticc Promotion Message
-          <div class="switch on" id="swPromo" onclick="toggleSwitch(this)"></div>
-        </label>
-        <p style="font-size:.72rem;color:var(--text-muted);margin-top:6px;line-height:1.5;">Shows a small pill in the corner of your profile. Visitors can dismiss it.</p>
-        <div class="promo-preview">
-          <div>Made with <b>Chromaticc</b>! Join users today and make your own link in bio page!</div>
-          <button onclick="this.parentElement.style.opacity='0.3'">×</button>
-        </div>
+        <label style="display:flex;align-items:center;justify-content:space-between;">Enable Chromaticc Promotion Message<div class="switch on" id="swPromo" onclick="toggleSwitch(this)"></div></label>
+        <p style="font-size:.72rem;color:var(--text-muted);margin-top:6px;">Shows a small pill in the corner of your profile.</p>
+        <div class="promo-preview"><div>Made with <b>Chromaticc</b>! Join users today and make your own link in bio page!</div><button onclick="this.parentElement.style.opacity='0.3'">×</button></div>
       </div>
     </div>
   </section>
 
-  <!-- ════════ ANALYTICS ════════ -->
+  <!-- ═══════════ ANALYTICS ═══════════ -->
   <section class="view" id="view-analytics">
-    <div class="page-header"><div><h1>Analytics</h1><p>How your profile is performing.</p></div></div>
+    <div class="page-header"><div><h1>Analytics</h1><p>Honest breakdown of your numbers.</p></div></div>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-head"><span class="stat-label">Today</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div></div><div class="stat-value" id="analyticsToday">0</div><div class="stat-delta"><span>Views today</span></div></div>
-      <div class="stat-card"><div class="stat-head"><span class="stat-label">This Week</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div></div><div class="stat-value" id="analyticsWeek">0</div><div class="stat-delta"><span>Views this week</span></div></div>
-      <div class="stat-card"><div class="stat-head"><span class="stat-label">This Month</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg></div></div><div class="stat-value" id="analyticsMonth">0</div><div class="stat-delta"><span>Views this month</span></div></div>
-      <div class="stat-card"><div class="stat-head"><span class="stat-label">All Time</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div></div><div class="stat-value" id="analyticsAll">0</div><div class="stat-delta"><span>Lifetime views</span></div></div>
+      <div class="stat-card"><div class="stat-head"><span class="stat-label">Today</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div></div><div class="stat-value" id="analyticsToday">0</div><div class="stat-delta flat"><span>Views today</span></div></div>
+      <div class="stat-card"><div class="stat-head"><span class="stat-label">This Week</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div></div><div class="stat-value" id="analyticsWeek">0</div><div class="stat-delta flat"><span>Views this week</span></div></div>
+      <div class="stat-card"><div class="stat-head"><span class="stat-label">This Month</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg></div></div><div class="stat-value" id="analyticsMonth">0</div><div class="stat-delta flat"><span>Views this month</span></div></div>
+      <div class="stat-card"><div class="stat-head"><span class="stat-label">All Time</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div></div><div class="stat-value" id="analyticsAll">0</div><div class="stat-delta flat"><span>Lifetime views</span></div></div>
     </div>
     <div class="grid-2">
-      <div class="panel">
-        <div class="panel-head"><div><div class="panel-title">Views over 30 days</div><div class="panel-sub">Traffic trend</div></div><span class="panel-pill">30D</span></div>
-        <svg class="chart-area" viewBox="0 0 400 180" preserveAspectRatio="none">
-          <path d="M0,140 C30,120 60,90 90,95 C120,100 150,70 180,65 C210,60 240,80 270,75 C300,70 330,50 360,45 L400,40 L400,180 L0,180 Z" fill="url(#chartGrad)"/>
-          <path d="M0,140 C30,120 60,90 90,95 C120,100 150,70 180,65 C210,60 240,80 270,75 C300,70 330,50 360,45 L400,40" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
-        </svg>
+      <div class="panel"><div class="panel-head"><div><div class="panel-title">Top Widgets</div><div class="panel-sub">Most used</div></div></div><div id="topWidgetsList"><div class="empty">No widgets yet.</div></div></div>
+      <div class="panel"><div class="panel-head"><div><div class="panel-title">Stats Detail</div><div class="panel-sub">Same data, cleaner view</div></div></div>
+        <div class="stat-detail">
+          <div class="stat-detail-item"><div class="label">Views</div><div class="value" id="anDetailViews">—</div></div>
+          <div class="stat-detail-item"><div class="label">Widgets</div><div class="value" id="anDetailWidgets">—</div></div>
+          <div class="stat-detail-item"><div class="label">Guestbook</div><div class="value" id="anDetailGuestbook">—</div></div>
+          <div class="stat-detail-item"><div class="label">Badges</div><div class="value" id="anDetailBadges">—</div></div>
+        </div>
       </div>
-      <div class="panel"><div class="panel-head"><div><div class="panel-title">Top Widgets</div><div class="panel-sub">Most used</div></div></div><div id="topWidgetsList"></div></div>
     </div>
   </section>
 
-  <!-- ════════ GUESTS ════════ -->
+  <!-- ═══════════ GUESTS ═══════════ -->
   <section class="view" id="view-guests">
-    <div class="page-header"><div><h1>Guests</h1><p>Recent visitors and messages.</p></div></div>
+    <div class="page-header"><div><h1>Guests</h1><p>Recent guestbook messages.</p></div></div>
     <div class="panel">
-      <div class="panel-head"><div><div class="panel-title">Recent Visitors</div><div class="panel-sub">Most recent first</div></div></div>
-      <div id="guestsList">
-        <div class="list-row"><div class="list-avatar">A</div><div class="list-info"><b>@anon</b><small>No messages yet</small></div><span class="list-tag tag-info">Just joined</span></div>
-      </div>
+      <div class="panel-head"><div><div class="panel-title">Messages</div><div class="panel-sub">Real messages from real visitors</div></div></div>
+      <div id="guestsList"><div class="empty">Loading…</div></div>
     </div>
   </section>
 
-  <!-- ════════ TEMPLATES ════════ -->
+  <!-- ═══════════ TEMPLATES ═══════════ -->
   <section class="view" id="view-templates">
-    <div class="page-header"><div><h1>Templates</h1><p>Quick-start layouts for your profile.</p></div></div>
+    <div class="page-header"><div><h1>Templates</h1><p>Quick-start layouts.</p></div></div>
     <div class="template-grid" id="templateGridMain"></div>
     <button class="apply-btn" onclick="openModal('templateModal')">Browse All Templates</button>
   </section>
 
-  <!-- ════════ SETTINGS ════════ -->
+  <!-- ═══════════ SETTINGS ═══════════ -->
   <section class="view" id="view-settings">
     <div class="page-header"><div><h1>Settings</h1><p>Account preferences.</p></div></div>
     <div class="grid-2">
@@ -1101,19 +906,19 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
       </div>
       <div class="panel">
         <div class="panel-head"><div class="panel-title">Danger Zone</div></div>
-        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px;line-height:1.5;">Deleting your account is permanent and cannot be undone.</p>
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:16px;">Deleting your account is permanent.</p>
         <button class="apply-btn danger" onclick="deleteAccount()">Delete Account</button>
       </div>
     </div>
   </section>
 
-  <!-- ════════ HELP ════════ -->
+  <!-- ═══════════ HELP ═══════════ -->
   <section class="view" id="view-help">
-    <div class="page-header"><div><h1>Help</h1><p>Quick tips and links.</p></div></div>
+    <div class="page-header"><div><h1>Help</h1><p>Quick tips.</p></div></div>
     <div class="panel">
       <div class="list-row"><div class="list-avatar">1</div><div class="list-info"><b>Fill out your Profile tab</b><small>Everything else pulls from there</small></div></div>
       <div class="list-row"><div class="list-avatar">2</div><div class="list-info"><b>Add widgets in Customize</b><small>Click any widget, edit Content / Style / Advanced</small></div></div>
-      <div class="list-row"><div class="list-avatar">3</div><div class="list-info"><b>Use tokens in text fields</b><small>Like {{user.displayName}} — see Profile tab</small></div></div>
+      <div class="list-row"><div class="list-avatar">3</div><div class="list-info"><b>Use tokens in text fields</b><small>Like {{user.displayName}}</small></div></div>
       <div class="list-row"><div class="list-avatar">4</div><div class="list-info"><b>Enable Aurora Mode</b><small>In Simplified tab</small></div></div>
     </div>
   </section>
@@ -1131,33 +936,25 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-  <span id="toastMsg">Saved!</span>
+  <span id="toastMsg">Saved</span>
 </div>
 
 <script>
 (function(){
 'use strict';
 
-/* ═══════════════════════════════════════════════════════
-   AUTH
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ AUTH ═══════════ */
 const token = localStorage.getItem('chromaticc_token');
 const currentUser = JSON.parse(localStorage.getItem('chromaticc_user') || '{}');
-if (!token || !currentUser.username) {
-  window.location.href = '/accounts.html';
-  return;
-}
+if (!token || !currentUser.username) { window.location.href = '/accounts.html'; return; }
 document.getElementById('userInitial').textContent = (currentUser.username || 'C').charAt(0).toUpperCase();
 document.getElementById('userName').textContent = currentUser.username;
 document.getElementById('userEmail').textContent = '@' + currentUser.username;
 document.getElementById('setUsername').value = currentUser.username;
 
-/* ═══════════════════════════════════════════════════════
-   THEME
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ THEME ═══════════ */
 const savedTheme = localStorage.getItem('chromaticc_theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
 window.toggleTheme = function(){
@@ -1168,9 +965,7 @@ window.toggleTheme = function(){
   showToast('Theme: ' + next);
 };
 
-/* ═══════════════════════════════════════════════════════
-   TOAST
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ TOAST ═══════════ */
 window.showToast = function(msg){
   const t = document.getElementById('toast');
   document.getElementById('toastMsg').textContent = msg;
@@ -1179,9 +974,7 @@ window.showToast = function(msg){
   window._toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
 };
 
-/* ═══════════════════════════════════════════════════════
-   VIEW SWITCHING
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ VIEW SWITCH ═══════════ */
 window.switchView = function(name){
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const target = document.getElementById('view-' + name);
@@ -1194,6 +987,7 @@ window.switchView = function(name){
   if (name === 'badges') renderBadges();
   if (name === 'profile') loadProfile();
   if (name === 'simplified') loadSimplified();
+  if (name === 'guests') loadGuests();
 };
 document.querySelectorAll('.nav-item[data-view]').forEach(item => {
   item.addEventListener('click', () => switchView(item.dataset.view));
@@ -1203,9 +997,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   window.location.href = '/';
 });
 
-/* ═══════════════════════════════════════════════════════
-   MODAL
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ MODAL ═══════════ */
 window.openModal = id => document.getElementById(id).classList.add('open');
 window.closeModal = id => document.getElementById(id).classList.remove('open');
 document.querySelectorAll('.modal-overlay').forEach(m => {
@@ -1213,11 +1005,10 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 });
 window.toggleSwitch = el => el.classList.toggle('on');
 
-/* ═══════════════════════════════════════════════════════
-   HELPERS
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ HELPERS ═══════════ */
 function esc(s){return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function deepClone(o){return JSON.parse(JSON.stringify(o));}
+function fmt(n){return (n || 0).toLocaleString();}
 function rgbToHex(color){
   if(!color) return '#000000';
   if(color.startsWith('#')) return color.slice(0,7);
@@ -1226,10 +1017,35 @@ function rgbToHex(color){
   const [r,g,b] = m[1].split(',').map(s => parseInt(s.trim()));
   return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
 }
+function timeAgo(date){
+  if(!date) return '—';
+  const diff = (Date.now() - new Date(date).getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+  if (diff < 2592000) return Math.floor(diff / 604800) + 'w ago';
+  if (diff < 31536000) return Math.floor(diff / 2592000) + 'mo ago';
+  return Math.floor(diff / 31536000) + 'y ago';
+}
 
-/* ═══════════════════════════════════════════════════════
-   BADGE CATALOG (mirrors server)
-   ═══════════════════════════════════════════════════════ */
+/* Animated counter — honest */
+function animateCount(el, target, duration = 900){
+  if (!el) return;
+  const start = parseInt(el.textContent.replace(/[^0-9-]/g, '')) || 0;
+  if (start === target) { el.textContent = fmt(target); return; }
+  const startTime = performance.now();
+  function step(now){
+    const t = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = fmt(Math.round(start + (target - start) * eased));
+    if (t < 1) requestAnimationFrame(step);
+    else el.textContent = fmt(target);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ═══════════ BADGE CATALOG ═══════════ */
 const BADGES = [
   { id:'bot',            name:'Bot',             file:'Bot.png',                rarity:'special',  hint:'Default badge for unverified accounts' },
   { id:'verified',       name:'Verified',        file:'Verified.png',           rarity:'uncommon', hint:'Get verified by Chromaticc' },
@@ -1245,11 +1061,8 @@ const BADGES = [
   { id:'terminated',     name:'Terminated',      file:'Terminated.png',         rarity:'special',  hint:'Account has been terminated' }
 ];
 
-/* ═══════════════════════════════════════════════════════
-   WIDGET TYPES
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ WIDGET TYPES ═══════════ */
 const widgetTypes = [
-  /* TEXT */
   { category:'Text', type:'text', name:'Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/><line x1="7" y1="12" x2="17" y2="12"/></svg>', defaults:{content:'Hello {{user.displayName}}', fontSize:16, color:'#e8e8f0', align:'left'} },
   { category:'Text', type:'gradient-text', name:'Gradient Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{content:'Gradient', fontSize:20, gradient:'linear-gradient(90deg,#fff,#b0b0b0)'} },
   { category:'Text', type:'neon-text', name:'Neon Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{content:'Neon', color:'#ffffff', fontSize:22} },
@@ -1257,31 +1070,26 @@ const widgetTypes = [
   { category:'Text', type:'typewriter', name:'Typewriter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/></svg>', defaults:{text:'Hello world', speed:80, color:'#ffffff'} },
   { category:'Text', type:'glitch-text', name:'Glitch Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>', defaults:{content:'GLITCH', color:'#ffffff'} },
 
-  /* PROFILE */
   { category:'Profile', type:'profile-card', name:'Profile Card', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>', isContainer:true, defaults:{preset:'minimal', slots:'avatar,name,badges,tagline,location,socials,views', nameEffect:'none', frameEnabled:true, frameColor:'rgba(255,255,255,0.18)'} },
   { category:'Profile', type:'profile-circle', name:'Profile Circle', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{src:'', borderColor:'#ffffff', showPresence:true} },
   { category:'Profile', type:'badges', name:'Badges Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/></svg>', defaults:{autoFromAccount:true, badges:''} },
 
-  /* MEDIA */
   { category:'Media', type:'image', name:'Image', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>', defaults:{src:'', alt:''} },
   { category:'Media', type:'video', name:'Video', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', defaults:{src:'', controls:true} },
   { category:'Media', type:'audio', name:'Audio', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', defaults:{src:'', title:'Track'} },
   { category:'Media', type:'audio-player', name:'Audio Player', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', defaults:{src:'', trackName:'novocaine (slowed)', albumArt:'', fallbackImage:'AudioImage.png'} },
   { category:'Media', type:'audio-viz', name:'Audio Visualizer', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', defaults:{src:'', color:'#ffffff'} },
 
-  /* LINKS */
   { category:'Links', type:'link-list', name:'Link List', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>', isContainer:true, childTypes:['link-row'], defaults:{} },
   { category:'Links', type:'link-row', name:'Link Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg>', hidden:true, defaults:{label:'My Link', url:'', iconUrl:''} },
   { category:'Links', type:'link-embed', name:'Link Embed', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg>', defaults:{url:'', label:'My Link', iconUrl:''} },
   { category:'Links', type:'social-link', name:'Social Link', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{url:'', label:'Social', iconUrl:''} },
 
-  /* EMBEDS */
   { category:'Embeds', type:'youtube', name:'YouTube', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/></svg>', defaults:{videoId:''} },
   { category:'Embeds', type:'spotify', name:'Spotify', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{uri:''} },
   { category:'Embeds', type:'twitch', name:'Twitch', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 0L1.71 4.29v15.43h5.15V24l4.28-4.29h3.43L22.29 12V0H6z"/></svg>', defaults:{channel:''} },
   { category:'Embeds', type:'soundcloud', name:'SoundCloud', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11.56 8.87V17"/></svg>', defaults:{trackUrl:''} },
 
-  /* UTILITY */
   { category:'Utility', type:'clock', name:'Clock', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>', defaults:{format:'12h', showSeconds:true} },
   { category:'Utility', type:'countdown', name:'Countdown', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{targetDate:''} },
   { category:'Utility', type:'days-counter', name:'Days Counter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{startDate:'', label:'Since'} },
@@ -1289,60 +1097,41 @@ const widgetTypes = [
   { category:'Utility', type:'progress-bar', name:'Progress Bar', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="18" height="4" rx="2"/></svg>', defaults:{value:50, max:100, color:'#ffffff'} },
   { category:'Utility', type:'qr-code', name:'QR Code', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>', defaults:{url:'', size:200} },
 
-  /* SOCIAL */
   { category:'Social', type:'lanyard', name:'Discord Presence', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>', defaults:{userId:'', showStatus:true, showGame:true} },
   { category:'Social', type:'github-stats', name:'GitHub Stats', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>', defaults:{username:''} },
   { category:'Social', type:'tech-stack', name:'Tech Stack', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>', defaults:{items:'React,Node,TS', columns:3} },
 
-  /* INTERACTIVE */
   { category:'Interactive', type:'guestbook', name:'Guestbook', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', defaults:{title:'Leave a message'} },
 
-  /* DECORATION */
   { category:'Decoration', type:'divider', name:'Divider', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/></svg>', defaults:{color:'#ffffff', thickness:2, style:'solid', label:''} },
   { category:'Decoration', type:'shape', name:'Shape', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>', defaults:{shape:'rect', color:'#ffffff'} }
 ];
 
-/* ═══════════════════════════════════════════════════════
-   WIDGET STYLE DEFAULTS
-   ═══════════════════════════════════════════════════════ */
 const WIDGET_STYLE_DEFAULTS = {
   bg:{type:'glass', value:'', blur:12, opacity:1},
   border:{width:1, color:'rgba(255,255,255,0.15)', style:'solid', radius:14},
   padding:12,
   shadow:{type:'none', color:'rgba(0,0,0,0.4)', blur:24, x:0, y:8},
   typography:{family:'inherit', size:14, weight:500, spacing:0, lineHeight:1.4, align:'left', color:'inherit'},
-  textEffect:'none',
-  animation:'none',
-  hover:'none',
-  lock:false,
-  hideMobile:false,
-  zIndex:1,
-  customClass:'',
-  customCSS:''
+  textEffect:'none', animation:'none', hover:'none', lock:false, hideMobile:false, zIndex:1, customClass:'', customCSS:''
 };
 
-/* ═══════════════════════════════════════════════════════
-   STATE
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ STATE ═══════════ */
 let layout = [];
 let selectedId = null;
-let selectedIds = new Set();
 let editMode = 'position';
 let history = [];
 let historyIndex = -1;
 let pageSettings = {};
 let profileData = {};
 let userBadges = [];
-let wireMode = false;
-let activeWireStart = null;
+let accountData = null;
 
 const canvas = document.getElementById('canvas');
 const settingsPanel = document.getElementById('widgetSettings');
 const noWidgetMsg = document.getElementById('noWidgetMsg');
 
-/* ═══════════════════════════════════════════════════════
-   PALETTE
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ PALETTE ═══════════ */
 const palette = document.getElementById('widgetPalette');
 const categories = {};
 widgetTypes.forEach(wt => {
@@ -1380,9 +1169,7 @@ document.getElementById('widgetSearch').addEventListener('input', function(){
   });
 });
 
-/* ═══════════════════════════════════════════════════════
-   LOAD / SAVE
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ LOAD / SAVE ═══════════ */
 window.loadLayout = async function(){
   try {
     const res = await fetch('/api/get-layout', { headers:{'Authorization':'Bearer '+token} });
@@ -1394,37 +1181,31 @@ window.loadLayout = async function(){
     pushHistory();
     renderCanvas();
     showToast('Layout loaded');
-  } catch (e) {
-    layout = [];
-    renderCanvas();
-  }
+  } catch (e) { layout = []; renderCanvas(); }
 };
 
 window.saveLayout = async function(){
   try {
     const res = await fetch('/api/save-layout', {
       method:'POST',
-      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
-      body:JSON.stringify({layout, settings:pageSettings})
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({layout, settings:pageSettings, profile:profileData})
     });
-    if (res.ok) showToast('Layout saved!');
+    if (res.ok) showToast('Saved!');
     else showToast('Save failed: ' + res.status);
-  } catch (e) { showToast('Save error: ' + e.message); }
+  } catch (e) { showToast('Error: ' + e.message); }
 };
 
 window.clearCanvas = function(){
   if (!confirm('Remove all widgets?')) return;
   layout = [];
   selectedId = null;
-  selectedIds.clear();
   pushHistory();
   renderCanvas();
-  showToast('Canvas cleared');
+  showToast('Cleared');
 };
 
-/* ═══════════════════════════════════════════════════════
-   HISTORY
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ HISTORY ═══════════ */
 function pushHistory(){
   history = history.slice(0, historyIndex + 1);
   history.push(JSON.stringify(layout));
@@ -1439,15 +1220,10 @@ window.undo = function(){
   showToast('Undone');
 };
 
-/* ═══════════════════════════════════════════════════════
-   STYLE BUILDER
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ STYLE BUILDER ═══════════ */
 function buildWidgetStyle(w){
   const st = w.style || WIDGET_STYLE_DEFAULTS;
-  const bg = st.bg || {};
-  const b = st.border || {};
-  const sh = st.shadow || {};
-  const ty = st.typography || {};
+  const bg = st.bg || {}, b = st.border || {}, sh = st.shadow || {}, ty = st.typography || {};
   let css = '';
   if (bg.type === 'color') css += `background:${bg.value};`;
   else if (bg.type === 'gradient') css += `background:${bg.value};`;
@@ -1457,75 +1233,81 @@ function buildWidgetStyle(w){
   else if (bg.type === 'none') css += `background:transparent;`;
   css += `opacity:${bg.opacity ?? 1};`;
   if (b.style !== 'none') css += `border:${b.width}px ${b.style} ${b.color};`;
-  css += `border-radius:${b.radius}px;`;
-  css += `padding:${st.padding ?? 0}px;`;
+  css += `border-radius:${b.radius}px;padding:${st.padding ?? 0}px;z-index:${st.zIndex ?? 1};`;
   if (sh.type === 'soft') css += `box-shadow:0 8px 24px rgba(0,0,0,0.35);`;
   else if (sh.type === 'hard') css += `box-shadow:4px 4px 0 rgba(0,0,0,0.6);`;
   else if (sh.type === 'glow') css += `box-shadow:0 0 ${sh.blur}px ${sh.color};`;
   else if (sh.type === 'custom') css += `box-shadow:${sh.x}px ${sh.y}px ${sh.blur}px ${sh.color};`;
   css += `font-family:${ty.family};font-size:${ty.size}px;font-weight:${ty.weight};letter-spacing:${ty.spacing}px;line-height:${ty.lineHeight};text-align:${ty.align};color:${ty.color};`;
-  css += `z-index:${st.zIndex ?? 1};`;
   return css;
 }
 
-/* ═══════════════════════════════════════════════════════
-   RENDER CANVAS
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ RENDER CANVAS ═══════════ */
 function renderCanvas(){
   canvas.querySelectorAll('.canvas-widget').forEach(el => el.remove());
-  layout.forEach(w => renderWidgetEl(w, canvas));
+  layout.forEach(w => {
+    const el = document.createElement('div');
+    el.className = 'canvas-widget';
+    el.dataset.id = w.id;
+    el.style.left = w.x + '%';
+    el.style.top = w.y + '%';
+    el.style.width = w.w + '%';
+    el.style.height = w.h + '%';
+    el.style.transform = `rotate(${w.rotation || 0}deg)`;
+    el.style.cssText += buildWidgetStyle(w);
+
+    const st = w.style || {};
+    if (st.animation && st.animation !== 'none') el.classList.add('w-anim-' + st.animation);
+    if (st.hover && st.hover !== 'none') el.classList.add('w-hover-' + st.hover);
+    if (w.children && w.children.length) el.classList.add('is-container');
+
+    const def = widgetTypes.find(t => t.type === w.type);
+    el.innerHTML = `<span class="widget-label">${esc(def ? def.name : w.type)}</span>`;
+
+    ['nw','ne','sw','se'].forEach(pos => {
+      const h = document.createElement('div');
+      h.className = 'handle ' + pos;
+      el.appendChild(h);
+    });
+    const rot = document.createElement('div');
+    rot.className = 'rotate-h';
+    el.appendChild(rot);
+
+    if (w.id === selectedId) el.classList.add('selected');
+    el.addEventListener('click', e => { e.stopPropagation(); selectWidget(w.id); });
+    canvas.appendChild(el);
+    attachInteract(el, w);
+  });
   updateCanvasCount(layout.length);
-  if (wireMode) drawWires();
 }
 
-function renderWidgetEl(w, parentEl){
-  const el = document.createElement('div');
-  el.className = 'canvas-widget';
-  el.dataset.id = w.id;
-  el.style.left = w.x + '%';
-  el.style.top = w.y + '%';
-  el.style.width = w.w + '%';
-  el.style.height = w.h + '%';
-  el.style.transform = `rotate(${w.rotation || 0}deg)`;
-  el.style.cssText += buildWidgetStyle(w);
-
-  const st = w.style || {};
-  if (st.animation && st.animation !== 'none') el.classList.add('w-anim-' + st.animation);
-  if (st.hover && st.hover !== 'none') el.classList.add('w-hover-' + st.hover);
-  if (st.textEffect && st.textEffect !== 'none') el.classList.add('w-text-' + st.textEffect);
-  if (st.hideMobile) el.classList.add('w-hide-mobile');
-  if (st.customClass) st.customClass.split(/\s+/).forEach(c => c && el.classList.add(c));
-  if (w.children && w.children.length) el.classList.add('is-container');
-
-  const def = widgetTypes.find(t => t.type === w.type);
-  const label = def ? def.name : w.type;
-  el.innerHTML = `<span class="widget-label">${esc(label)}</span>`;
-
-  ['nw','ne','sw','se'].forEach(pos => {
-    const h = document.createElement('div');
-    h.className = 'handle ' + pos;
-    el.appendChild(h);
-  });
-  const rot = document.createElement('div');
-  rot.className = 'rotate-h';
-  el.appendChild(rot);
-
-  if (w.id === selectedId || selectedIds.has(w.id)) el.classList.add('selected');
-
-  el.addEventListener('click', e => {
-    e.stopPropagation();
-    if (e.shiftKey) {
-      if (selectedIds.has(w.id)) selectedIds.delete(w.id);
-      else selectedIds.add(w.id);
-      selectedId = w.id;
-    } else {
-      selectedIds.clear();
-      selectWidget(w.id);
+function findWidget(id, list){
+  list = list || layout;
+  for (const w of list) {
+    if (w.id === id) return w;
+    if (w.children) {
+      const found = findWidget(id, w.children);
+      if (found) return found;
     }
-  });
-
-  parentEl.appendChild(el);
-  attachInteract(el, w, parentEl);
+  }
+  return null;
+}
+function findParent(id, list, parent){
+  list = list || layout;
+  for (const w of list) {
+    if (w.id === id) return { parent, list };
+    if (w.children) {
+      const found = findParent(id, w.children, w);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+function removeWidget(id){
+  const loc = findParent(id);
+  if (!loc) return null;
+  const idx = loc.list.findIndex(x => x.id === id);
+  return loc.list.splice(idx, 1)[0];
 }
 
 window.selectWidget = function(id){
@@ -1543,19 +1325,17 @@ window.selectWidget = function(id){
 
   const def = widgetTypes.find(t => t.type === w.type);
   if (!def) return;
-
   const s = w.settings || {};
   const st = w.style;
 
   let html = `<h4>${esc(def.name)}</h4>`;
-
   html += `<div class="widget-tabs">
     <div class="widget-tab active" data-tab="content">Content</div>
     <div class="widget-tab" data-tab="style">Style</div>
     <div class="widget-tab" data-tab="advanced">Advanced</div>
   </div>`;
 
-  /* CONTENT */
+  /* Content */
   html += `<div class="widget-tab-panel active" data-panel="content">`;
   for (const key in def.defaults) {
     const val = s[key] ?? def.defaults[key];
@@ -1578,18 +1358,15 @@ window.selectWidget = function(id){
       html += `<div class="field"><label>${key}</label><input type="text" data-key="${key}" value="${esc(val)}"></div>`;
     }
   }
-  if (def.isContainer) {
-    html += `<button class="apply-btn secondary" onclick="addChildToSelected()" style="margin-top:8px;">+ Add Widget Inside</button>`;
-  }
   html += `</div>`;
 
-  /* STYLE */
+  /* Style */
   html += `<div class="widget-tab-panel" data-panel="style">`;
   html += `<div class="style-section">Background</div>`;
   html += `<div class="style-row"><label>Type</label><select data-style="bg.type">${['none','color','glass','gradient','image','flowing'].map(v => `<option value="${v}" ${st.bg.type===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   if (st.bg.type === 'color') html += `<div class="style-row"><label>Color</label><input type="color" data-style="bg.value" value="${st.bg.value||'#0a0a12'}"></div>`;
   if (st.bg.type === 'gradient') html += `<div class="style-row"><label>CSS</label><input type="text" data-style="bg.value" value="${esc(st.bg.value)}" placeholder="linear-gradient(...)"></div>`;
-  if (st.bg.type === 'image') html += `<div class="style-row"><label>URL</label><input type="text" data-style="bg.value" value="${esc(st.bg.value)}" placeholder="https://..."></div>`;
+  if (st.bg.type === 'image') html += `<div class="style-row"><label>URL</label><input type="text" data-style="bg.value" value="${esc(st.bg.value)}"></div>`;
   if (st.bg.type === 'glass') html += `<div class="style-row"><label>Blur</label><input type="range" min="0" max="40" data-style="bg.blur" value="${st.bg.blur}"></div>`;
   html += `<div class="style-row"><label>Opacity</label><input type="range" min="0" max="1" step="0.05" data-style="bg.opacity" value="${st.bg.opacity}"></div>`;
 
@@ -1628,17 +1405,16 @@ window.selectWidget = function(id){
   html += `<div class="style-row"><label>Hover</label><select data-style="hover">${['none','lift','scale','glow','tilt'].map(v=>`<option value="${v}" ${st.hover===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   html += `</div>`;
 
-  /* ADVANCED */
+  /* Advanced */
   html += `<div class="widget-tab-panel" data-panel="advanced">`;
   html += `<div class="style-row"><label>Z-Index</label><input type="number" data-style="zIndex" value="${st.zIndex}"></div>`;
-  html += `<div class="style-row"><label style="display:flex;align-items:center;justify-content:space-between;">Lock Position <input type="checkbox" data-style="lock" ${st.lock?'checked':''}></label></div>`;
-  html += `<div class="style-row"><label style="display:flex;align-items:center;justify-content:space-between;">Hide on Mobile <input type="checkbox" data-style="hideMobile" ${st.hideMobile?'checked':''}></label></div>`;
+  html += `<div class="style-row"><label style="display:flex;align-items:center;justify-content:space-between;">Lock <input type="checkbox" data-style="lock" ${st.lock?'checked':''}></label></div>`;
+  html += `<div class="style-row"><label style="display:flex;align-items:center;justify-content:space-between;">Hide Mobile <input type="checkbox" data-style="hideMobile" ${st.hideMobile?'checked':''}></label></div>`;
   html += `<div class="field"><label>Custom Class</label><input type="text" data-style="customClass" value="${esc(st.customClass)}"></div>`;
-  html += `<div class="field"><label>Custom CSS</label><textarea data-style="customCSS" rows="4" placeholder=".my-widget { color: red; }">${esc(st.customCSS)}</textarea></div>`;
+  html += `<div class="field"><label>Custom CSS</label><textarea data-style="customCSS" rows="4">${esc(st.customCSS)}</textarea></div>`;
   html += `</div>`;
 
   html += `<button class="apply-btn" id="applyWidgetSettings">Apply Changes</button>`;
-
   settingsPanel.innerHTML = html;
 
   settingsPanel.querySelectorAll('.widget-tab').forEach(tab => {
@@ -1649,71 +1425,25 @@ window.selectWidget = function(id){
       settingsPanel.querySelector(`[data-panel="${tab.dataset.tab}"]`).classList.add('active');
     };
   });
-
   settingsPanel.querySelectorAll('select[data-style="bg.type"], select[data-style="shadow.type"]').forEach(sel => {
     sel.onchange = () => selectWidget(id);
   });
-
   document.getElementById('applyWidgetSettings').onclick = () => applySettings(w);
 };
 
-window.addChildToSelected = function(){
-  if (!selectedId) return;
-  const parent = findWidget(selectedId);
-  if (!parent) return;
-  const def = widgetTypes.find(t => t.type === parent.type);
-  const allowed = def.childTypes || null;
-  showToast(allowed ? 'Allowed: ' + allowed.join(', ') : 'Pick a widget from the palette to add inside');
-  // Simple: next widget added goes inside if this is selected and it's a container
-  window._pendingParentId = selectedId;
-};
-
-function findWidget(id, list){
-  list = list || layout;
-  for (const w of list) {
-    if (w.id === id) return w;
-    if (w.children) {
-      const found = findWidget(id, w.children);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-function findParent(id, list, parent){
-  list = list || layout;
-  for (const w of list) {
-    if (w.id === id) return { parent, list };
-    if (w.children) {
-      const found = findParent(id, w.children, w);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-function removeWidget(id){
-  const loc = findParent(id);
-  if (!loc) return null;
-  const idx = loc.list.findIndex(x => x.id === id);
-  return loc.list.splice(idx, 1)[0];
-}
-
-/* ═══════════════════════════════════════════════════════
-   INTERACT
-   ═══════════════════════════════════════════════════════ */
-function attachInteract(el, widget, parentEl){
+/* ═══════════ INTERACT ═══════════ */
+function attachInteract(el, widget){
   if (el._interactable) el._interactable.unset();
-  if ((widget.style && widget.style.lock) || wireMode) return;
+  if (widget.style && widget.style.lock) return;
 
   interact(el).draggable({
     enabled: editMode === 'position',
     ignoreFrom: '.handle, .rotate-h',
     listeners: {
       move(event){
-        const pRect = (parentEl || canvas).getBoundingClientRect();
-        let nx = parseFloat(el.style.left) + (event.dx / pRect.width) * 100;
-        let ny = parseFloat(el.style.top) + (event.dy / pRect.height) * 100;
+        const cRect = canvas.getBoundingClientRect();
+        let nx = parseFloat(el.style.left) + (event.dx / cRect.width) * 100;
+        let ny = parseFloat(el.style.top) + (event.dy / cRect.height) * 100;
         nx = Math.max(0, Math.min(100 - widget.w, nx));
         ny = Math.max(0, Math.min(100 - widget.h, ny));
         el.style.left = nx + '%';
@@ -1731,9 +1461,9 @@ function attachInteract(el, widget, parentEl){
       enabled: editMode === 'resize',
       listeners: {
         move(event){
-          const pRect = (parentEl || canvas).getBoundingClientRect();
-          const dw = (event.dx / pRect.width) * 100;
-          const dh = (event.dy / pRect.height) * 100;
+          const cRect = canvas.getBoundingClientRect();
+          const dw = (event.dx / cRect.width) * 100;
+          const dh = (event.dy / cRect.height) * 100;
           if (sel === '.handle.se') {
             widget.w = Math.max(5, Math.min(100 - widget.x, widget.w + dw));
             widget.h = Math.max(5, Math.min(100 - widget.y, widget.h + dh));
@@ -1781,18 +1511,15 @@ function attachInteract(el, widget, parentEl){
 }
 
 canvas.addEventListener('click', e => {
-  if (e.target === canvas || e.target.classList.contains('wire-overlay') || e.target.tagName === 'svg') {
+  if (e.target === canvas) {
     selectedId = null;
-    selectedIds.clear();
     document.querySelectorAll('.canvas-widget').forEach(el => el.classList.remove('selected'));
     noWidgetMsg.style.display = 'block';
     settingsPanel.style.display = 'none';
   }
 });
 
-/* ═══════════════════════════════════════════════════════
-   APPLY SETTINGS
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ APPLY SETTINGS ═══════════ */
 async function applySettings(widget){
   settingsPanel.querySelectorAll('[data-key]').forEach(inp => {
     const key = inp.dataset.key;
@@ -1832,7 +1559,7 @@ async function applySettings(widget){
         widget.settings[key] = data.url;
         if (status) { status.textContent = '✓ Uploaded'; status.className = 'file-upload-status'; }
       } else {
-        if (status) { status.textContent = '✗ Upload failed'; status.className = 'file-upload-status error'; }
+        if (status) { status.textContent = '✗ Failed'; status.className = 'file-upload-status error'; }
       }
     } catch (e) {
       if (status) { status.textContent = '✗ Error'; status.className = 'file-upload-status error'; }
@@ -1841,12 +1568,10 @@ async function applySettings(widget){
 
   pushHistory();
   renderCanvas();
-  showToast('Widget updated');
+  showToast('Updated');
 }
 
-/* ═══════════════════════════════════════════════════════
-   ADD WIDGET
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ ADD / DELETE / DUP ═══════════ */
 window.addWidget = function(type){
   const def = widgetTypes.find(t => t.type === type);
   if (!def) return;
@@ -1855,27 +1580,11 @@ window.addWidget = function(type){
     type,
     x: 10 + Math.random() * 30,
     y: 10 + Math.random() * 30,
-    w: 30,
-    h: 12,
-    rotation: 0,
+    w: 30, h: 12, rotation: 0,
     settings: deepClone(def.defaults),
     style: deepClone(WIDGET_STYLE_DEFAULTS),
     children: def.isContainer ? [] : undefined
   };
-  if (window._pendingParentId) {
-    const parent = findWidget(window._pendingParentId);
-    if (parent) {
-      if (!parent.children) parent.children = [];
-      w.x = 10; w.y = 10; w.w = 60; w.h = 15;
-      parent.children.push(w);
-      window._pendingParentId = null;
-      pushHistory();
-      renderCanvas();
-      selectWidget(w.id);
-      showToast('Added inside container');
-      return;
-    }
-  }
   layout.push(w);
   pushHistory();
   renderCanvas();
@@ -1883,9 +1592,6 @@ window.addWidget = function(type){
   showToast('Added ' + def.name);
 };
 
-/* ═══════════════════════════════════════════════════════
-   DELETE / DUPLICATE / WRAP
-   ═══════════════════════════════════════════════════════ */
 window.deleteSelected = function(){
   if (!selectedId) return showToast('Select a widget first');
   const w = findWidget(selectedId);
@@ -1899,7 +1605,7 @@ window.deleteSelected = function(){
   renderCanvas();
   noWidgetMsg.style.display = 'block';
   settingsPanel.style.display = 'none';
-  showToast('Widget deleted');
+  showToast('Deleted');
 };
 
 window.duplicateSelected = function(){
@@ -1918,115 +1624,19 @@ window.duplicateSelected = function(){
   showToast('Duplicated');
 };
 
-window.wrapSelectedInContainer = function(){
-  if (selectedIds.size < 1) return showToast('Select widgets first (shift-click)');
-  const container = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    type: 'text',
-    x: 5, y: 5, w: 90, h: 80, rotation: 0,
-    settings: { content: '' },
-    style: deepClone(WIDGET_STYLE_DEFAULTS),
-    children: []
-  };
-  container.style.bg.type = 'none';
-  container.style.border.style = 'dashed';
-  container.style.border.color = 'rgba(255,255,255,0.3)';
-  const moved = [];
-  selectedIds.forEach(id => {
-    const w = removeWidget(id);
-    if (w) moved.push(w);
-  });
-  container.children = moved;
-  layout.push(container);
-  selectedIds.clear();
-  selectedId = container.id;
-  pushHistory();
-  renderCanvas();
-  selectWidget(container.id);
-  showToast('Wrapped ' + moved.length + ' widget(s)');
-};
-
-/* ═══════════════════════════════════════════════════════
-   EDIT MODE
-   ═══════════════════════════════════════════════════════ */
 window.setEditMode = function(mode){
   editMode = mode;
   document.querySelectorAll('.toolbar-btn[data-mode]').forEach(b => {
     b.classList.toggle('active', b.dataset.mode === mode);
   });
-  layout.forEach(w => {
-    const el = canvas.querySelector(`.canvas-widget[data-id="${w.id}"]`);
-    if (el) attachInteract(el, w, canvas);
-  });
-  showToast('Mode: ' + mode);
-};
-
-/* ═══════════════════════════════════════════════════════
-   WIRE MODE
-   ═══════════════════════════════════════════════════════ */
-window.toggleWireMode = function(){
-  wireMode = !wireMode;
-  document.getElementById('wireToggle').classList.toggle('active', wireMode);
-  showToast(wireMode ? 'Wire mode ON — drag from a widget\'s output to another\'s input' : 'Wire mode OFF');
   renderCanvas();
 };
 
-function drawWires(){
-  const svg = document.getElementById('wireSvg');
-  const cRect = canvas.getBoundingClientRect();
-  svg.setAttribute('viewBox', `0 0 ${cRect.width} ${cRect.height}`);
-  svg.innerHTML = '';
-  layout.forEach(w => {
-    const el = canvas.querySelector(`.canvas-widget[data-id="${w.id}"]`);
-    if (!el) return;
-    const out = document.createElement('div');
-    out.className = 'wire-port output';
-    out.dataset.port = 'output';
-    out.dataset.id = w.id;
-    el.appendChild(out);
-    const inp = document.createElement('div');
-    inp.className = 'wire-port input';
-    inp.dataset.port = 'input';
-    inp.dataset.id = w.id;
-    el.appendChild(inp);
-    out.addEventListener('mousedown', e => {
-      e.stopPropagation();
-      activeWireStart = w.id;
-    });
-    inp.addEventListener('mouseup', e => {
-      e.stopPropagation();
-      if (activeWireStart && activeWireStart !== w.id) {
-        if (!pageSettings.wires) pageSettings.wires = [];
-        pageSettings.wires.push({ from: activeWireStart, to: w.id });
-        showToast('Connected');
-        drawWires();
-      }
-      activeWireStart = null;
-    });
-  });
-  if (pageSettings.wires) {
-    pageSettings.wires.forEach(wire => {
-      const fromEl = canvas.querySelector(`.canvas-widget[data-id="${wire.from}"]`);
-      const toEl = canvas.querySelector(`.canvas-widget[data-id="${wire.to}"]`);
-      if (!fromEl || !toEl) return;
-      const fR = fromEl.getBoundingClientRect();
-      const tR = toEl.getBoundingClientRect();
-      const x1 = fR.right - cRect.left;
-      const y1 = fR.top + fR.height/2 - cRect.top;
-      const x2 = tR.left - cRect.left;
-      const y2 = tR.top + tR.height/2 - cRect.top;
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      const cx = (x1 + x2) / 2;
-      path.setAttribute('d', `M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`);
-      path.setAttribute('class', 'wire-path');
-      svg.appendChild(path);
-    });
-  }
+function updateCanvasCount(n){
+  document.getElementById('canvasCount').textContent = n + ' widget' + (n !== 1 ? 's' : '');
 }
 
-/* ═══════════════════════════════════════════════════════
-   PROFILE DATA
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ PROFILE DATA ═══════════ */
 function loadProfile(){
   document.getElementById('pfDisplayName').value = profileData.displayName || '';
   document.getElementById('pfTagline').value = profileData.tagline || '';
@@ -2057,7 +1667,7 @@ function renderSocials(){
     row.innerHTML = `
       <input type="text" placeholder="Label" value="${esc(s.label||'')}" data-social="${i}" data-field="label">
       <input type="text" placeholder="https://..." value="${esc(s.url||'')}" data-social="${i}" data-field="url">
-      <input type="text" placeholder="Icon URL (opt)" value="${esc(s.iconUrl||'')}" data-social="${i}" data-field="iconUrl">
+      <input type="text" placeholder="Icon URL" value="${esc(s.iconUrl||'')}" data-social="${i}" data-field="iconUrl">
       <button onclick="removeSocial(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>`;
     editor.appendChild(row);
   });
@@ -2076,7 +1686,6 @@ window.addSocial = function(){
   profileData.socials.push({ label:'', url:'', iconUrl:'' });
   renderSocials();
 };
-
 window.removeSocial = function(i){
   profileData.socials.splice(i, 1);
   renderSocials();
@@ -2109,21 +1718,19 @@ window.saveProfile = async function(){
   }
 
   try {
-    const res = await fetch('/api/save-profile', {
+    const res = await fetch('/api/save-layout', {
       method:'POST',
-      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
-      body:JSON.stringify({profile:profileData})
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({layout, settings:pageSettings, profile:profileData})
     });
     if (res.ok) showToast('Profile saved!');
     else showToast('Save failed');
-  } catch(e) { showToast('Error: ' + e.message); }
-
+  } catch(e) { showToast('Error'); }
   loadProfile();
+  loadEverything();
 };
 
-/* ═══════════════════════════════════════════════════════
-   BADGES VIEW
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ BADGES ═══════════ */
 async function loadBadges(){
   try {
     const res = await fetch('/api/get-badges', { headers:{'Authorization':'Bearer '+token} });
@@ -2133,16 +1740,14 @@ async function loadBadges(){
     }
   } catch(e) { userBadges = []; }
   document.getElementById('badgeCount').textContent = userBadges.length;
-  document.getElementById('statBadges').textContent = userBadges.length;
 }
 
 function renderBadges(){
   const earned = BADGES.filter(b => userBadges.includes(b.id));
   const all = BADGES;
-
   const earnedEl = document.getElementById('earnedBadges');
   if (!earned.length) {
-    earnedEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;">No badges yet. Start customizing to earn some!</div>';
+    earnedEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;">No badges yet.</div>';
   } else {
     earnedEl.innerHTML = earned.map(b => `
       <div class="badge-card" title="${esc(b.hint)}">
@@ -2152,7 +1757,6 @@ function renderBadges(){
         <small>${b.rarity}</small>
       </div>`).join('');
   }
-
   document.getElementById('allBadges').innerHTML = all.map(b => {
     const has = userBadges.includes(b.id);
     return `<div class="badge-card ${has?'':'locked'}" title="${esc(b.hint)}">
@@ -2164,9 +1768,7 @@ function renderBadges(){
   }).join('');
 }
 
-/* ═══════════════════════════════════════════════════════
-   SIMPLIFIED
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ SIMPLIFIED ═══════════ */
 function loadSimplified(){
   const s = pageSettings || {};
   const a = s.aurora || {};
@@ -2188,14 +1790,12 @@ function loadSimplified(){
   document.getElementById('simpClickEnter').checked = !!s.clickToEnter;
   document.getElementById('simpAutoplay').checked = !!s.autoplay;
   document.getElementById('simpClickEnterMsg').value = s.clickEnterMessage || 'Click anywhere to enter';
-
   const h = profileData.hidden || {};
   document.getElementById('swHidden').classList.toggle('on', !!h.enabled);
   document.getElementById('hiddenAliasStyle').value = h.aliasStyle || 'auto';
   document.getElementById('hiddenCustomAlias').value = h.customAlias || '';
   document.getElementById('sw404Real').classList.toggle('on', !!h['404RealUsername']);
   toggleHiddenOptions();
-
   document.getElementById('swPromo').classList.toggle('on', s.promo?.enabled !== false);
 }
 
@@ -2211,7 +1811,6 @@ window.toggleHiddenOptions = function(){
   else if (style === 'invite') preview = '/x7k2m9';
   document.getElementById('hiddenUrlPreview').textContent = preview;
 };
-
 document.getElementById('hiddenAliasStyle')?.addEventListener('change', toggleHiddenOptions);
 document.getElementById('hiddenCustomAlias')?.addEventListener('input', toggleHiddenOptions);
 
@@ -2221,7 +1820,6 @@ window.saveSimplified = async function(){
   const bgFile = document.getElementById('simpBgFile').files[0];
   const cursorFile = document.getElementById('simpCursorFile').files[0];
   const faviconFile = document.getElementById('simpFaviconFile').files[0];
-
   async function upload(file){
     const form = new FormData();
     form.append('file', file);
@@ -2245,7 +1843,6 @@ window.saveSimplified = async function(){
   pageSettings.clickToEnter = document.getElementById('simpClickEnter').checked;
   pageSettings.autoplay = document.getElementById('simpAutoplay').checked;
   pageSettings.clickEnterMessage = document.getElementById('simpClickEnterMsg').value;
-
   pageSettings.aurora = {
     enabled: document.getElementById('swAurora').classList.contains('on'),
     accent: document.getElementById('auroraAccent').value,
@@ -2255,47 +1852,31 @@ window.saveSimplified = async function(){
     hover: document.getElementById('swHover').classList.contains('on'),
     shimmer: document.getElementById('swShimmer').classList.contains('on')
   };
-
-  pageSettings.promo = {
-    enabled: document.getElementById('swPromo').classList.contains('on')
-  };
-
+  pageSettings.promo = { enabled: document.getElementById('swPromo').classList.contains('on') };
   profileData.hidden = {
     enabled: document.getElementById('swHidden').classList.contains('on'),
     aliasStyle: document.getElementById('hiddenAliasStyle').value,
     customAlias: document.getElementById('hiddenCustomAlias').value,
     '404RealUsername': document.getElementById('sw404Real').classList.contains('on')
   };
-
   try {
     await fetch('/api/save-layout', {
       method:'POST',
-      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({layout, settings:pageSettings, profile:profileData})
     });
-    await fetch('/api/save-profile', {
-      method:'POST',
-      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
-      body:JSON.stringify({profile:profileData})
-    });
     showToast('Settings saved!');
-  } catch(e) { showToast('Save error: ' + e.message); }
+  } catch(e) { showToast('Error'); }
 };
 
-/* ═══════════════════════════════════════════════════════
-   TEMPLATES
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ TEMPLATES ═══════════ */
 const templates = {
-  minimal: [
-    { type:'profile-card', x:15, y:15, w:70, h:60, settings:{preset:'minimal', slots:'avatar,name,badges,tagline,views'} }
-  ],
+  minimal: [{ type:'profile-card', x:15, y:15, w:70, h:60, settings:{preset:'minimal', slots:'avatar,name,badges,tagline,views'} }],
   'link-heavy': [
     { type:'profile-card', x:15, y:8, w:70, h:45, settings:{preset:'link-heavy', slots:'avatar,name,badges,tagline,location,socials,views'} },
     { type:'link-list', x:15, y:58, w:70, h:35, settings:{}, children:[] }
   ],
-  'discord-focused': [
-    { type:'profile-card', x:15, y:15, w:70, h:70, settings:{preset:'discord-focused', slots:'avatar,name,badges,tagline,socials,views'} }
-  ],
+  'discord-focused': [{ type:'profile-card', x:15, y:15, w:70, h:70, settings:{preset:'discord-focused', slots:'avatar,name,badges,tagline,socials,views'} }],
   gamer: [
     { type:'profile-card', x:15, y:10, w:70, h:50, settings:{preset:'minimal', slots:'avatar,name,badges,tagline'} },
     { type:'badges', x:15, y:65, w:70, h:10, settings:{autoFromAccount:true} }
@@ -2305,7 +1886,6 @@ const templates = {
     { type:'twitch', x:15, y:62, w:70, h:35, settings:{channel:''} }
   ]
 };
-
 let selectedTemplate = 'minimal';
 const tGridModal = document.getElementById('templateGridModal');
 const tGridMain = document.getElementById('templateGridMain');
@@ -2324,33 +1904,55 @@ Object.keys(templates).forEach(key => {
   tile2.onclick = tile.onclick;
   tGridMain.appendChild(tile2);
 });
-
 document.getElementById('applyTemplateBtn').onclick = () => {
   const chosen = templates[selectedTemplate];
   layout = chosen.map(w => ({
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    rotation: 0,
-    style: deepClone(WIDGET_STYLE_DEFAULTS),
+    rotation: 0, style: deepClone(WIDGET_STYLE_DEFAULTS),
     children: [],
     ...w
   }));
   pushHistory();
   renderCanvas();
   closeModal('templateModal');
-  showToast('Template applied: ' + selectedTemplate);
+  showToast('Template applied');
   switchView('customize');
 };
 
-/* ═══════════════════════════════════════════════════════
-   ACCOUNT
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ GUESTS ═══════════ */
+async function loadGuests(){
+  const list = document.getElementById('guestsList');
+  list.innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    const res = await fetch('/api/guestbook?username=' + encodeURIComponent(currentUser.username));
+    if (res.ok) {
+      const data = await res.json();
+      const entries = Array.isArray(data) ? data : [];
+      if (!entries.length) {
+        list.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><div>No messages yet. Share your profile to get some.</div></div>';
+        return;
+      }
+      list.innerHTML = entries.map(e => `
+        <div class="list-row">
+          <div class="list-avatar">${esc((e.author||'A').charAt(0).toUpperCase())}</div>
+          <div class="list-info"><b>${esc(e.author || 'Anonymous')}</b><small>${esc(e.text)}</small></div>
+          <span class="list-tag tag-info">${e.createdAt ? timeAgo(e.createdAt) : 'recently'}</span>
+        </div>
+      `).join('');
+    } else throw new Error();
+  } catch(e) {
+    list.innerHTML = '<div class="empty">Guestbook not available.</div>';
+  }
+}
+
+/* ═══════════ ACCOUNT ═══════════ */
 window.changePassword = async function(){
   const np = document.getElementById('newPass').value.trim();
   if (!np) return showToast('Enter a new password');
   try {
     const res = await fetch('/api/change-password', {
       method:'POST',
-      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({newPassword:np})
     });
     if (res.ok) { showToast('Password updated'); document.getElementById('newPass').value = ''; }
@@ -2370,9 +1972,7 @@ window.deleteAccount = async function(){
   } catch(e) { showToast('Delete failed'); }
 };
 
-/* ═══════════════════════════════════════════════════════
-   TIME TRACKER
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ TIME TRACKER ═══════════ */
 let timerSeconds = 0, timerRunning = false, timerInterval = null;
 const timeDisplay = document.getElementById('timeDisplay');
 const timeIcon = document.getElementById('timeIcon');
@@ -2401,9 +2001,234 @@ window.resetTimer = function(){
 };
 timeDisplay.textContent = formatTime(0);
 
-/* ═══════════════════════════════════════════════════════
-   KEYBOARD
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ LOAD EVERYTHING (honest stats) ═══════════ */
+window.loadEverything = async function(showMsg){
+  const data = { views:0, widgets:0, guestbook:0, badges:0, createdAt:null, profile:{}, layout:[], activity:[] };
+
+  // Try /api/get-stats first
+  try {
+    const res = await fetch('/api/get-stats', { headers:{'Authorization':'Bearer '+token} });
+    if (res.ok) {
+      Object.assign(data, await res.json());
+    } else throw new Error();
+  } catch(e) {
+    // Fallback: build from existing endpoints
+    try {
+      const res = await fetch('/api/get-layout', { headers:{'Authorization':'Bearer '+token} });
+      if (res.ok) {
+        const d = await res.json();
+        data.layout = d.layout || [];
+        data.widgets = data.layout.length;
+        data.profile = d.profile || {};
+        data.views = d.views || 0;
+        if (d.createdAt) data.createdAt = d.createdAt;
+        if (d.settings) pageSettings = d.settings;
+        if (d.profile) profileData = d.profile;
+      }
+    } catch(e2){}
+    try {
+      const res = await fetch('/api/get-badges', { headers:{'Authorization':'Bearer '+token} });
+      if (res.ok) {
+        const d = await res.json();
+        data.badges = (d.badges || []).length;
+        userBadges = d.badges || [];
+      }
+    } catch(e2){}
+    try {
+      const res = await fetch('/api/guestbook?username=' + encodeURIComponent(currentUser.username));
+      if (res.ok) {
+        const d = await res.json();
+        data.guestbook = Array.isArray(d) ? d.length : 0;
+      }
+    } catch(e2){}
+  }
+
+  // Fallback for created_at from localStorage
+  if (!data.createdAt && currentUser.createdAt) data.createdAt = currentUser.createdAt;
+
+  accountData = data;
+  renderHonestStats(data);
+
+  if (showMsg) showToast('Refreshed');
+};
+
+function renderHonestStats(data){
+  // Stat cards
+  animateCount(document.querySelector('[data-stat="views"]'), data.views || 0);
+  animateCount(document.querySelector('[data-stat="widgets"]'), data.widgets || 0);
+  animateCount(document.querySelector('[data-stat="guestbook"]'), data.guestbook || 0);
+  animateCount(document.querySelector('[data-stat="badges"]'), data.badges || 0);
+
+  // Deltas
+  setDelta('views', data.views > 0 ? `${fmt(data.views)} total visit${data.views===1?'':'s'}` : 'No visits yet — share your link!', data.views > 0);
+  setDelta('widgets', data.widgets === 0 ? 'Empty profile' : `${data.widgets} live`, data.widgets > 0);
+  setDelta('guestbook', data.guestbook === 0 ? 'No messages yet' : `${data.guestbook} message${data.guestbook===1?'':'s'}`, data.guestbook > 0);
+  setDelta('badges', data.badges === 0 ? 'None yet' : `${data.badges} earned`, data.badges > 0);
+
+  // Greeting
+  const hour = new Date().getHours();
+  const tod = hour < 5 ? 'Late night' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greeting').textContent = `${tod}, @${currentUser.username}. Here's your real data.`;
+
+  // Age
+  renderAge(data.createdAt);
+
+  // Completion
+  renderCompletion(data);
+
+  // Activity
+  renderActivity(data);
+
+  // Breakdown
+  renderBreakdown(data.layout || []);
+
+  // Stats tab detail
+  document.getElementById('detailViews').textContent = fmt(data.views || 0);
+  document.getElementById('detailWidgets').textContent = fmt(data.widgets || 0);
+  document.getElementById('detailGuestbook').textContent = fmt(data.guestbook || 0);
+  document.getElementById('detailBadges').textContent = fmt(data.badges || 0);
+  if (data.createdAt) {
+    document.getElementById('detailDays').textContent = fmt(Math.floor((Date.now() - new Date(data.createdAt).getTime()) / 86400000));
+  }
+  const pct = computeCompletion(data);
+  document.getElementById('detailCompletion').textContent = pct + '%';
+
+  // Analytics tab
+  document.getElementById('analyticsAll').textContent = fmt(data.views || 0);
+  document.getElementById('analyticsToday').textContent = fmt(0);
+  document.getElementById('analyticsWeek').textContent = fmt(0);
+  document.getElementById('analyticsMonth').textContent = fmt(0);
+  document.getElementById('anDetailViews').textContent = fmt(data.views || 0);
+  document.getElementById('anDetailWidgets').textContent = fmt(data.widgets || 0);
+  document.getElementById('anDetailGuestbook').textContent = fmt(data.guestbook || 0);
+  document.getElementById('anDetailBadges').textContent = fmt(data.badges || 0);
+
+  // Top widgets
+  renderTopWidgets(data.layout || []);
+
+  // Badges count
+  document.getElementById('badgeCount').textContent = data.badges || 0;
+
+  // Raw data
+  document.getElementById('rawData').textContent = JSON.stringify(data, null, 2);
+}
+
+function setDelta(key, text, isUp){
+  const el = document.querySelector(`[data-delta="${key}"]`);
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'stat-delta ' + (isUp ? 'up' : 'flat');
+}
+
+function renderAge(createdAt){
+  const els = ['ageDays','ageHours','ageMinutes'].map(id => document.getElementById(id));
+  if (!createdAt) {
+    els.forEach(e => e.textContent = '—');
+    document.getElementById('joinedDate').textContent = 'Unknown';
+    return;
+  }
+  const diff = Date.now() - new Date(createdAt).getTime();
+  els[0].textContent = fmt(Math.floor(diff / 86400000));
+  els[1].textContent = fmt(Math.floor((diff % 86400000) / 3600000));
+  els[2].textContent = fmt(Math.floor((diff % 3600000) / 60000));
+  document.getElementById('joinedDate').textContent = new Date(createdAt).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+function computeCompletion(data){
+  const p = data.profile || {};
+  const checks = [
+    !!p.displayName, !!p.tagline, !!p.bio, !!p.location, !!p.avatar,
+    !!(p.socials && p.socials.length), (data.widgets || 0) > 0, (data.badges || 0) > 0
+  ];
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+}
+
+function renderCompletion(data){
+  const p = data.profile || {};
+  const checks = [
+    { label: 'Display name', done: !!p.displayName },
+    { label: 'Tagline', done: !!p.tagline },
+    { label: 'Bio', done: !!p.bio },
+    { label: 'Location', done: !!p.location },
+    { label: 'Avatar', done: !!p.avatar },
+    { label: 'Social link', done: !!(p.socials && p.socials.length) },
+    { label: 'Widget', done: (data.widgets || 0) > 0 },
+    { label: 'Badge', done: (data.badges || 0) > 0 }
+  ];
+  const pct = Math.round((checks.filter(c => c.done).length / checks.length) * 100);
+  const circumference = 2 * Math.PI * 52;
+  const offset = circumference - (pct / 100) * circumference;
+  document.getElementById('ringFill').style.strokeDashoffset = offset;
+  document.getElementById('ringPct').textContent = pct + '%';
+  document.getElementById('ringLegend').innerHTML = checks.map(c => `
+    <span><i style="background:${c.done ? '#fff' : 'rgba(255,255,255,0.15)'};"></i>${esc(c.label)}</span>
+  `).join('');
+}
+
+function renderActivity(data){
+  const feed = document.getElementById('activityFeed');
+  const events = [];
+  if (data.createdAt) events.push({ icon:'🚀', title:'Account created', sub:'Welcome to Chromaticc', time:data.createdAt });
+  if (data.views > 0) events.push({ icon:'👁️', title:`${fmt(data.views)} profile view${data.views===1?'':'s'}`, sub:'Total lifetime visits' });
+  if (data.widgets > 0) events.push({ icon:'🧩', title:`${data.widgets} widget${data.widgets===1?'':'s'} placed`, sub:'On your public profile' });
+  if (data.guestbook > 0) events.push({ icon:'💬', title:`${data.guestbook} guestbook message${data.guestbook===1?'':'s'}`, sub:'From visitors' });
+  if (data.badges > 0) events.push({ icon:'🏆', title:`${data.badges} badge${data.badges===1?'':'s'} earned`, sub:'View in Badges tab' });
+  if (!events.length) {
+    feed.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div>No activity yet. Share your profile link!</div></div>';
+    return;
+  }
+  feed.innerHTML = events.map(e => `
+    <div class="feed-row">
+      <div class="feed-dot">${e.icon}</div>
+      <div class="feed-body"><b>${esc(e.title)}</b><small>${esc(e.sub)}</small></div>
+      ${e.time ? `<span class="feed-time">${timeAgo(e.time)}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderBreakdown(layout){
+  const container = document.getElementById('breakdownList');
+  if (!layout || !layout.length) {
+    container.innerHTML = '<div class="empty">No widgets yet.</div>';
+    return;
+  }
+  const counts = {};
+  function walk(list){ list.forEach(w => { counts[w.type] = (counts[w.type]||0)+1; if (w.children) walk(w.children); }); }
+  walk(layout);
+  const total = Object.values(counts).reduce((a,b) => a+b, 0);
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,8);
+  container.innerHTML = sorted.map(([type, count]) => {
+    const pct = Math.round((count/total)*100);
+    return `<div class="breakdown-row">
+      <div class="breakdown-header"><b>${esc(type.replace(/-/g,' '))}</b><span>${count} · ${pct}%</span></div>
+      <div class="breakdown-bar"><div class="breakdown-fill" data-pct="${pct}"></div></div>
+    </div>`;
+  }).join('');
+  requestAnimationFrame(() => {
+    container.querySelectorAll('.breakdown-fill').forEach(el => el.style.width = el.dataset.pct + '%');
+  });
+}
+
+function renderTopWidgets(layout){
+  const container = document.getElementById('topWidgetsList');
+  const counts = {};
+  function walk(list){ list.forEach(w => { counts[w.type] = (counts[w.type]||0)+1; if (w.children) walk(w.children); }); }
+  walk(layout);
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,5);
+  if (!sorted.length) {
+    container.innerHTML = '<div class="empty">No widgets yet.</div>';
+    return;
+  }
+  container.innerHTML = sorted.map(([type, count], i) => `
+    <div class="list-row">
+      <div class="list-avatar">${i+1}</div>
+      <div class="list-info"><b>${esc(type.replace(/-/g,' '))}</b><small>${count} instance${count>1?'s':''}</small></div>
+      <span class="list-tag tag-pink">${i===0?'Top':'Active'}</span>
+    </div>
+  `).join('');
+}
+
+/* ═══════════ KEYBOARD ═══════════ */
 document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.getElementById('searchInput').focus(); }
   if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); saveLayout(); }
@@ -2412,56 +2237,14 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
 });
 
-/* ═══════════════════════════════════════════════════════
-   STATS ANIMATION
-   ═══════════════════════════════════════════════════════ */
-function animateNumber(id, target){
-  const el = document.getElementById(id);
-  if (!el) return;
-  const dur = 900;
-  const startTime = performance.now();
-  function step(now){
-    const t = Math.min((now - startTime) / dur, 1);
-    const eased = 1 - Math.pow(1 - t, 3);
-    el.textContent = Math.round(target * eased).toLocaleString();
-    if (t < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
-
-async function loadStats(){
-  try {
-    const res = await fetch('/api/get-layout', { headers:{'Authorization':'Bearer '+token} });
-    const data = await res.json();
-    const w = data.layout || [];
-    animateNumber('statViews', data.views || 0);
-    animateNumber('analyticsAll', data.views || 0);
-    animateNumber('analyticsToday', Math.floor((data.views||0) * 0.05));
-    animateNumber('analyticsWeek', Math.floor((data.views||0) * 0.3));
-    animateNumber('analyticsMonth', Math.floor((data.views||0) * 0.7));
-    animateNumber('statWidgets', w.length);
-    document.getElementById('canvasCount').textContent = w.length + ' widget' + (w.length !== 1 ? 's' : '');
-  } catch(e) {
-    animateNumber('statViews', 0);
-    animateNumber('statWidgets', 0);
-  }
-  animateNumber('statGuests', 0);
-  animateNumber('statBadges', userBadges.length);
-}
-
-function updateCanvasCount(n){
-  document.getElementById('canvasCount').textContent = n + ' widget' + (n !== 1 ? 's' : '');
-}
-
-/* ═══════════════════════════════════════════════════════
-   BOOT
-   ═══════════════════════════════════════════════════════ */
+/* ═══════════ BOOT ═══════════ */
 (async function boot(){
   await loadBadges();
   await loadLayout();
   loadProfile();
-  await loadStats();
+  await loadEverything();
   switchView('index');
+  setInterval(loadEverything, 60000);
 })();
 
 })();
