@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{--bg:#000001;--surface:rgba(10,10,16,.72);--surface-2:rgba(18,18,26,.55);--surface-solid:#0a0a12;--border:rgba(255,255,255,.12);--border-strong:rgba(255,255,255,.35);--text:#ececf4;--text-muted:#8a8aa0;--text-dim:#56566a;--accent:#fff;--accent-2:#b0b0b0;--accent-glow:rgba(255,255,255,.4);--success:#4ade80;--danger:#ff5566;--warn:#fbbf24;--info:#7dd3fc;--purple:#c084fc;--radius:16px;--radius-sm:10px;--transition:.2s ease;--grid-line:rgba(255,255,255,.04);}
+:root{--bg:#000001;--surface:rgba(10,10,16,.72);--surface-2:rgba(18,18,26,.55);--surface-solid:#0a0a12;--border:rgba(255,255,255,.12);--border-strong:rgba(255,255,255,.35);--text:#ececf4;--text-muted:#8a8aa0;--text-dim:#56566a;--accent:#fff;--accent-2:#b0b0b0;--accent-glow:rgba(255,255,255,.4);--success:#4ade80;--danger:#ff5566;--warn:#fbbf24;--info:#7dd3fc;--purple:#c084fc;--radius:16px;--radius-sm:10px;--transition:.2s ease;--grid-line:rgba(255,255,255,.04);--autosave:#4ade80;}
 [data-theme="light"]{--bg:#f4f2f5;--surface:rgba(255,255,255,.85);--surface-2:rgba(245,240,244,.9);--surface-solid:#fff;--border:rgba(0,0,0,.12);--border-strong:rgba(0,0,0,.35);--text:#0a0a0a;--text-muted:#6a6a80;--text-dim:#8a8aa0;--accent:#0a0a0a;--accent-2:#444;--accent-glow:rgba(0,0,0,.3);--grid-line:rgba(0,0,0,.05);}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;}
 .grid-overlay-fine,.grid-overlay-medium,.grid-overlay-coarse,.grid-overlay-radial{position:fixed;inset:0;pointer-events:none;}
@@ -36,7 +36,7 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .nav-item .nav-count{margin-left:auto;font-size:.65rem;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.08);color:var(--text-muted);font-weight:700;}
 .sidebar-card{margin-top:auto;background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(192,192,192,.06));border:1px solid var(--border-strong);border-radius:var(--radius);padding:18px 16px;text-align:center;position:relative;overflow:hidden;}
 .sidebar-card::before{content:'';position:absolute;inset:-50%;background:conic-gradient(from 0deg,rgba(255,255,255,.2),rgba(192,192,192,.1),rgba(255,255,255,.2));animation:spinSlow 10s linear infinite;filter:blur(40px);}
-.sidebar-card > *{position:relative;z-index:1;}
+.sidebar-card>*{position:relative;z-index:1;}
 .sidebar-card h4{font-size:.9rem;margin-bottom:6px;color:#fff;font-weight:800;}
 .sidebar-card p{font-size:.7rem;color:rgba(255,255,255,.6);margin-bottom:12px;line-height:1.5;}
 .sidebar-card button{background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:10px 16px;border-radius:10px;font-weight:800;font-size:.75rem;cursor:pointer;width:100%;font-family:inherit;text-transform:uppercase;}
@@ -71,7 +71,7 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .page-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;}
 .page-header h1{font-size:2.2rem;font-weight:800;letter-spacing:-.8px;background:linear-gradient(135deg,#fff,#b0b0b0,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.05;}
 .page-header p{font-size:.85rem;color:var(--text-muted);margin-top:6px;}
-.header-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.header-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;font-weight:700;font-size:.82rem;cursor:pointer;border:1px solid transparent;transition:var(--transition);font-family:inherit;text-decoration:none;}
 .btn svg{width:16px;height:16px;}
 .btn-primary{background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;box-shadow:0 0 22px rgba(255,255,255,.3);}
@@ -80,6 +80,11 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .btn-outline:hover{border-color:var(--border-strong);color:var(--accent);transform:translateY(-2px);}
 .btn-danger{background:linear-gradient(135deg,#b00020,#ff4444);color:#fff;}
 .btn-sm{padding:6px 12px;font-size:.72rem;border-radius:8px;}
+.save-status{font-size:.7rem;color:var(--autosave);font-weight:700;display:flex;align-items:center;gap:6px;padding:0 10px;}
+.save-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--autosave);box-shadow:0 0 8px var(--autosave);animation:pulseDot 2s ease infinite;}
+.save-status.dirty{color:var(--warn);}
+.save-status.dirty::before{background:var(--warn);box-shadow:0 0 8px var(--warn);}
+@keyframes pulseDot{0%,100%{opacity:1;}50%{opacity:.5;}}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;backdrop-filter:blur(28px);transition:var(--transition);position:relative;overflow:hidden;}
 .panel:hover{border-color:var(--border-strong);}
 .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap;}
@@ -123,7 +128,7 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .feed-body{flex:1;min-width:0;}
 .feed-body b{display:block;font-size:.82rem;font-weight:600;margin-bottom:2px;}
 .feed-body small{display:block;font-size:.7rem;color:var(--text-muted);}
-.feed-time{font-size:.65rem;color:var(--text-dim);white-space:nowrap;font-weight:600;font-variant-numeric:tabular-nums;}
+.feed-time{font-size:.65rem;color:var(--text-dim);white-space:nowrap;font-weight:600;}
 .breakdown-list{display:flex;flex-direction:column;gap:14px;}
 .breakdown-row{display:flex;flex-direction:column;gap:6px;}
 .breakdown-header{display:flex;justify-content:space-between;align-items:baseline;font-size:.78rem;}
@@ -135,7 +140,7 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .empty svg{width:32px;height:32px;stroke:var(--text-dim);margin-bottom:10px;opacity:.5;}
 .time-tracker{background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(192,192,192,.06));border:1px solid var(--border-strong);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;}
 .time-tracker::before{content:'';position:absolute;inset:-50%;background:conic-gradient(from 0deg,rgba(255,255,255,.15),rgba(192,192,192,.08),rgba(255,255,255,.15));animation:spinSlow 12s linear infinite;filter:blur(50px);}
-.time-tracker > *{position:relative;z-index:1;}
+.time-tracker>*{position:relative;z-index:1;}
 .time-display{font-size:2.4rem;font-weight:800;letter-spacing:-1.5px;color:#fff;margin:12px 0;font-variant-numeric:tabular-nums;text-shadow:0 0 30px rgba(255,255,255,.4);}
 .time-controls{display:flex;gap:8px;}
 .time-controls button{width:42px;height:42px;border-radius:50%;border:none;background:var(--accent);color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);}
@@ -156,12 +161,12 @@ input[type="checkbox"]:checked{background:linear-gradient(135deg,#fff,#b0b0b0);b
 input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:2px;width:6px;height:11px;border:solid #000;border-width:0 2.5px 2.5px 0;transform:rotate(45deg);}
 .aurora-card{background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(192,192,192,.06));border:1px solid var(--border-strong);border-radius:var(--radius);padding:24px;position:relative;overflow:hidden;grid-column:1/-1;}
 .aurora-card::before{content:'';position:absolute;inset:-50%;background:conic-gradient(from 0deg,rgba(255,255,255,.2),rgba(192,192,192,.1),rgba(255,255,255,.2));animation:spinSlow 10s linear infinite;filter:blur(60px);opacity:.6;}
-.aurora-card > *{position:relative;z-index:1;}
+.aurora-card>*{position:relative;z-index:1;}
 .aurora-card h3{font-size:1.15rem;font-weight:800;background:linear-gradient(135deg,#fff,#b0b0b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;}
 .aurora-card p{font-size:.78rem;color:rgba(255,255,255,.7);margin-bottom:18px;line-height:1.5;}
 .aurora-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.1);}
 .aurora-toggle-row:last-of-type{border-bottom:none;}
-.aurora-toggle-row > span:first-child{font-size:.82rem;font-weight:600;color:#fff;}
+.aurora-toggle-row>span:first-child{font-size:.82rem;font-weight:600;color:#fff;}
 .simplified-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
 .setting-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;backdrop-filter:blur(28px);transition:var(--transition);}
 .setting-card:hover{border-color:var(--border-strong);transform:translateY(-2px);}
@@ -184,8 +189,11 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .widget-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;overflow-y:auto;backdrop-filter:blur(28px);max-height:calc(100vh - 170px);position:sticky;top:20px;}
 .widget-search{width:100%;padding:9px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-size:.78rem;font-family:inherit;outline:none;margin-bottom:10px;transition:var(--transition);}
 .widget-search:focus{border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(255,255,255,.08);}
-.widget-category{font-size:.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:1.8px;padding:12px 10px 4px;font-weight:800;border-top:1px solid var(--border);margin-top:6px;}
+.widget-category{font-size:.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:1.8px;padding:12px 10px 4px;font-weight:800;border-top:1px solid var(--border);margin-top:6px;user-select:none;}
 .widget-category:first-of-type{border-top:none;margin-top:0;padding-top:4px;}
+.widget-category.collapsed+.widget-item{display:none;}
+.widget-category::after{content:'▾';float:right;font-size:.7rem;opacity:.5;transition:transform .2s;}
+.widget-category.collapsed::after{transform:rotate(-90deg);}
 .widget-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;color:var(--text-muted);font-size:.78rem;font-weight:500;transition:var(--transition);border:1px solid transparent;user-select:none;}
 .widget-item:hover{background:rgba(255,255,255,.06);color:var(--accent);border-color:var(--border);transform:translateX(3px);}
 .widget-item svg{width:15px;height:15px;flex-shrink:0;}
@@ -224,8 +232,13 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .style-row input,.style-row select{padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-size:.75rem;font-family:inherit;outline:none;transition:var(--transition);width:100%;}
 .style-row input:focus,.style-row select:focus{border-color:var(--border-strong);}
 .style-row input[type="color"]{padding:2px;height:32px;cursor:pointer;}
+.style-row input[type="range"]{padding:0;background:transparent;border:none;}
 .style-section{font-size:.62rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;padding:12px 0 6px;border-top:1px solid var(--border);margin-top:6px;}
 .style-section:first-child{border-top:none;margin-top:0;padding-top:0;}
+.preset-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;}
+.preset-btn{padding:8px 6px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-muted);font-size:.65rem;font-weight:700;cursor:pointer;transition:var(--transition);font-family:inherit;text-transform:uppercase;letter-spacing:.3px;}
+.preset-btn:hover{color:var(--accent);border-color:var(--border-strong);background:rgba(255,255,255,.06);}
+.preset-btn:active{transform:scale(0.96);}
 .settings-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-y:auto;backdrop-filter:blur(28px);max-height:calc(100vh - 170px);position:sticky;top:20px;}
 .settings-panel h3{font-size:.75rem;font-weight:800;margin-bottom:14px;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;}
 .settings-panel h4{font-size:.68rem;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;font-weight:800;}
@@ -261,14 +274,14 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .tag-pink{background:rgba(255,255,255,.15);color:var(--accent);}
 .tag-info{background:rgba(125,211,252,.15);color:var(--info);}
 .social-editor{display:flex;flex-direction:column;gap:8px;}
-.social-row{display:grid;grid-template-columns:1fr 1.5fr 1.2fr auto;gap:6px;align-items:center;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:8px;}
-.social-row input{background:transparent;border:none;color:var(--text);font-size:.75rem;font-family:inherit;outline:none;padding:4px 6px;border-radius:4px;width:100%;}
-.social-row input:focus{background:rgba(255,255,255,.06);}
-.social-row button{background:transparent;border:none;color:var(--text-muted);cursor:pointer;padding:4px;border-radius:4px;transition:var(--transition);}
-.social-row button:hover{color:var(--danger);}
-.social-row button svg{width:14px;height:14px;}
+.social-row-editor{display:grid;grid-template-columns:1fr 1.5fr 1.2fr auto;gap:6px;align-items:center;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:8px;}
+.social-row-editor input{background:transparent;border:none;color:var(--text);font-size:.75rem;font-family:inherit;outline:none;padding:4px 6px;border-radius:4px;width:100%;}
+.social-row-editor input:focus{background:rgba(255,255,255,.06);}
+.social-row-editor button{background:transparent;border:none;color:var(--text-muted);cursor:pointer;padding:4px;border-radius:4px;transition:var(--transition);}
+.social-row-editor button:hover{color:var(--danger);}
+.social-row-editor button svg{width:14px;height:14px;}
 .promo-preview{background:rgba(10,10,16,.9);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:12px 16px;font-size:.75rem;color:#fff;backdrop-filter:blur(16px);display:flex;align-items:center;gap:10px;margin-top:12px;}
-.promo-preview > div:first-child{flex:1;line-height:1.4;}
+.promo-preview>div:first-child{flex:1;line-height:1.4;}
 .promo-preview button{background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:1.1rem;padding:0 4px;}
 .stat-detail{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
 .stat-detail-item{padding:14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);}
@@ -286,7 +299,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#fff,#808080);border-radius:6px;border:2px solid transparent;background-clip:padding-box;}
 @media (max-width:1200px){.grid-2,.grid-3{grid-template-columns:1fr;}.stats-grid{grid-template-columns:repeat(2,1fr);}.customize-layout{grid-template-columns:220px 1fr;}.settings-panel{grid-column:1/-1;max-height:400px;position:static;}.widget-sidebar{max-height:400px;position:static;}}
 @media (max-width:900px){.app{grid-template-columns:1fr;}.sidebar{position:fixed;left:-280px;z-index:100;transition:left .3s;width:260px;}.sidebar.open{left:0;}.main{padding:16px 14px 40px;}.mobile-menu-btn{display:flex;}.customize-layout{grid-template-columns:1fr;}}
-@media (max-width:640px){.stats-grid{grid-template-columns:1fr;}.user-chip-info{display:none;}.page-header{flex-direction:column;align-items:flex-start;}.page-header h1{font-size:1.6rem;}.search-box{max-width:none;}.social-row{grid-template-columns:1fr;}}
+@media (max-width:640px){.stats-grid{grid-template-columns:1fr;}.user-chip-info{display:none;}.page-header{flex-direction:column;align-items:flex-start;}.page-header h1{font-size:1.6rem;}.search-box{max-width:none;}.social-row-editor{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -296,27 +309,20 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 <div class="grid-overlay-coarse"></div>
 <div class="grid-overlay-radial"></div>
 
-<!-- Live Preview Drawer -->
 <div class="preview-scrim" id="previewScrim" onclick="togglePreview()"></div>
 <aside class="preview-drawer" id="previewDrawer">
   <div class="preview-head">
     <b>Live Preview</b>
     <button onclick="togglePreview()">×</button>
   </div>
-  <div class="preview-body">
-    <iframe id="previewFrame" src="about:blank"></iframe>
-  </div>
+  <div class="preview-body"><iframe id="previewFrame" src="about:blank"></iframe></div>
 </aside>
 
 <div class="app">
 
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <div class="sidebar-logo-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-      </svg>
-    </div>
+    <div class="sidebar-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
     <span>Chromaticc</span>
   </div>
 
@@ -356,6 +362,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
       <kbd>⌘K</kbd>
     </div>
     <div class="topbar-spacer"></div>
+    <div class="save-status" id="saveStatus">All changes saved</div>
     <div class="icon-btn" id="previewBtn" onclick="togglePreview()" title="Live preview">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
     </div>
@@ -364,33 +371,28 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     </div>
     <div class="user-chip">
       <div class="user-chip-avatar" id="userInitial">C</div>
-      <div class="user-chip-info">
-        <b id="userName">Loading</b>
-        <small id="userEmail">@user</small>
-      </div>
+      <div class="user-chip-info"><b id="userName">Loading</b><small id="userEmail">@user</small></div>
     </div>
   </div>
 
   <!-- INDEX -->
   <section class="view active" id="view-index">
     <div class="page-header">
-      <div><h1>Dashboard</h1><p id="greeting">Loading your stats…</p></div>
+      <div><h1>Dashboard</h1><p id="greeting">Loading…</p></div>
       <div class="header-actions">
         <button class="btn btn-outline" onclick="loadEverything(true)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>Refresh</button>
         <button class="btn btn-primary" onclick="window.open('/' + currentUser.username, '_blank')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View Profile</button>
       </div>
     </div>
-
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-head"><span class="stat-label">Profile Views</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div></div><div class="stat-value" data-stat="views">—</div><div class="stat-delta" data-delta="views">Loading…</div></div>
       <div class="stat-card"><div class="stat-head"><span class="stat-label">Widgets</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div></div><div class="stat-value" data-stat="widgets">—</div><div class="stat-delta" data-delta="widgets">Loading…</div></div>
       <div class="stat-card"><div class="stat-head"><span class="stat-label">Guestbook</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div></div><div class="stat-value" data-stat="guestbook">—</div><div class="stat-delta" data-delta="guestbook">Loading…</div></div>
       <div class="stat-card"><div class="stat-head"><span class="stat-label">Badges</span><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/></svg></div></div><div class="stat-value" data-stat="badges">—</div><div class="stat-delta" data-delta="badges">Loading…</div></div>
     </div>
-
     <div class="grid-2">
       <div class="panel">
-        <div class="panel-head"><div><div class="panel-title">Account Age</div><div class="panel-sub">Since you joined Chromaticc</div></div></div>
+        <div class="panel-head"><div><div class="panel-title">Account Age</div></div></div>
         <div class="age-counter">
           <div><div class="age-value" id="ageDays">—</div><div class="age-label">Days</div></div>
           <div><div class="age-value" id="ageHours">—</div><div class="age-label">Hours</div></div>
@@ -399,7 +401,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
         </div>
       </div>
       <div class="panel">
-        <div class="panel-head"><div><div class="panel-title">Profile Completion</div><div class="panel-sub">Fill everything in</div></div></div>
+        <div class="panel-head"><div><div class="panel-title">Profile Completion</div></div></div>
         <div class="ring-wrap">
           <div class="ring-container">
             <svg class="ring-svg" viewBox="0 0 120 120">
@@ -413,10 +415,9 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
         </div>
       </div>
     </div>
-
     <div class="grid-3">
-      <div class="panel"><div class="panel-head"><div><div class="panel-title">Recent Activity</div><div class="panel-sub">Real events</div></div></div><div class="feed" id="activityFeed"><div class="empty">Loading…</div></div></div>
-      <div class="panel"><div class="panel-head"><div><div class="panel-title">Widget Breakdown</div><div class="panel-sub">What you've placed</div></div></div><div class="breakdown-list" id="breakdownList"><div class="empty">No widgets yet.</div></div></div>
+      <div class="panel"><div class="panel-head"><div><div class="panel-title">Recent Activity</div></div></div><div class="feed" id="activityFeed"><div class="empty">Loading…</div></div></div>
+      <div class="panel"><div class="panel-head"><div><div class="panel-title">Widget Breakdown</div></div></div><div class="breakdown-list" id="breakdownList"><div class="empty">No widgets yet.</div></div></div>
       <div class="time-tracker">
         <div class="panel-title">Time Tracker</div>
         <div class="time-display" id="timeDisplay">00:00:00</div>
@@ -444,7 +445,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
         <div class="field"><label>Pronouns</label><input type="text" id="pfPronouns" placeholder="they/them"></div>
       </div>
       <div class="panel">
-        <div class="panel-head"><div><div class="panel-title">Avatar</div><div class="panel-sub">Auto-generated if empty</div></div></div>
+        <div class="panel-head"><div><div class="panel-title">Avatar</div></div></div>
         <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:14px;">
           <div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#fff,#b0b0b0);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
             <img id="pfAvatarPreview" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;">
@@ -452,11 +453,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
           </div>
           <div style="flex:1;">
             <div class="field"><label>Avatar URL</label><input type="text" id="pfAvatar" placeholder="https://..."></div>
-            <label class="file-upload-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              Upload Avatar (any file)
-              <input type="file" id="pfAvatarFile">
-            </label>
+            <label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload Avatar<input type="file" id="pfAvatarFile"></label>
             <span class="file-upload-status" id="pfAvatarStatus"></span>
           </div>
         </div>
@@ -464,10 +461,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
       </div>
     </div>
     <div class="panel">
-      <div class="panel-head">
-        <div><div class="panel-title">Social Links</div><div class="panel-sub">Icon, label, URL</div></div>
-        <button class="btn btn-outline btn-sm" onclick="addSocial()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add</button>
-      </div>
+      <div class="panel-head"><div><div class="panel-title">Social Links</div></div><button class="btn btn-outline btn-sm" onclick="addSocial()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add</button></div>
       <div class="social-editor" id="socialEditor"></div>
     </div>
   </section>
@@ -475,11 +469,11 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
   <!-- CUSTOMIZE -->
   <section class="view" id="view-customize">
     <div class="page-header">
-      <div><h1>Customize</h1><p>Drag, resize, rotate. Click a widget to edit.</p></div>
+      <div><h1>Customize</h1><p>Changes auto-save live. Click <b>Apply</b> to commit to history.</p></div>
       <div class="header-actions">
         <button class="btn btn-outline" onclick="loadLayout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>Reload</button>
         <button class="btn btn-outline" onclick="clearCanvas()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>Clear</button>
-        <button class="btn btn-primary" onclick="saveLayout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save</button>
+        <button class="btn btn-primary" onclick="saveLayout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save Layout</button>
       </div>
     </div>
     <div class="customize-layout">
@@ -532,26 +526,26 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
   <!-- SEO -->
   <section class="view" id="view-seo">
     <div class="page-header">
-      <div><h1>SEO & Meta</h1><p>How your profile shows up on Google, Discord, Twitter, iMessage.</p></div>
+      <div><h1>SEO & Meta</h1><p>How your profile shows up on Google, Discord, Twitter.</p></div>
       <div class="header-actions"><button class="btn btn-primary" onclick="saveSEO()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>Save SEO</button></div>
     </div>
     <div class="grid-2">
       <div class="panel">
         <div class="panel-head"><div><div class="panel-title">Page Meta</div></div></div>
         <div class="field"><label>Page Title</label><input type="text" id="seoTitle" placeholder="Your Name — Chromaticc"></div>
-        <div class="field"><label>Meta Description</label><textarea id="seoDesc" placeholder="Short description for search results"></textarea></div>
+        <div class="field"><label>Meta Description</label><textarea id="seoDesc" placeholder="Short description"></textarea></div>
         <div class="field"><label>Keywords</label><input type="text" id="seoKeywords" placeholder="bio, links, personal"></div>
         <div class="field"><label>Author</label><input type="text" id="seoAuthor" placeholder="Your Name"></div>
-        <div class="field"><label>Theme Color</label><input type="color" id="seoThemeColor" value="#ffffff"></div>
+        <div class="field"><label>Theme Color</label><input type="color" id="seoThemeColor" value="#000001"></div>
         <div class="field"><label style="display:flex;align-items:center;justify-content:space-between;">Index on Google <input type="checkbox" id="seoIndexable" checked></label></div>
       </div>
       <div class="panel">
-        <div class="panel-head"><div><div class="panel-title">Social Preview (OG)</div></div></div>
-        <div class="field"><label>OG Title</label><input type="text" id="seoOgTitle" placeholder="Defaults to Page Title"></div>
-        <div class="field"><label>OG Description</label><textarea id="seoOgDesc" placeholder="Defaults to Meta Description"></textarea></div>
-        <div class="field"><label>OG Image URL</label><input type="text" id="seoOgImage" placeholder="https://..."></div>
-        <label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload OG Image (any file)<input type="file" id="seoOgImageFile"></label>
-        <div class="field" style="margin-top:12px;"><label>Twitter Card Type</label><select id="seoTwitterCard"><option value="summary">Summary</option><option value="summary_large_image">Summary Large Image</option></select></div>
+        <div class="panel-head"><div><div class="panel-title">Social Preview</div></div></div>
+        <div class="field"><label>OG Title</label><input type="text" id="seoOgTitle"></div>
+        <div class="field"><label>OG Description</label><textarea id="seoOgDesc"></textarea></div>
+        <div class="field"><label>OG Image URL</label><input type="text" id="seoOgImage"></div>
+        <label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload OG Image<input type="file" id="seoOgImageFile"></label>
+        <div class="field" style="margin-top:12px;"><label>Twitter Card</label><select id="seoTwitterCard"><option value="summary">Summary</option><option value="summary_large_image">Summary Large</option></select></div>
       </div>
     </div>
     <div class="panel">
@@ -583,26 +577,26 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
         <div class="aurora-toggle-row"><span>Shimmer</span><div class="switch" id="swShimmer" onclick="toggleSwitch(this)"></div></div>
       </div>
       <div class="setting-card"><label>Background Type</label><select id="simpBgType"><option value="css">CSS</option><option value="image">Image</option><option value="video">Video</option></select></div>
-      <div class="setting-card"><label>Background Value</label><input type="text" id="simpBgValue" placeholder="linear-gradient(...)"><label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload (any file)<input type="file" id="simpBgFile"></label></div>
+      <div class="setting-card"><label>Background Value</label><input type="text" id="simpBgValue" placeholder="linear-gradient(...)"><label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload<input type="file" id="simpBgFile"></label></div>
       <div class="setting-card"><label>Font Family</label><select id="simpFontFamily"><option>Inter</option><option>Arial</option><option>Georgia</option><option>Orbitron</option></select></div>
       <div class="setting-card"><label>Font Size</label><input type="number" id="simpFontSize" value="16"></div>
       <div class="setting-card"><label>Text Color</label><input type="color" id="simpTextColor" value="#ffffff"></div>
-      <div class="setting-card"><label>Custom Cursor</label><input type="text" id="simpCursor" placeholder="https://..."><label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/></svg>Upload (any file)<input type="file" id="simpCursorFile"></label></div>
-      <div class="setting-card"><label>Favicon</label><input type="text" id="simpFavicon" placeholder="https://..."><label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/></svg>Upload (any file)<input type="file" id="simpFaviconFile"></label></div>
+      <div class="setting-card"><label>Custom Cursor</label><input type="text" id="simpCursor" placeholder="https://..."><label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/></svg>Upload<input type="file" id="simpCursorFile"></label></div>
+      <div class="setting-card"><label>Favicon</label><input type="text" id="simpFavicon" placeholder="https://..."><label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/></svg>Upload<input type="file" id="simpFaviconFile"></label></div>
       <div class="setting-card"><label>Overlay Effect</label><select id="simpOverlay"><option value="none">None</option><option value="rain">Rain</option><option value="sparkles">Sparkles</option><option value="snow">Snow</option><option value="bubbles">Bubbles</option></select></div>
       <div class="setting-card"><label style="display:flex;align-items:center;justify-content:space-between;">Click-to-Enter <input type="checkbox" id="simpClickEnter"></label></div>
       <div class="setting-card"><label style="display:flex;align-items:center;justify-content:space-between;">Audio Autoplay <input type="checkbox" id="simpAutoplay"></label></div>
       <div class="setting-card"><label>Click-to-Enter Message</label><input type="text" id="simpClickEnterMsg" value="Click anywhere to enter"></div>
       <div class="aurora-card">
         <h3>🎵 Click-to-Enter Audio</h3>
-        <p>This is the audio that plays when visitors click to enter your profile. Accepts any file — mp3, wav, ogg, even weird formats.</p>
+        <p>Plays when visitors click to enter. Accepts any file — mp3, wav, ogg, etc.</p>
         <div class="field" style="margin-bottom:12px;">
           <label style="color:rgba(255,255,255,.8);">Audio URL</label>
           <input type="text" id="simpClickAudio" placeholder="https://...">
         </div>
         <label class="file-upload-btn" style="background:rgba(255,255,255,.1);">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Upload Audio File (any format)
+          Upload Audio
           <input type="file" id="simpClickAudioFile">
         </label>
         <span class="file-upload-status" id="simpClickAudioStatus"></span>
@@ -617,7 +611,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
         <div id="hiddenOptions" style="display:none;">
           <div class="aurora-toggle-row"><span>Alias Style</span><select id="hiddenAliasStyle" style="width:160px;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:.78rem;"><option value="auto">Auto</option><option value="sequential">Sequential</option><option value="custom">Custom</option><option value="invite">Invite</option></select></div>
           <div class="aurora-toggle-row" id="hiddenCustomRow" style="display:none;"><span>Custom Alias</span><input type="text" id="hiddenCustomAlias" placeholder="ghost" style="width:160px;padding:8px;border-radius:8px;background:var(--surface-2);color:var(--text);border:1px solid var(--border);font-family:inherit;font-size:.78rem;"></div>
-          <div class="aurora-toggle-row"><span>404 my real username</span><div class="switch" id="sw404Real" onclick="toggleSwitch(this)"></div></div>
+          <div class="aurora-toggle-row"><span>404 real username</span><div class="switch" id="sw404Real" onclick="toggleSwitch(this)"></div></div>
           <div style="font-size:.72rem;color:rgba(255,255,255,.55);margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1);">
             <div>Public URL: <code style="background:rgba(255,255,255,.1);padding:2px 8px;border-radius:6px;color:#fff;" id="hiddenUrlPreview">/anon-XXXX</code></div>
           </div>
@@ -634,10 +628,10 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
   <section class="view" id="view-analytics">
     <div class="page-header"><div><h1>Analytics</h1><p>Honest numbers.</p></div></div>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-head"><span class="stat-label">Today</span></div><div class="stat-value" id="analyticsToday">0</div><div class="stat-delta flat"><span>Views today</span></div></div>
-      <div class="stat-card"><div class="stat-head"><span class="stat-label">This Week</span></div><div class="stat-value" id="analyticsWeek">0</div><div class="stat-delta flat"><span>Views this week</span></div></div>
-      <div class="stat-card"><div class="stat-head"><span class="stat-label">This Month</span></div><div class="stat-value" id="analyticsMonth">0</div><div class="stat-delta flat"><span>Views this month</span></div></div>
-      <div class="stat-card"><div class="stat-head"><span class="stat-label">All Time</span></div><div class="stat-value" id="analyticsAll">0</div><div class="stat-delta flat"><span>Lifetime views</span></div></div>
+      <div class="stat-card"><div class="stat-head"><span class="stat-label">Today</span></div><div class="stat-value" id="analyticsToday">0</div><div class="stat-delta flat"><span>Views</span></div></div>
+      <div class="stat-card"><div class="stat-head"><span class="stat-label">This Week</span></div><div class="stat-value" id="analyticsWeek">0</div><div class="stat-delta flat"><span>Views</span></div></div>
+      <div class="stat-card"><div class="stat-head"><span class="stat-label">This Month</span></div><div class="stat-value" id="analyticsMonth">0</div><div class="stat-delta flat"><span>Views</span></div></div>
+      <div class="stat-card"><div class="stat-head"><span class="stat-label">All Time</span></div><div class="stat-value" id="analyticsAll">0</div><div class="stat-delta flat"><span>Views</span></div></div>
     </div>
     <div class="grid-2">
       <div class="panel"><div class="panel-head"><div><div class="panel-title">Top Widgets</div></div></div><div id="topWidgetsList"><div class="empty">No widgets yet.</div></div></div>
@@ -688,10 +682,10 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     <div class="page-header"><div><h1>Help</h1><p>Quick tips.</p></div></div>
     <div class="panel">
       <div class="list-row"><div class="list-avatar">1</div><div class="list-info"><b>Fill out your Profile tab</b><small>Everything pulls from there</small></div></div>
-      <div class="list-row"><div class="list-avatar">2</div><div class="list-info"><b>Add widgets in Customize</b><small>Content / Style / Advanced tabs</small></div></div>
-      <div class="list-row"><div class="list-avatar">3</div><div class="list-info"><b>Use {{user.x}} tokens</b><small>In any text field</small></div></div>
-      <div class="list-row"><div class="list-avatar">4</div><div class="list-info"><b>SEO tab for Google/Discord</b><small>Control how your link previews</small></div></div>
-      <div class="list-row"><div class="list-avatar">5</div><div class="list-info"><b>Click-to-Enter audio</b><small>Simplified tab → pick any audio file</small></div></div>
+      <div class="list-row"><div class="list-avatar">2</div><div class="list-info"><b>Add widgets in Customize</b><small>Changes auto-save live</small></div></div>
+      <div class="list-row"><div class="list-avatar">3</div><div class="list-info"><b>Click Apply to commit</b><small>Undo/redo works per Apply</small></div></div>
+      <div class="list-row"><div class="list-avatar">4</div><div class="list-info"><b>Save Layout pushes to server</b><small>Persists across reloads</small></div></div>
+      <div class="list-row"><div class="list-avatar">5</div><div class="list-info"><b>Style presets</b><small>Glass / No BG / Solid / Outline</small></div></div>
     </div>
   </section>
 
@@ -741,6 +735,21 @@ window.showToast = function(msg){
   window._toastT = setTimeout(() => t.classList.remove('show'), 2400);
 };
 
+/* ═══════════ AUTOSAVE STATE ═══════════ */
+let isDirty = false;
+function markDirty(){
+  isDirty = true;
+  const s = document.getElementById('saveStatus');
+  s.textContent = 'Unsaved changes';
+  s.classList.add('dirty');
+}
+function markSaved(){
+  isDirty = false;
+  const s = document.getElementById('saveStatus');
+  s.textContent = 'All changes saved';
+  s.classList.remove('dirty');
+}
+
 window.togglePreview = function(){
   const d = document.getElementById('previewDrawer');
   const s = document.getElementById('previewScrim');
@@ -748,9 +757,7 @@ window.togglePreview = function(){
   const open = d.classList.toggle('open');
   s.classList.toggle('open', open);
   b.classList.toggle('preview-on', open);
-  if (open) {
-    document.getElementById('previewFrame').src = '/' + currentUser.username + '?t=' + Date.now();
-  }
+  if (open) document.getElementById('previewFrame').src = '/' + currentUser.username + '?t=' + Date.now();
 };
 
 window.switchView = function(name){
@@ -797,7 +804,6 @@ function animateCount(el, target, dur = 900){
   requestAnimationFrame(step);
 }
 
-/* Universal file upload — accepts literally anything */
 async function uploadAnyFile(file, statusEl){
   if (statusEl) { statusEl.textContent = 'Uploading…'; statusEl.className = 'file-upload-status uploading'; }
   const form = new FormData();
@@ -808,9 +814,8 @@ async function uploadAnyFile(file, statusEl){
     if (data.url) {
       if (statusEl) { statusEl.textContent = '✓ Uploaded'; statusEl.className = 'file-upload-status'; }
       return data.url;
-    } else {
-      if (statusEl) { statusEl.textContent = '✗ ' + (data.error || 'Failed'); statusEl.className = 'file-upload-status error'; }
     }
+    if (statusEl) { statusEl.textContent = '✗ ' + (data.error || 'Failed'); statusEl.className = 'file-upload-status error'; }
   } catch (e) {
     if (statusEl) { statusEl.textContent = '✗ ' + e.message; statusEl.className = 'file-upload-status error'; }
   }
@@ -833,50 +838,101 @@ const BADGES = [
   { id:'terminated', name:'Terminated', file:'Terminated.png', rarity:'special', hint:'Account has been terminated' }
 ];
 
-/* ═══════════ WIDGETS ═══════════ */
+/* ═══════════ WIDGET TYPES — full list ═══════════ */
 const widgetTypes = [
-  { category:'Text', type:'text', name:'Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{content:'Hello {{user.displayName}}', fontSize:16, color:'#e8e8f0', align:'left'} },
+  /* TEXT */
+  { category:'Text', type:'text', name:'Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/><line x1="7" y1="12" x2="17" y2="12"/></svg>', defaults:{content:'Hello {{user.displayName}}', fontSize:16, color:'#e8e8f0', align:'left'} },
   { category:'Text', type:'gradient-text', name:'Gradient Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{content:'Gradient', fontSize:20, gradient:'linear-gradient(90deg,#fff,#b0b0b0)'} },
   { category:'Text', type:'neon-text', name:'Neon Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{content:'Neon', color:'#ffffff', fontSize:22} },
-  { category:'Text', type:'marquee-text', name:'Marquee', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18"/></svg>', defaults:{content:'Scrolling...', speed:5} },
+  { category:'Text', type:'marquee-text', name:'Marquee', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>', defaults:{content:'Scrolling...', speed:5} },
   { category:'Text', type:'typewriter', name:'Typewriter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/></svg>', defaults:{text:'Hello world', speed:80, color:'#ffffff'} },
   { category:'Text', type:'glitch-text', name:'Glitch Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>', defaults:{content:'GLITCH', color:'#ffffff'} },
 
+  /* PROFILE */
   { category:'Profile', type:'profile-card', name:'Profile Card', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>', isContainer:true, defaults:{preset:'minimal', slots:'avatar,name,badges,tagline,location,socials,views', nameEffect:'none', frameEnabled:true, frameColor:'rgba(255,255,255,0.18)'} },
   { category:'Profile', type:'profile-circle', name:'Profile Circle', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{src:'', borderColor:'#ffffff', showPresence:true} },
   { category:'Profile', type:'badges', name:'Badges Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/></svg>', defaults:{autoFromAccount:true, badges:''} },
 
-  { category:'Media', type:'image', name:'Image', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>', defaults:{src:'', alt:''} },
-  { category:'Media', type:'video', name:'Video', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/></svg>', defaults:{src:'', controls:true} },
-  { category:'Media', type:'audio', name:'Audio', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/></svg>', defaults:{src:'', title:'Track'} },
-  { category:'Media', type:'audio-player', name:'Audio Player', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/></svg>', defaults:{src:'', trackName:'novocaine (slowed)', albumArt:'', fallbackImage:'AudioImage.png'} },
+  /* MEDIA */
+  { category:'Media', type:'image', name:'Image', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>', defaults:{src:'', alt:''} },
+  { category:'Media', type:'video', name:'Video', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', defaults:{src:'', controls:true} },
+  { category:'Media', type:'video-embed', name:'Video Embed', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/></svg>', defaults:{src:''} },
+  { category:'Media', type:'audio', name:'Audio', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', defaults:{src:'', title:'Track'} },
+  { category:'Media', type:'audio-embed', name:'Audio Embed', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/></svg>', defaults:{src:''} },
+  { category:'Media', type:'audio-player', name:'Audio Player', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', defaults:{src:'', trackName:'novocaine (slowed)', albumArt:'', fallbackImage:'AudioImage.png'} },
   { category:'Media', type:'audio-viz', name:'Audio Visualizer', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', defaults:{src:'', color:'#ffffff'} },
+  { category:'Media', type:'image-carousel', name:'Image Carousel', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>', defaults:{images:'', interval:3500} },
 
-  { category:'Links', type:'link-list', name:'Link List', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>', isContainer:true, defaults:{} },
-  { category:'Links', type:'link-row', name:'Link Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg>', hidden:true, defaults:{label:'My Link', url:'', iconUrl:''} },
-  { category:'Links', type:'link-embed', name:'Link Embed', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3"/></svg>', defaults:{url:'', label:'My Link', iconUrl:''} },
-  { category:'Links', type:'social-link', name:'Social Link', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{url:'', label:'Social', iconUrl:''} },
+  /* LINKS */
+  { category:'Links', type:'link-list', name:'Link List', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>', isContainer:true, defaults:{} },
+  { category:'Links', type:'link-row', name:'Link Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg>', hidden:true, defaults:{label:'My Link', url:'', iconUrl:'', description:''} },
+  { category:'Links', type:'link-embed', name:'Link Embed', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg>', defaults:{url:'', label:'My Link', iconUrl:'', description:''} },
+  { category:'Links', type:'social-link', name:'Social Link', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{url:'', label:'Social', iconUrl:'', description:''} },
+  { category:'Links', type:'social-row', name:'Social Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/></svg>', defaults:{links:'discord.com|discord.github.com|github', size:44} },
 
+  /* EMBEDS */
   { category:'Embeds', type:'youtube', name:'YouTube', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/></svg>', defaults:{videoId:''} },
   { category:'Embeds', type:'spotify', name:'Spotify', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{uri:''} },
   { category:'Embeds', type:'twitch', name:'Twitch', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 0L1.71 4.29v15.43h5.15V24l4.28-4.29h3.43L22.29 12V0H6z"/></svg>', defaults:{channel:''} },
   { category:'Embeds', type:'soundcloud', name:'SoundCloud', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11.56 8.87V17"/></svg>', defaults:{trackUrl:''} },
+  { category:'Embeds', type:'instagram', name:'Instagram', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/></svg>', defaults:{username:''} },
+  { category:'Embeds', type:'reddit', name:'Reddit', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{subreddit:''} },
+  { category:'Embeds', type:'tiktok', name:'TikTok', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12v9"/></svg>', defaults:{username:''} },
 
+  /* UTILITY */
   { category:'Utility', type:'clock', name:'Clock', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>', defaults:{format:'12h', showSeconds:true} },
-  { category:'Utility', type:'countdown', name:'Countdown', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{targetDate:''} },
+  { category:'Utility', type:'countdown', name:'Countdown', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{targetDate:'', label:''} },
   { category:'Utility', type:'days-counter', name:'Days Counter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{startDate:'', label:'Since'} },
   { category:'Utility', type:'visitor-counter', name:'Visitor Counter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>', defaults:{} },
   { category:'Utility', type:'progress-bar', name:'Progress Bar', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="18" height="4" rx="2"/></svg>', defaults:{value:50, max:100, color:'#ffffff'} },
   { category:'Utility', type:'qr-code', name:'QR Code', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>', defaults:{url:'', size:200} },
+  { category:'Utility', type:'weather', name:'Weather', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg>', defaults:{city:'London', unit:'C'} },
+  { category:'Utility', type:'quote-ticker', name:'Quote Ticker', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v4l-4 4h4v4H4v-4l4-4V4z"/></svg>', defaults:{text:'Welcome!', speed:5} },
+  { category:'Utility', type:'random-quote', name:'Random Quote', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v4l-4 4h4v4H4v-4l4-4V4z"/></svg>', defaults:{api:'https://api.quotable.io/random'} },
+  { category:'Utility', type:'news-ticker', name:'News Ticker', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>', defaults:{source:''} },
+  { category:'Utility', type:'click-counter', name:'Click Counter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>', defaults:{buttonText:'Click me', startCount:0} },
+  { category:'Utility', type:'streak-counter', name:'Streak Counter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/></svg>', defaults:{startDate:'', label:'Streak'} },
+  { category:'Utility', type:'stopwatch', name:'Stopwatch', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{} },
+  { category:'Utility', type:'pomodoro', name:'Pomodoro', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{work:25, break:5} },
+  { category:'Utility', type:'breathing-timer', name:'Breathing Timer', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{} },
+  { category:'Utility', type:'color-picker', name:'Color Picker', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{color:'#ffffff'} },
+  { category:'Utility', type:'map-widget', name:'Map', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>', defaults:{lat:0, lng:0} },
 
+  /* SOCIAL */
   { category:'Social', type:'lanyard', name:'Discord Presence', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>', defaults:{userId:'', showStatus:true, showGame:true} },
   { category:'Social', type:'github-stats', name:'GitHub Stats', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/></svg>', defaults:{username:''} },
   { category:'Social', type:'tech-stack', name:'Tech Stack', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/></svg>', defaults:{items:'React,Node,TS', columns:3} },
+  { category:'Social', type:'game-library', name:'Game Library', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>', defaults:{games:'Valorant,Minecraft,CS2'} },
+  { category:'Social', type:'friend-code', name:'Friend Code', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>', defaults:{code:'YOUR-CODE', label:'Friend Code'} },
 
+  /* INTERACTIVE */
   { category:'Interactive', type:'guestbook', name:'Guestbook', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', defaults:{title:'Leave a message'} },
+  { category:'Interactive', type:'mini-poll', name:'Mini Poll', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/></svg>', defaults:{question:'Favorite?', options:'Yes,No'} },
+  { category:'Interactive', type:'flip-card', name:'Flip Card', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>', defaults:{front:'Click me', back:'Surprise!'} },
+  { category:'Interactive', type:'accordion', name:'Accordion', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>', defaults:{items:'Item 1,Item 2,Item 3'} },
+  { category:'Interactive', type:'click-enter', name:'Click to Enter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>', defaults:{message:'Click anywhere to enter', audioUrl:'', autoplay:true} },
+  { category:'Interactive', type:'virtual-pet', name:'Virtual Pet', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{name:'Chrxy'} },
+  { category:'Interactive', type:'soundboard', name:'Soundboard', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/></svg>', defaults:{sounds:''} },
+  { category:'Interactive', type:'mood-tracker', name:'Mood Tracker', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>', defaults:{mood:'happy'} },
 
-  { category:'Decoration', type:'divider', name:'Divider', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/></svg>', defaults:{color:'#ffffff', thickness:2, style:'solid'} },
-  { category:'Decoration', type:'shape', name:'Shape', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>', defaults:{shape:'rect', color:'#ffffff'} }
+  /* DECORATION */
+  { category:'Decoration', type:'divider', name:'Divider', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/></svg>', defaults:{color:'#ffffff', thickness:2, style:'solid', label:''} },
+  { category:'Decoration', type:'section-divider', name:'Section Divider', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/></svg>', defaults:{color:'#ffffff', thickness:2, label:''} },
+  { category:'Decoration', type:'shape', name:'Shape', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>', defaults:{shape:'rect', color:'#ffffff'} },
+  { category:'Decoration', type:'overlay-effect', name:'Overlay Effect', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>', defaults:{effect:'sparkles'} },
+  { category:'Decoration', type:'background-anim', name:'Animated Background', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{type:'particles'} },
+
+  /* ADVANCED */
+  { category:'Advanced', type:'code', name:'Code Widget', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>', defaults:{html:'<div style="color:#fff;font-weight:700;">Custom HTML</div>', css:'', js:''} },
+  { category:'Advanced', type:'custom-cursor', name:'Custom Cursor', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>', defaults:{url:''} },
+  { category:'Advanced', type:'font-selector', name:'Font Selector', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{font:'Inter'} },
+  { category:'Advanced', type:'theme-switcher', name:'Theme Switcher', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{themes:'dark,light,purple'} },
+  { category:'Advanced', type:'page-indicator', name:'Page Indicator', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>', defaults:{current:1, total:3} },
+
+  /* FUN */
+  { category:'Fun', type:'sparkle-button', name:'Sparkle Button', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 10 22 10 17 15 19 22 12 18 5 22 7 15 2 10 9 10 12 2"/></svg>', defaults:{label:'Sparkle!', color:'#ffffff'} },
+  { category:'Fun', type:'confetti-button', name:'Confetti Button', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{label:'Confetti!'} },
+  { category:'Fun', type:'matrix-rain', name:'Matrix Rain', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>', defaults:{color:'#4ade80'} }
 ];
 
 const WIDGET_STYLE_DEFAULTS = {
@@ -897,7 +953,6 @@ let historyIndex = -1;
 let pageSettings = {};
 let profileData = {};
 let userBadges = [];
-let accountData = null;
 
 const canvas = document.getElementById('canvas');
 const settingsPanel = document.getElementById('widgetSettings');
@@ -915,11 +970,13 @@ for (const cat in categories) {
   const h = document.createElement('div');
   h.className = 'widget-category';
   h.textContent = cat;
+  h.onclick = () => h.classList.toggle('collapsed');
   palette.appendChild(h);
   categories[cat].forEach(wt => {
     const item = document.createElement('div');
     item.className = 'widget-item';
     item.dataset.name = (wt.name + ' ' + wt.type).toLowerCase();
+    item.dataset.category = cat;
     item.innerHTML = wt.icon + '<span>' + wt.name + '</span>';
     item.onclick = () => addWidget(wt.type);
     palette.appendChild(item);
@@ -927,6 +984,7 @@ for (const cat in categories) {
 }
 document.getElementById('widgetSearch').addEventListener('input', function(){
   const q = this.value.toLowerCase();
+  palette.querySelectorAll('.widget-category').forEach(c => c.classList.remove('collapsed'));
   palette.querySelectorAll('.widget-item').forEach(i => { i.style.display = i.dataset.name.includes(q) ? '' : 'none'; });
   palette.querySelectorAll('.widget-category').forEach(cat => {
     let vis = false, next = cat.nextElementSibling;
@@ -950,6 +1008,7 @@ window.loadLayout = async function(){
     }
     pushHistory();
     renderCanvas();
+    markSaved();
   } catch(e) { layout = []; renderCanvas(); }
 };
 
@@ -960,7 +1019,7 @@ window.saveLayout = async function(){
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({layout, settings:pageSettings, profile:profileData})
     });
-    if (res.ok) showToast('Layout saved!');
+    if (res.ok) { showToast('Layout saved!'); markSaved(); }
     else showToast('Save failed: ' + res.status);
   } catch(e) { showToast('Error: ' + e.message); }
 };
@@ -971,6 +1030,7 @@ window.clearCanvas = function(){
   selectedId = null;
   pushHistory();
   renderCanvas();
+  markDirty();
   showToast('Cleared');
 };
 
@@ -985,6 +1045,7 @@ window.undo = function(){
   historyIndex--;
   layout = JSON.parse(history[historyIndex]);
   renderCanvas();
+  markDirty();
   showToast('Undone');
 };
 
@@ -1000,8 +1061,9 @@ function buildWidgetStyle(w){
   else if (bg.type === 'flowing') css += `background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent,rgba(255,255,255,0.15));background-size:300% 300%;`;
   else if (bg.type === 'none') css += `background:transparent;`;
   css += `opacity:${bg.opacity ?? 1};`;
-  if (b.style !== 'none') css += `border:${b.width}px ${b.style} ${b.color};`;
-  css += `border-radius:${b.radius}px;padding:${st.padding ?? 0}px;z-index:${st.zIndex ?? 1};`;
+  if (b.style !== 'none' && b.width > 0) css += `border:${b.width}px ${b.style} ${b.color};`;
+  else css += `border:none;`;
+  css += `border-radius:${b.radius ?? 0}px;padding:${st.padding ?? 0}px;z-index:${st.zIndex ?? 1};`;
   if (sh.type === 'soft') css += `box-shadow:0 8px 24px rgba(0,0,0,0.35);`;
   else if (sh.type === 'hard') css += `box-shadow:4px 4px 0 rgba(0,0,0,0.6);`;
   else if (sh.type === 'glow') css += `box-shadow:0 0 ${sh.blur}px ${sh.color};`;
@@ -1023,6 +1085,9 @@ function renderCanvas(){
     el.style.height = w.h + '%';
     el.style.transform = `rotate(${w.rotation || 0}deg)`;
     el.style.cssText += buildWidgetStyle(w);
+    const st = w.style || {};
+    if (st.animation && st.animation !== 'none') el.classList.add('w-anim-' + st.animation);
+    if (st.hover && st.hover !== 'none') el.classList.add('w-hover-' + st.hover);
     if (w.children && w.children.length) el.classList.add('is-container');
     const def = widgetTypes.find(t => t.type === w.type);
     el.innerHTML = `<span class="widget-label">${esc(def ? def.name : w.type)}</span>`;
@@ -1039,7 +1104,7 @@ function renderCanvas(){
     canvas.appendChild(el);
     attachInteract(el, w);
   });
-  updateCanvasCount(layout.length);
+  document.getElementById('canvasCount').textContent = layout.length + ' widget' + (layout.length !== 1 ? 's' : '');
 }
 
 function findWidget(id, list){
@@ -1065,38 +1130,50 @@ function removeWidget(id){
   return loc.list.splice(i, 1)[0];
 }
 
-window.selectWidget = function(id){
+/* ═══════════ SELECT + SETTINGS PANEL ═══════════ */
+window.selectWidget = function(id, keepTab){
   selectedId = id;
   const w = findWidget(id);
   if (!w) return;
   if (!w.style) w.style = deepClone(WIDGET_STYLE_DEFAULTS);
+
   document.querySelectorAll('.canvas-widget').forEach(el => el.classList.remove('selected'));
   const el = canvas.querySelector(`.canvas-widget[data-id="${id}"]`);
   if (el) el.classList.add('selected');
+
   noWidgetMsg.style.display = 'none';
   settingsPanel.style.display = 'block';
+
   const def = widgetTypes.find(t => t.type === w.type);
   if (!def) return;
   const s = w.settings || {};
   const st = w.style;
 
+  // Preserve current tab
+  const activeTabName = keepTab
+    || settingsPanel.querySelector('.widget-tab.active')?.dataset.tab
+    || 'content';
+
   let html = `<h4>${esc(def.name)}</h4>`;
   html += `<div class="widget-tabs">
-    <div class="widget-tab active" data-tab="content">Content</div>
-    <div class="widget-tab" data-tab="style">Style</div>
-    <div class="widget-tab" data-tab="advanced">Advanced</div>
+    <div class="widget-tab ${activeTabName==='content'?'active':''}" data-tab="content">Content</div>
+    <div class="widget-tab ${activeTabName==='style'?'active':''}" data-tab="style">Style</div>
+    <div class="widget-tab ${activeTabName==='advanced'?'active':''}" data-tab="advanced">Advanced</div>
   </div>`;
 
-  html += `<div class="widget-tab-panel active" data-panel="content">`;
+  /* CONTENT */
+  html += `<div class="widget-tab-panel ${activeTabName==='content'?'active':''}" data-panel="content">`;
   for (const key in def.defaults) {
     const val = s[key] ?? def.defaults[key];
-    const isSrc = ['src','url','audioUrl','videoUrl','uri','avatar','iconUrl','albumArt','fallbackImage'].includes(key);
-    const isLong = ['html','css','js','lrc','bio'].includes(key);
+    const isSrc = ['src','url','audioUrl','videoUrl','uri','avatar','iconUrl','albumArt','fallbackImage','image','ogImage'].includes(key);
+    const isLong = ['html','css','js','lrc','bio','text','content','items','options','sounds','images','links','games','description'].includes(key);
     const isBool = typeof def.defaults[key] === 'boolean';
     const isNum = typeof def.defaults[key] === 'number';
+    const isColor = ['color','borderColor','frameColor','bgColor'].includes(key);
+
     if (isSrc) {
       html += `<div class="field"><label>${key}</label><input type="text" data-key="${key}" value="${esc(val)}" placeholder="https://...">
-        <label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload (any file)<input type="file" data-upload="${key}"></label>
+        <label class="file-upload-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload<input type="file" data-upload="${key}"></label>
         <span class="file-upload-status" data-status="${key}"></span></div>`;
     } else if (isLong) {
       html += `<div class="field"><label>${key}</label><textarea data-key="${key}" rows="3">${esc(val)}</textarea></div>`;
@@ -1104,13 +1181,24 @@ window.selectWidget = function(id){
       html += `<div class="field"><label style="display:flex;align-items:center;justify-content:space-between;">${key} <input type="checkbox" data-key="${key}" ${val?'checked':''}></label></div>`;
     } else if (isNum) {
       html += `<div class="field"><label>${key}</label><input type="number" data-key="${key}" value="${esc(val)}"></div>`;
+    } else if (isColor) {
+      html += `<div class="field"><label>${key}</label><input type="color" data-key="${key}" value="${val || '#ffffff'}"></div>`;
     } else {
       html += `<div class="field"><label>${key}</label><input type="text" data-key="${key}" value="${esc(val)}"></div>`;
     }
   }
   html += `</div>`;
 
-  html += `<div class="widget-tab-panel" data-panel="style">`;
+  /* STYLE */
+  html += `<div class="widget-tab-panel ${activeTabName==='style'?'active':''}" data-panel="style">`;
+  html += `<div class="style-section">Quick Presets</div>`;
+  html += `<div class="preset-row">
+    <button type="button" class="preset-btn" onclick="applyStylePreset('glass')">Glass</button>
+    <button type="button" class="preset-btn" onclick="applyStylePreset('none')">No BG</button>
+    <button type="button" class="preset-btn" onclick="applyStylePreset('solid')">Solid</button>
+    <button type="button" class="preset-btn" onclick="applyStylePreset('outline')">Outline</button>
+  </div>`;
+
   html += `<div class="style-section">Background</div>`;
   html += `<div class="style-row"><label>Type</label><select data-style="bg.type">${['none','color','glass','gradient','image','flowing'].map(v => `<option value="${v}" ${st.bg.type===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   if (st.bg.type === 'color') html += `<div class="style-row"><label>Color</label><input type="color" data-style="bg.value" value="${st.bg.value||'#0a0a12'}"></div>`;
@@ -1118,13 +1206,16 @@ window.selectWidget = function(id){
   if (st.bg.type === 'image') html += `<div class="style-row"><label>URL</label><input type="text" data-style="bg.value" value="${esc(st.bg.value)}"></div>`;
   if (st.bg.type === 'glass') html += `<div class="style-row"><label>Blur</label><input type="range" min="0" max="40" data-style="bg.blur" value="${st.bg.blur}"></div>`;
   html += `<div class="style-row"><label>Opacity</label><input type="range" min="0" max="1" step="0.05" data-style="bg.opacity" value="${st.bg.opacity}"></div>`;
+
   html += `<div class="style-section">Border</div>`;
   html += `<div class="style-row"><label>Width</label><input type="number" data-style="border.width" value="${st.border.width}" min="0" max="20"></div>`;
   html += `<div class="style-row"><label>Color</label><input type="color" data-style="border.color" value="${rgbToHex(st.border.color)}"></div>`;
   html += `<div class="style-row"><label>Style</label><select data-style="border.style">${['solid','dashed','dotted','none'].map(v=>`<option value="${v}" ${st.border.style===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   html += `<div class="style-row"><label>Radius</label><input type="number" data-style="border.radius" value="${st.border.radius}" min="0" max="100"></div>`;
+
   html += `<div class="style-section">Spacing</div>`;
   html += `<div class="style-row"><label>Padding</label><input type="number" data-style="padding" value="${st.padding}" min="0" max="80"></div>`;
+
   html += `<div class="style-section">Typography</div>`;
   html += `<div class="style-row"><label>Font</label><select data-style="typography.family">${['inherit','Inter','Arial','Georgia','Orbitron','monospace'].map(v=>`<option value="${v}" ${st.typography.family===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   html += `<div class="style-row"><label>Size</label><input type="number" data-style="typography.size" value="${st.typography.size}" min="8" max="120"></div>`;
@@ -1133,8 +1224,10 @@ window.selectWidget = function(id){
   html += `<div class="style-row"><label>Line H</label><input type="number" data-style="typography.lineHeight" value="${st.typography.lineHeight}" step="0.1"></div>`;
   html += `<div class="style-row"><label>Align</label><select data-style="typography.align">${['left','center','right','justify'].map(v=>`<option value="${v}" ${st.typography.align===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   html += `<div class="style-row"><label>Color</label><input type="color" data-style="typography.color" value="${rgbToHex(st.typography.color)}"></div>`;
+
   html += `<div class="style-section">Text Effect</div>`;
   html += `<div class="style-row"><label>Effect</label><select data-style="textEffect">${['none','gradient','neon','glitch','shimmer'].map(v=>`<option value="${v}" ${st.textEffect===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
+
   html += `<div class="style-section">Shadow</div>`;
   html += `<div class="style-row"><label>Type</label><select data-style="shadow.type">${['none','soft','hard','glow','custom'].map(v=>`<option value="${v}" ${st.shadow.type===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   if (st.shadow.type === 'custom' || st.shadow.type === 'glow') {
@@ -1143,12 +1236,14 @@ window.selectWidget = function(id){
     html += `<div class="style-row"><label>X</label><input type="number" data-style="shadow.x" value="${st.shadow.x}"></div>`;
     html += `<div class="style-row"><label>Y</label><input type="number" data-style="shadow.y" value="${st.shadow.y}"></div>`;
   }
+
   html += `<div class="style-section">Animation</div>`;
   html += `<div class="style-row"><label>Loop</label><select data-style="animation">${['none','float','pulse','shimmer','wobble','glitch'].map(v=>`<option value="${v}" ${st.animation===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   html += `<div class="style-row"><label>Hover</label><select data-style="hover">${['none','lift','scale','glow','tilt'].map(v=>`<option value="${v}" ${st.hover===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   html += `</div>`;
 
-  html += `<div class="widget-tab-panel" data-panel="advanced">`;
+  /* ADVANCED */
+  html += `<div class="widget-tab-panel ${activeTabName==='advanced'?'active':''}" data-panel="advanced">`;
   html += `<div class="style-row"><label>Z-Index</label><input type="number" data-style="zIndex" value="${st.zIndex}"></div>`;
   html += `<div class="style-row"><label style="display:flex;align-items:center;justify-content:space-between;">Lock <input type="checkbox" data-style="lock" ${st.lock?'checked':''}></label></div>`;
   html += `<div class="style-row"><label style="display:flex;align-items:center;justify-content:space-between;">Hide Mobile <input type="checkbox" data-style="hideMobile" ${st.hideMobile?'checked':''}></label></div>`;
@@ -1156,9 +1251,10 @@ window.selectWidget = function(id){
   html += `<div class="field"><label>Custom CSS</label><textarea data-style="customCSS" rows="4">${esc(st.customCSS)}</textarea></div>`;
   html += `</div>`;
 
-  html += `<button class="apply-btn" id="applyWidgetSettings">Apply</button>`;
+  html += `<button class="apply-btn" id="applyWidgetSettings">Apply Changes</button>`;
   settingsPanel.innerHTML = html;
 
+  /* Tab switching */
   settingsPanel.querySelectorAll('.widget-tab').forEach(tab => {
     tab.onclick = () => {
       settingsPanel.querySelectorAll('.widget-tab').forEach(t => t.classList.remove('active'));
@@ -1167,12 +1263,114 @@ window.selectWidget = function(id){
       settingsPanel.querySelector(`[data-panel="${tab.dataset.tab}"]`).classList.add('active');
     };
   });
-  settingsPanel.querySelectorAll('select[data-style="bg.type"], select[data-style="shadow.type"]').forEach(sel => {
-    sel.onchange = () => selectWidget(id);
+
+  /* LIVE AUTOSAVE: input/select/change saves to widget in memory + re-renders canvas */
+  settingsPanel.querySelectorAll('[data-key]').forEach(inp => {
+    const key = inp.dataset.key;
+    if (!key) return;
+    const applyVal = () => {
+      if (inp.type === 'checkbox') w.settings[key] = inp.checked;
+      else w.settings[key] = inp.value;
+      markDirty();
+    };
+    inp.addEventListener('input', applyVal);
+    inp.addEventListener('change', applyVal);
   });
-  document.getElementById('applyWidgetSettings').onclick = () => applySettings(w);
+
+  /* LIVE AUTOSAVE for style fields */
+  settingsPanel.querySelectorAll('[data-style]').forEach(inp => {
+    const path = inp.dataset.style.split('.');
+    const applyVal = () => {
+      let val;
+      if (inp.type === 'checkbox') val = inp.checked;
+      else if (inp.type === 'number' || inp.type === 'range') val = parseFloat(inp.value);
+      else val = inp.value;
+      let target = w.style;
+      for (let i = 0; i < path.length - 1; i++) {
+        if (!target[path[i]]) target[path[i]] = {};
+        target = target[path[i]];
+      }
+      target[path[path.length - 1]] = val;
+      markDirty();
+      // Live re-render canvas as user drags/types
+      renderCanvas();
+    };
+    inp.addEventListener('input', applyVal);
+    inp.addEventListener('change', applyVal);
+  });
+
+  /* Dropdown that changes panel structure — save first, then re-render panel */
+  settingsPanel.querySelectorAll('select[data-style="bg.type"], select[data-style="shadow.type"]').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const path = sel.dataset.style.split('.');
+      let target = w.style;
+      for (let i = 0; i < path.length - 1; i++) {
+        if (!target[path[i]]) target[path[i]] = {};
+        target = target[path[i]];
+      }
+      target[path[path.length - 1]] = sel.value;
+      markDirty();
+      // Re-render panel but stay on the same tab
+      selectWidget(id, 'style');
+      renderCanvas();
+    });
+  });
+
+  /* File uploads auto-upload on change */
+  settingsPanel.querySelectorAll('input[type="file"]').forEach(fi => {
+    const key = fi.dataset.upload;
+    if (!key) return;
+    fi.addEventListener('change', async e => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const status = settingsPanel.querySelector(`[data-status="${key}"]`);
+      const url = await uploadAnyFile(file, status);
+      if (url) {
+        w.settings[key] = url;
+        const textInp = settingsPanel.querySelector(`input[data-key="${key}"]`);
+        if (textInp) textInp.value = url;
+        markDirty();
+        renderCanvas();
+      }
+    });
+  });
+
+  document.getElementById('applyWidgetSettings').onclick = () => {
+    pushHistory();
+    renderCanvas();
+    showToast('Changes applied');
+  };
 };
 
+/* Preset apply */
+window.applyStylePreset = function(preset){
+  if (!selectedId) return;
+  const w = findWidget(selectedId);
+  if (!w || !w.style) return;
+  if (preset === 'glass') {
+    w.style.bg = { type:'glass', value:'', blur:12, opacity:1 };
+    w.style.border = { width:1, color:'rgba(255,255,255,0.15)', style:'solid', radius:14 };
+    w.style.padding = 12;
+  } else if (preset === 'none') {
+    w.style.bg = { type:'none', value:'', blur:0, opacity:1 };
+    w.style.border = { width:0, color:'rgba(255,255,255,0)', style:'none', radius:0 };
+    w.style.padding = 0;
+  } else if (preset === 'solid') {
+    w.style.bg = { type:'color', value:'#0a0a12', blur:0, opacity:1 };
+    w.style.border = { width:1, color:'rgba(255,255,255,0.15)', style:'solid', radius:14 };
+    w.style.padding = 12;
+  } else if (preset === 'outline') {
+    w.style.bg = { type:'none', value:'', blur:0, opacity:1 };
+    w.style.border = { width:1.5, color:'rgba(255,255,255,0.35)', style:'solid', radius:14 };
+    w.style.padding = 12;
+  }
+  markDirty();
+  renderCanvas();
+  selectWidget(selectedId, 'style');
+  showToast('Preset: ' + preset);
+};
+
+/* ═══════════ INTERACT ═══════════ */
 function attachInteract(el, widget){
   if (el._int) el._int.unset();
   if (widget.style && widget.style.lock) return;
@@ -1189,6 +1387,7 @@ function attachInteract(el, widget){
         el.style.left = nx + '%';
         el.style.top = ny + '%';
         widget.x = nx; widget.y = ny;
+        markDirty();
       }
     }
   });
@@ -1224,6 +1423,7 @@ function attachInteract(el, widget){
           }
           el.style.width = widget.w + '%';
           el.style.height = widget.h + '%';
+          markDirty();
         }
       }
     });
@@ -1238,6 +1438,7 @@ function attachInteract(el, widget){
           const angle = Math.atan2(event.clientY - (r.top + r.height/2), event.clientX - (r.left + r.width/2)) * 180 / Math.PI + 90;
           widget.rotation = Math.round(angle);
           el.style.transform = `rotate(${widget.rotation}deg)`;
+          markDirty();
         }
       }
     });
@@ -1253,40 +1454,7 @@ canvas.addEventListener('click', e => {
   }
 });
 
-async function applySettings(widget){
-  settingsPanel.querySelectorAll('[data-key]').forEach(inp => {
-    const key = inp.dataset.key;
-    if (!key) return;
-    widget.settings[key] = inp.type === 'checkbox' ? inp.checked : inp.value;
-  });
-  if (!widget.style) widget.style = deepClone(WIDGET_STYLE_DEFAULTS);
-  settingsPanel.querySelectorAll('[data-style]').forEach(inp => {
-    const path = inp.dataset.style.split('.');
-    let val;
-    if (inp.type === 'checkbox') val = inp.checked;
-    else if (inp.type === 'number' || inp.type === 'range') val = parseFloat(inp.value);
-    else val = inp.value;
-    let target = widget.style;
-    for (let i = 0; i < path.length - 1; i++) {
-      if (!target[path[i]]) target[path[i]] = {};
-      target = target[path[i]];
-    }
-    target[path[path.length - 1]] = val;
-  });
-  const fileInputs = settingsPanel.querySelectorAll('input[type="file"]');
-  for (const fi of fileInputs) {
-    const key = fi.dataset.upload;
-    const file = fi.files?.[0];
-    if (!file) continue;
-    const status = settingsPanel.querySelector(`[data-status="${key}"]`);
-    const url = await uploadAnyFile(file, status);
-    if (url) widget.settings[key] = url;
-  }
-  pushHistory();
-  renderCanvas();
-  showToast('Updated');
-}
-
+/* ═══════════ ADD / DELETE / DUP ═══════════ */
 window.addWidget = function(type){
   const def = widgetTypes.find(t => t.type === type);
   if (!def) return;
@@ -1298,10 +1466,17 @@ window.addWidget = function(type){
     style: deepClone(WIDGET_STYLE_DEFAULTS),
     children: def.isContainer ? [] : undefined
   };
+  // Text-like widgets start with no background/border
+  if (['text','gradient-text','neon-text','marquee-text','typewriter','glitch-text'].includes(type)) {
+    w.style.bg = { type:'none', value:'', blur:0, opacity:1 };
+    w.style.border = { width:0, color:'rgba(255,255,255,0)', style:'none', radius:0 };
+    w.style.padding = 0;
+  }
   layout.push(w);
   pushHistory();
   renderCanvas();
   selectWidget(w.id);
+  markDirty();
   showToast('Added ' + def.name);
 };
 
@@ -1315,6 +1490,7 @@ window.deleteSelected = function(){
   renderCanvas();
   noWidgetMsg.style.display = 'block';
   settingsPanel.style.display = 'none';
+  markDirty();
   showToast('Deleted');
 };
 
@@ -1331,6 +1507,7 @@ window.duplicateSelected = function(){
   pushHistory();
   renderCanvas();
   selectWidget(clone.id);
+  markDirty();
   showToast('Duplicated');
 };
 
@@ -1339,10 +1516,6 @@ window.setEditMode = function(mode){
   document.querySelectorAll('.toolbar-btn[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   renderCanvas();
 };
-
-function updateCanvasCount(n){
-  document.getElementById('canvasCount').textContent = n + ' widget' + (n !== 1 ? 's' : '');
-}
 
 /* ═══════════ PROFILE ═══════════ */
 function loadProfile(){
@@ -1371,7 +1544,7 @@ function renderSocials(){
   editor.innerHTML = '';
   socials.forEach((s, i) => {
     const row = document.createElement('div');
-    row.className = 'social-row';
+    row.className = 'social-row-editor';
     row.innerHTML = `
       <input type="text" placeholder="Label" value="${esc(s.label||'')}" data-social="${i}" data-field="label">
       <input type="text" placeholder="https://..." value="${esc(s.url||'')}" data-social="${i}" data-field="url">
@@ -1385,11 +1558,12 @@ function renderSocials(){
       const f = e.target.dataset.field;
       if (!profileData.socials[i]) profileData.socials[i] = {};
       profileData.socials[i][f] = e.target.value;
+      markDirty();
     };
   });
 }
-window.addSocial = () => { if (!profileData.socials) profileData.socials = []; profileData.socials.push({label:'', url:'', iconUrl:''}); renderSocials(); };
-window.removeSocial = i => { profileData.socials.splice(i, 1); renderSocials(); };
+window.addSocial = () => { if (!profileData.socials) profileData.socials = []; profileData.socials.push({label:'', url:'', iconUrl:''}); renderSocials(); markDirty(); };
+window.removeSocial = i => { profileData.socials.splice(i, 1); renderSocials(); markDirty(); };
 
 window.saveProfile = async function(){
   profileData.displayName = document.getElementById('pfDisplayName').value.trim();
@@ -1415,7 +1589,7 @@ window.saveProfile = async function(){
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({ profile: profileData })
     });
-    if (res.ok) showToast('Profile saved!');
+    if (res.ok) { showToast('Profile saved!'); markSaved(); }
     else showToast('Save failed: ' + res.status);
   } catch(e) { showToast('Error: ' + e.message); }
   loadProfile();
@@ -1449,7 +1623,7 @@ function loadSEO(){
   document.getElementById('seoDesc').value = s.description || '';
   document.getElementById('seoKeywords').value = s.keywords || '';
   document.getElementById('seoAuthor').value = s.author || '';
-  document.getElementById('seoThemeColor').value = s.themeColor || '#ffffff';
+  document.getElementById('seoThemeColor').value = s.themeColor || '#000001';
   document.getElementById('seoIndexable').checked = s.indexable !== false;
   document.getElementById('seoOgTitle').value = s.ogTitle || '';
   document.getElementById('seoOgDesc').value = s.ogDesc || '';
@@ -1465,6 +1639,9 @@ function updateGooglePreview(){
   document.getElementById('googleUrlPreview').textContent = 'chromaticc.creepers.lol/' + currentUser.username;
 }
 ['seoTitle','seoDesc'].forEach(id => document.getElementById(id)?.addEventListener('input', updateGooglePreview));
+['seoTitle','seoDesc','seoKeywords','seoAuthor','seoOgTitle','seoOgDesc','seoOgImage'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', () => markDirty());
+});
 
 window.saveSEO = async function(){
   profileData.seo = {
@@ -1492,7 +1669,7 @@ window.saveSEO = async function(){
       method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body:JSON.stringify({ profile: profileData })
     });
-    if (res.ok) showToast('SEO saved!');
+    if (res.ok) { showToast('SEO saved!'); markSaved(); }
     else showToast('Save failed');
   } catch(e) { showToast('Error'); }
 };
@@ -1550,7 +1727,6 @@ window.toggleHiddenOptions = function(){
 document.getElementById('hiddenAliasStyle')?.addEventListener('change', toggleHiddenOptions);
 document.getElementById('hiddenCustomAlias')?.addEventListener('input', toggleHiddenOptions);
 
-/* Click-to-Enter audio upload — accepts any file */
 document.getElementById('simpClickAudioFile')?.addEventListener('change', async e => {
   const file = e.target.files[0];
   if (!file) return;
@@ -1560,6 +1736,7 @@ document.getElementById('simpClickAudioFile')?.addEventListener('change', async 
     document.getElementById('simpClickAudio').value = url;
     document.getElementById('simpClickAudioPlayer').src = url;
     document.getElementById('simpClickAudioPreview').style.display = 'flex';
+    markDirty();
     showToast('Audio uploaded!');
   }
 });
@@ -1614,6 +1791,7 @@ window.saveSimplified = async function(){
       body:JSON.stringify({ profile: profileData })
     });
     showToast('Settings saved!');
+    markSaved();
   } catch(e) { showToast('Error'); }
 };
 
@@ -1660,6 +1838,7 @@ document.getElementById('applyTemplateBtn').onclick = () => {
   pushHistory();
   renderCanvas();
   closeModal('templateModal');
+  markDirty();
   showToast('Template applied');
   switchView('customize');
 };
@@ -1746,6 +1925,7 @@ window.loadEverything = async function(showMsg){
       if (d.createdAt) data.createdAt = d.createdAt;
       if (d.settings) pageSettings = d.settings;
       if (d.profile) profileData = d.profile;
+      if (!selectedId) { layout = d.layout || []; renderCanvas(); }
     }
   } catch(e){}
 
@@ -1760,7 +1940,6 @@ window.loadEverything = async function(showMsg){
   } catch(e){}
 
   if (!data.createdAt && currentUser.createdAt) data.createdAt = currentUser.createdAt;
-  accountData = data;
   renderHonestStats(data);
   if (showMsg) showToast('Refreshed');
 };
@@ -1896,6 +2075,10 @@ document.addEventListener('keydown', e => {
   await loadEverything();
   switchView('index');
   setInterval(loadEverything, 60000);
+  // Warn on unload if unsaved
+  window.addEventListener('beforeunload', e => {
+    if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+  });
 })();
 
 })();
