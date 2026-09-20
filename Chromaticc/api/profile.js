@@ -198,104 +198,19 @@ const GLOBAL_WIDGET_CSS = `<style>
   .w-text-shimmer { background:linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:wShimmer 3s linear infinite; }
   @media (max-width:640px) { .w-hide-mobile { display:none !important; } }
 
-  /* ═══ Link card — shared design language ═══ */
-  .link-card {
-    display: flex; align-items: center; gap: 14px;
-    width: 100%; height: 100%;
-    padding: 12px 16px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 16px;
-    text-decoration: none;
-    color: #fff;
-    font-family: inherit;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
-    position: relative;
-    overflow: hidden;
-    box-sizing: border-box;
-    cursor: pointer;
-  }
-  .link-card::before {
-    content: '';
-    position: absolute; top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-    transition: left 0.6s ease;
-    pointer-events: none;
-  }
-  .link-card:hover {
-    transform: translateY(-2px);
-    background: rgba(255,255,255,0.10);
-    border-color: rgba(255,255,255,0.24);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06) inset;
-  }
-  .link-card:hover::before { left: 100%; }
-  .link-card:active { transform: translateY(0) scale(0.99); }
-
-  .link-card-avatar {
-    width: 48px; height: 48px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04));
-    border: 1px solid rgba(255,255,255,0.14);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    overflow: hidden;
-    position: relative;
-  }
-  .link-card-avatar img {
-    width: 100%; height: 100%; object-fit: cover;
-  }
-  .link-card-avatar svg { width: 60%; height: 60%; }
-
-  .link-card-body {
-    flex: 1; min-width: 0;
-    display: flex; flex-direction: column; gap: 2px;
-  }
-  .link-card-name {
-    font-size: 0.92rem; font-weight: 700;
-    line-height: 1.2;
-    color: #fff;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    letter-spacing: -0.2px;
-  }
-  .link-card-handle {
-    font-size: 0.72rem;
-    color: rgba(255,255,255,0.55);
-    line-height: 1.2;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    font-weight: 500;
-    letter-spacing: 0.1px;
-  }
-  .link-card-badges {
-    display: flex; gap: 4px; flex-shrink: 0; align-items: center;
-  }
-  .link-card-badges img {
-    width: 16px; height: 16px; object-fit: contain;
-    border-radius: 4px;
-  }
-  .link-card-arrow {
-    width: 28px; height: 28px;
-    border-radius: 9px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.10);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    color: rgba(255,255,255,0.55);
-    transition: all 0.22s ease;
-  }
-  .link-card:hover .link-card-arrow {
-    background: rgba(255,255,255,0.16);
-    border-color: rgba(255,255,255,0.28);
-    color: #fff;
-    transform: translateX(2px);
-  }
-  .link-card-arrow svg { width: 14px; height: 14px; }
-  .link-card-verified {
-    width: 14px; height: 14px; flex-shrink: 0;
-    display: inline-block; vertical-align: middle;
-  }
+  .link-card { display:flex; align-items:center; gap:14px; width:100%; height:100%; padding:12px 16px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:16px; text-decoration:none; color:#fff; font-family:inherit; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); transition:transform 0.22s cubic-bezier(.34,1.56,.64,1), background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease; position:relative; overflow:hidden; box-sizing:border-box; cursor:pointer; }
+  .link-card::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); transition:left 0.6s ease; pointer-events:none; }
+  .link-card:hover { transform:translateY(-2px); background:rgba(255,255,255,0.10); border-color:rgba(255,255,255,0.24); box-shadow:0 12px 32px rgba(0,0,0,0.35); }
+  .link-card:hover::before { left:100%; }
+  .link-card-avatar { width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.14); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; }
+  .link-card-avatar img { width:100%; height:100%; object-fit:cover; }
+  .link-card-avatar svg { width:60%; height:60%; }
+  .link-card-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .link-card-name { font-size:0.92rem; font-weight:700; line-height:1.2; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:-0.2px; }
+  .link-card-handle { font-size:0.72rem; color:rgba(255,255,255,0.55); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; }
+  .link-card-arrow { width:28px; height:28px; border-radius:9px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:rgba(255,255,255,0.55); transition:all 0.22s ease; }
+  .link-card:hover .link-card-arrow { background:rgba(255,255,255,0.16); border-color:rgba(255,255,255,0.28); color:#fff; transform:translateX(2px); }
+  .link-card-arrow svg { width:14px; height:14px; }
 </style>`;
 
 function buildAuroraCSS(a) {
@@ -357,8 +272,12 @@ function renderWidgetInner(widget, s, ctx) {
       return `<img src="${esc(s.src)}" alt="${esc(s.alt || '')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.opacity='0.2'">`;
     case 'video':
       return `<video src="${esc(s.src)}" ${s.controls ? 'controls' : 'autoplay muted loop playsinline'} style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></video>`;
+    case 'video-embed':
+      return `<video src="${esc(s.src)}" controls playsinline webkit-playsinline style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></video>`;
     case 'audio':
       return `<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:8px;overflow:hidden;"><strong style="font-size:.8rem;color:inherit;">${esc(rc('title') || 'Track')}</strong><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
+    case 'audio-embed':
+      return `<audio src="${esc(s.src)}" controls style="width:100%;height:100%;"></audio>`;
     case 'audio-player': {
       const imgSrc = s.albumArt || s.fallbackImage || 'AudioImage.png';
       const wid = widget.id;
@@ -368,12 +287,12 @@ function renderWidgetInner(widget, s, ctx) {
           <div style="font-size:.92rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">${esc(rc('trackName') || 'Track')}</div>
           <div style="display:flex;align-items:center;gap:10px;margin-top:8px;font-size:.65rem;color:rgba(255,255,255,0.55);font-variant-numeric:tabular-nums;font-weight:600;">
             <span class="ap-cur-${wid}">0:00</span>
-            <div class="ap-bar-${wid}" style="flex:1;height:4px;background:rgba(255,255,255,0.12);border-radius:3px;overflow:hidden;cursor:pointer;position:relative;"><div class="ap-fill-${wid}" style="height:100%;width:0;background:linear-gradient(90deg,#fff,#b0b0b0);border-radius:3px;transition:width 0.1s linear;"></div></div>
+            <div class="ap-bar-${wid}" style="flex:1;height:4px;background:rgba(255,255,255,0.12);border-radius:3px;overflow:hidden;cursor:pointer;"><div class="ap-fill-${wid}" style="height:100%;width:0;background:linear-gradient(90deg,#fff,#b0b0b0);border-radius:3px;transition:width 0.1s linear;"></div></div>
             <span class="ap-dur-${wid}">0:00</span>
           </div>
         </div>
         <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
-          <button class="ap-play-${wid}" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:#fff;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.16)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'"><svg class="ap-icon-${wid}" viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;"><path d="M6 4l15 8-15 8z"/></svg></button>
+          <button class="ap-play-${wid}" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:#fff;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;"><svg class="ap-icon-${wid}" viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;"><path d="M6 4l15 8-15 8z"/></svg></button>
         </div>
         <audio class="ap-audio-${wid}" src="${esc(s.src)}" preload="metadata"></audio>
         <script>(function(){const a=document.querySelector('.ap-audio-${wid}'),btn=document.querySelector('.ap-play-${wid}'),icon=document.querySelector('.ap-icon-${wid}'),fill=document.querySelector('.ap-fill-${wid}'),bar=document.querySelector('.ap-bar-${wid}'),cur=document.querySelector('.ap-cur-${wid}'),dur=document.querySelector('.ap-dur-${wid}');if(!a)return;const fmt=t=>{const m=Math.floor(t/60),s=Math.floor(t%60);return m+':'+(s<10?'0':'')+s;};btn.onclick=()=>a.paused?a.play():a.pause();a.onplay=()=>icon.innerHTML='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';a.onpause=()=>icon.innerHTML='<path d="M6 4l15 8-15 8z"/>';a.onloadedmetadata=()=>dur.textContent=fmt(a.duration);a.ontimeupdate=()=>{fill.style.width=(a.currentTime/a.duration*100)+'%';cur.textContent=fmt(a.currentTime);};bar.onclick=e=>{const r=bar.getBoundingClientRect();a.currentTime=((e.clientX-r.left)/r.width)*a.duration;};})();<\/script>
@@ -381,6 +300,15 @@ function renderWidgetInner(widget, s, ctx) {
     }
     case 'audio-viz':
       return `<canvas class="audio-viz-canvas" data-src="${esc(s.src)}" data-color="${esc(s.color || '#fff')}" style="width:100%;height:100%;background:rgba(255,255,255,0.04);border-radius:inherit;cursor:pointer;"></canvas>`;
+    case 'image-carousel': {
+      const imgs = toArr(s.images);
+      if (!imgs.length) return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:rgba(255,255,255,0.4);font-size:.78rem;">No images</div>`;
+      const wid = widget.id;
+      return `<div id="car-${wid}" style="width:100%;height:100%;overflow:hidden;border-radius:inherit;position:relative;">
+        <img src="${esc(imgs[0])}" style="width:100%;height:100%;object-fit:cover;transition:opacity 0.4s ease;">
+        <script>(function(){const el=document.getElementById('car-${wid}');if(!el)return;const imgs=${JSON.stringify(imgs)};let i=0;const img=el.querySelector('img');setInterval(()=>{i=(i+1)%imgs.length;img.style.opacity='0';setTimeout(()=>{img.src=imgs[i];img.style.opacity='1';},200);},${s.interval||3500});})();<\/script>
+      </div>`;
+    }
 
     /* ═══ PROFILE ═══ */
     case 'profile-circle': {
@@ -408,12 +336,12 @@ function renderWidgetInner(widget, s, ctx) {
       if (slots.includes('tagline') && tagline) parts.push(`<div style="font-size:.95rem;color:rgba(255,255,255,0.72);text-align:center;line-height:1.55;margin-bottom:14px;max-width:92%;margin-left:auto;margin-right:auto;">${esc(tagline)}</div>`);
       if (slots.includes('location') && location) parts.push(`<div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:.82rem;color:rgba(255,255,255,0.55);margin-bottom:16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${esc(location)}</div>`);
       if (slots.includes('socials') && socials.length) {
-        parts.push(`<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;">${socials.map(so => `<a href="${esc(so.url)}" target="_blank" rel="noopener" style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;text-decoration:none;overflow:hidden;transition:all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.14)';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255,255,255,0.06)';this.style.transform=''">${so.iconUrl ? `<img src="${esc(so.iconUrl)}" style="width:70%;height:70%;object-fit:contain;">` : (getFavicon(so.url) || `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:18px;height:18px;"><circle cx="12" cy="12" r="10"/></svg>`)}</a>`).join('')}</div>`);
+        parts.push(`<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;">${socials.map(so => `<a href="${esc(so.url)}" target="_blank" rel="noopener" style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;text-decoration:none;overflow:hidden;transition:all 0.2s ease;">${so.iconUrl ? `<img src="${esc(so.iconUrl)}" style="width:70%;height:70%;object-fit:contain;">` : (getFavicon(so.url) || `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:18px;height:18px;"><circle cx="12" cy="12" r="10"/></svg>`)}</a>`).join('')}</div>`);
       }
       if (slots.includes('joined')) parts.push(`<div style="font-size:.72rem;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:8px;">joined ${timeAgoServer(ctx.user.createdAt)}</div>`);
       if (slots.includes('views')) parts.push(`<div style="position:absolute;left:18px;bottom:14px;display:flex;align-items:center;gap:6px;font-size:.72rem;color:rgba(255,255,255,0.5);font-weight:600;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${(ctx.user.views || 0).toLocaleString()}</div>`);
       const frameStyle = s.frameEnabled !== false
-        ? `background:rgba(18,18,24,0.55);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1.5px solid ${esc(s.frameColor || 'rgba(255,255,255,0.16)')};border-radius:26px;padding:36px 26px 52px;box-shadow:0 24px 64px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.03) inset;`
+        ? `background:rgba(18,18,24,0.55);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1.5px solid ${esc(s.frameColor || 'rgba(255,255,255,0.16)')};border-radius:26px;padding:36px 26px 52px;box-shadow:0 24px 64px rgba(0,0,0,0.5);`
         : '';
       return `<div style="${frameStyle}position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box;">${parts.join('')}</div>`;
     }
@@ -424,13 +352,12 @@ function renderWidgetInner(widget, s, ctx) {
       return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;width:100%;height:100%;">${renderBadges(ids)}</div>`;
     }
 
-    /* ═══ LINKS — NEW MINI PROFILE CARD STYLE ═══ */
+    /* ═══ LINKS ═══ */
     case 'link-list': {
       const rows = widget.children || [];
       if (!rows.length) return `<div style="padding:14px;text-align:center;color:rgba(255,255,255,0.4);font-size:.78rem;">Empty link list</div>`;
       return `<div style="display:flex;flex-direction:column;gap:10px;width:100%;height:100%;">${rows.map(r => renderWidget(r, ctx)).join('')}</div>`;
     }
-
     case 'link-row':
     case 'link-embed':
     case 'social-link': {
@@ -438,28 +365,19 @@ function renderWidgetInner(widget, s, ctx) {
       const label = rc('label') || rc('title') || domainOf(url) || 'Link';
       const iconUrl = s.iconUrl || '';
       const domain = domainOf(url);
-
-      // Pick icon: custom upload > auto favicon > generic globe
       let iconHTML = '';
-      if (iconUrl) {
-        iconHTML = `<img src="${esc(iconUrl)}" alt="">`;
-      } else {
+      if (iconUrl) iconHTML = `<img src="${esc(iconUrl)}" alt="">`;
+      else {
         const fav = getFavicon(url);
         if (fav) iconHTML = fav;
         else iconHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="opacity:0.7;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20 15.3 15.3 0 010-20z"/></svg>`;
       }
-
-      const badges = ctx.badges && ctx.badges.length
-        ? `<div class="link-card-badges">${renderBadges(ctx.badges, 16)}</div>`
-        : '';
-
       return `<a class="link-card" href="${esc(url)}" target="_blank" rel="noopener">
         <div class="link-card-avatar">${iconHTML}</div>
         <div class="link-card-body">
           <div class="link-card-name">${esc(label)}</div>
           ${domain ? `<div class="link-card-handle">${esc(domain)}</div>` : ''}
         </div>
-        ${badges}
         <div class="link-card-arrow">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
         </div>
@@ -475,6 +393,12 @@ function renderWidgetInner(widget, s, ctx) {
       return `<iframe src="https://player.twitch.tv/?channel=${esc(s.channel)}&parent=${esc(ctx.host)}" style="width:100%;height:100%;border:0;border-radius:inherit;" allowfullscreen></iframe>`;
     case 'soundcloud':
       return `<iframe src="https://w.soundcloud.com/player/?url=${encodeURIComponent(s.trackUrl || '')}" style="width:100%;height:100%;border:0;border-radius:inherit;"></iframe>`;
+    case 'instagram':
+      return `<iframe src="https://www.instagram.com/${esc(s.username)}/embed" style="width:100%;height:100%;border:0;border-radius:inherit;"></iframe>`;
+    case 'reddit':
+      return `<iframe src="https://www.reddit.com/r/${esc(s.subreddit)}/hot?embed=true" style="width:100%;height:100%;border:0;border-radius:inherit;"></iframe>`;
+    case 'tiktok':
+      return `<blockquote class="tiktok-embed" cite="https://www.tiktok.com/@${esc(s.username)}" style="width:100%;height:100%;"><section></section></blockquote><script async src="https://www.tiktok.com/embed.js"><\/script>`;
 
     /* ═══ UTILITY ═══ */
     case 'clock':
@@ -494,28 +418,97 @@ function renderWidgetInner(widget, s, ctx) {
       const pct = Math.min(100, Math.round(((s.value || 0) / (s.max || 100)) * 100));
       return `<div style="display:flex;align-items:center;width:100%;height:100%;padding:8px;box-sizing:border-box;"><div style="width:100%;height:14px;background:rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${esc(s.color || '#fff')};border-radius:8px;"></div></div></div>`;
     }
-      case 'code': {
-  const html = s.html || '';
-  const css  = s.css  || '';
-  const js   = s.js   || '';
-
-  if (!html && !css && !js) {
-    return `<div style="width:100%;height:100%;"></div>`;
-  }
-
-  // Escape any </script> inside the JS so it doesn't break out of the tag
-  const safeJs = String(js).replace(/<\/script>/gi, '<\\/script>');
-
-  return `<div class="chroma-code-widget" style="width:100%;height:100%;position:relative;">
-    ${css ? `<style>${css}</style>` : ''}
-    ${html}
-    ${safeJs ? `<script>${safeJs}<\/script>` : ''}
-  </div>`;
-}
     case 'qr-code':
       return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${s.size || 200}x${s.size || 200}&data=${encodeURIComponent(rc('url'))}" style="width:100%;height:100%;object-fit:contain;">`;
+    case 'weather': {
+      const wid = widget.id;
+      const unit = s.unit === 'F' ? 'F' : 'C';
+      return `<div id="wx-${wid}" data-city="${esc(s.city||'London')}" data-unit="${unit}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:4px;">
+        <div style="font-size:1.8rem;font-weight:800;" class="wx-temp">--</div>
+        <div style="font-size:.7rem;opacity:0.6;" class="wx-desc">Loading…</div>
+        <div style="font-size:.65rem;opacity:0.4;" class="wx-city">${esc(s.city||'London')}</div>
+        <script>(async function(){const el=document.getElementById('wx-${wid}');if(!el)return;try{const c=el.dataset.city;const r=await fetch('https://wttr.in/'+encodeURIComponent(c)+'?format=j1');const d=await r.json();const t=d.current_condition[0]['temp_${unit}'];const desc=d.current_condition[0].weatherDesc[0].value;el.querySelector('.wx-temp').textContent=t+'°${unit}';el.querySelector('.wx-desc').textContent=desc;}catch(e){el.querySelector('.wx-desc').textContent='Unavailable';}})();<\/script>
+      </div>`;
+    }
+    case 'quote-ticker':
+      return `<div style="overflow:hidden;width:100%;height:100%;display:flex;align-items:center;"><marquee scrollamount="${s.speed||5}" style="color:inherit;font-weight:600;">${esc(rc('text')||'')}</marquee></div>`;
+    case 'random-quote': {
+      const wid = widget.id;
+      return `<div id="rq-${wid}" data-api="${esc(s.api||'https://api.quotable.io/random')}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:12px;text-align:center;gap:6px;">
+        <div class="rq-text" style="font-size:.82rem;line-height:1.5;font-style:italic;">Loading…</div>
+        <div class="rq-author" style="font-size:.68rem;opacity:0.55;"></div>
+        <script>(async function(){const el=document.getElementById('rq-${wid}');if(!el)return;try{const r=await fetch(el.dataset.api);const d=await r.json();el.querySelector('.rq-text').textContent='"'+d.content+'"';el.querySelector('.rq-author').textContent='— '+(d.author||'Unknown');}catch(e){el.querySelector('.rq-text').textContent='Quote unavailable';}})();<\/script>
+      </div>`;
+    }
+    case 'news-ticker':
+      return `<div style="overflow:hidden;width:100%;height:100%;display:flex;align-items:center;"><marquee scrollamount="5" style="color:inherit;">${esc(s.source || 'News coming soon...')}</marquee></div>`;
+    case 'click-counter': {
+      const wid = widget.id;
+      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;">
+        <div id="cc-${wid}" style="font-size:1.3rem;font-weight:800;color:#fff;">${s.startCount || 0}</div>
+        <button onclick="(function(){const el=document.getElementById('cc-${wid}');el.textContent=+el.textContent+1;})()" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:8px 18px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.8rem;font-family:inherit;">${esc(s.buttonText || 'Click me')}</button>
+      </div>`;
+    }
+    case 'streak-counter': {
+      const start = new Date(s.startDate);
+      const days = s.startDate && !isNaN(start.getTime()) ? Math.floor((Date.now() - start.getTime()) / 86400000) + 1 : 0;
+      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;"><span style="font-size:.7rem;opacity:0.6;">${esc(s.label || 'Streak')}</span><span style="font-size:1.6rem;font-weight:800;">${days}d</span></div>`;
+    }
+    case 'stopwatch': {
+      const wid = widget.id;
+      return `<div id="sw-${wid}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;font-size:1.2rem;font-variant-numeric:tabular-nums;cursor:pointer;" onclick="(function(el){if(el._t){clearInterval(el._t);el._t=null;}else{let s=parseInt(el.dataset.s||'0');el._t=setInterval(()=>{s++;el.dataset.s=s;const m=Math.floor(s/60),sec=s%60;el.textContent=m+':'+(sec<10?'0':'')+sec;},1000);}})(this)" data-s="0">0:00</div>`;
+    }
+    case 'pomodoro': {
+      const wid = widget.id;
+      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;">
+        <div style="font-size:1.4rem;font-weight:800;">${s.work||25}:00</div>
+        <div style="font-size:.65rem;opacity:0.5;">Work</div>
+      </div>`;
+    }
+    case 'color-picker': {
+      const wid = widget.id;
+      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;background:${esc(s.color || '#fff')};border-radius:inherit;color:#000;font-size:.82rem;">${esc(s.color || '#ffffff')}</div>`;
+    }
 
     /* ═══ SOCIAL ═══ */
+    case 'discord-presence': {
+      const d = ctx.discord || {};
+      if (!d.userId || d.enabled === false) {
+        return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:rgba(255,255,255,0.35);font-size:.72rem;">No Discord linked</div>`;
+      }
+      const statusColors = { online:'#4ade80', idle:'#fbbf24', dnd:'#ff5566', offline:'#666' };
+      const statusColor = statusColors[d.status] || '#666';
+      const avatarHTML = d.avatar
+        ? `<img src="${esc(d.avatar)}" style="width:100%;height:100%;object-fit:cover;">`
+        : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#5865F2;color:#fff;font-weight:800;font-size:1.2rem;">${esc((d.username || '?').charAt(0).toUpperCase())}</div>`;
+      const isSpotify = d.listeningToSpotify && d.spotify;
+      const activity = (d.activities || [])[0];
+      let line1 = 'Offline', line2 = '', artHTML = '';
+      if (isSpotify) {
+        line1 = 'Listening on Spotify';
+        line2 = `${esc(d.spotify.song)} — ${esc(d.spotify.artist)}`;
+        if (d.spotify.albumArt) artHTML = `<img src="${esc(d.spotify.albumArt)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;">`;
+      } else if (activity) {
+        line1 = activity.typeName || 'Playing';
+        line2 = `${esc(activity.name)}${activity.details ? ' — ' + esc(activity.details) : ''}`;
+        if (activity.largeImage) {
+          const img = activity.largeImage.startsWith('http') ? activity.largeImage : 'https://cdn.discordapp.com/' + activity.largeImage;
+          artHTML = `<img src="${esc(img)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;">`;
+        }
+      } else if (d.status === 'online') line1 = 'Online';
+      else if (d.status === 'idle') line1 = 'Idle';
+      else if (d.status === 'dnd') line1 = 'Do Not Disturb';
+      return `<div style="display:flex;align-items:center;gap:12px;width:100%;height:100%;padding:12px 14px;background:rgba(18,18,24,0.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-sizing:border-box;">
+        <div style="position:relative;width:48px;height:48px;border-radius:12px;overflow:hidden;flex-shrink:0;">${avatarHTML}
+          ${s.showStatusDot !== false ? `<span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;background:${statusColor};border:2.5px solid #12121a;"></span>` : ''}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.68rem;color:rgba(255,255,255,0.55);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">${esc(line1)}</div>
+          ${line2 ? `<div style="font-size:.82rem;color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${line2}</div>` : ''}
+        </div>
+        ${artHTML}
+      </div>`;
+    }
     case 'lanyard':
       return `<div id="ln-${widget.id}" data-user="${esc(s.userId || '')}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;font-size:.8rem;font-weight:600;"></div>
         <script>(async function(){const el=document.getElementById('ln-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set userId';return;}try{const r=await fetch('https://api.lanyard.rest/v1/users/'+uid);const d=await r.json();if(!d.success)throw 0;const u=d.data;const color=u.discord_status==='online'?'#4ade80':u.discord_status==='idle'?'#fbbf24':u.discord_status==='dnd'?'#ff5566':'#666';el.innerHTML='<span style="width:10px;height:10px;border-radius:50%;background:'+color+';display:inline-block;"></span><span>'+u.discord_status+'</span>';}catch(e){el.textContent='N/A';}})();<\/script>`;
@@ -527,6 +520,13 @@ function renderWidgetInner(widget, s, ctx) {
       const cols = s.columns || 3;
       return `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;place-items:center;width:100%;height:100%;">${(list.length ? list : ['React','Node','TS']).map(i => `<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:5px 11px;border-radius:10px;font-size:.72rem;font-weight:600;">${esc(i)}</span>`).join('')}</div>`;
     }
+    case 'game-library': {
+      const games = toArr(s.games);
+      const list = games.length ? games : ['Valorant','Minecraft'];
+      return `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;padding:6px;width:100%;height:100%;overflow:hidden;">${list.map(g => `<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:4px 10px;border-radius:20px;font-size:.7rem;color:#fff;font-weight:600;">${esc(g)}</span>`).join('')}</div>`;
+    }
+    case 'friend-code':
+      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;"><span style="font-size:.65rem;opacity:0.55;">${esc(s.label || 'Friend Code')}</span><span style="font-size:1rem;font-weight:700;letter-spacing:1px;">${esc(s.code || 'YOUR-CODE')}</span></div>`;
 
     /* ═══ INTERACTIVE ═══ */
     case 'guestbook': {
@@ -536,9 +536,35 @@ function renderWidgetInner(widget, s, ctx) {
         <div id="${wid}-msgs" style="flex:1;overflow-y:auto;margin-bottom:8px;font-size:.74rem;display:flex;flex-direction:column;gap:8px;"></div>
         <input id="${wid}-name" placeholder="Name" style="width:100%;padding:7px 10px;margin-bottom:5px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:.72rem;outline:none;box-sizing:border-box;font-family:inherit;">
         <textarea id="${wid}-text" placeholder="Message" rows="2" style="width:100%;padding:7px 10px;margin-bottom:5px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:.72rem;outline:none;resize:none;font-family:inherit;box-sizing:border-box;"></textarea>
-        <button id="${wid}-send" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:7px;border-radius:8px;font-weight:700;font-size:.72rem;cursor:pointer;font-family:inherit;transition:transform 0.2s ease;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Send</button>
+        <button id="${wid}-send" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:7px;border-radius:8px;font-weight:700;font-size:.72rem;cursor:pointer;font-family:inherit;">Send</button>
         <script>(function(){const u='${esc(ctx.user.username)}';const msgs=document.getElementById('${wid}-msgs');const ni=document.getElementById('${wid}-name');const ti=document.getElementById('${wid}-text');const sb=document.getElementById('${wid}-send');const e2=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');async function load(){try{const r=await fetch('/api/guestbook?username='+u);const a=await r.json();msgs.innerHTML=(a||[]).map(m=>'<div><b style="color:#fff;">'+e2(m.author||'Anon')+'</b>: <span style="opacity:0.75;">'+e2(m.text)+'</span></div>').join('');}catch(e){}}sb.onclick=async()=>{const t=ti.value.trim();if(!t)return;try{await fetch('/api/guestbook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,text:t,author:ni.value.trim()||'Anonymous'})});ti.value='';load();}catch(e){}};load();})();<\/script>
       </div>`;
+    }
+    case 'mini-poll': {
+      const opts = toArr(s.options);
+      const list = opts.length ? opts : ['Yes','No'];
+      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;gap:8px;width:100%;height:100%;box-sizing:border-box;">
+        <div style="font-weight:700;font-size:.85rem;text-align:center;">${esc(s.question || 'What do you think?')}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">${list.map(o => `<button onclick="this.style.background='#fff';this.style.color='#000';" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.72rem;font-weight:600;font-family:inherit;">${esc(o)}</button>`).join('')}</div>
+      </div>`;
+    }
+    case 'flip-card':
+      return `<div style="display:flex;align-items:center;justify-content:center;padding:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-weight:600;font-size:.85rem;cursor:pointer;width:100%;height:100%;box-sizing:border-box;" onclick="(function(el){const f=el.dataset.front==='1';el.dataset.front=f?'0':'1';el.textContent=f?'${esc(s.front)}':'${esc(s.back)}';})(this)" data-front="1">${esc(s.front)}</div>`;
+    case 'accordion': {
+      const items = toArr(s.items);
+      const list = items.length ? items : ['Item 1','Item 2','Item 3'];
+      return `<div style="display:flex;flex-direction:column;gap:4px;padding:6px;width:100%;height:100%;overflow:auto;box-sizing:border-box;">${list.map(i => `<details style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;font-size:.78rem;color:#fff;"><summary style="cursor:pointer;font-weight:600;">${esc(i)}</summary><div style="padding-top:4px;opacity:0.75;">Content</div></details>`).join('')}</div>`;
+    }
+    case 'virtual-pet':
+      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff;font-weight:600;cursor:pointer;width:100%;height:100%;" onclick="(function(el){el.style.transform=el.style.transform.includes('scale(1.2)')?'rotate(0deg)':'scale(1.2) rotate(10deg)';})(this)"><span style="font-size:2rem;">◉◡◉</span><span style="font-size:.75rem;">${esc(s.name || 'Pet')}</span></div>`;
+    case 'soundboard': {
+      const sounds = toArr(s.sounds);
+      return `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;padding:8px;width:100%;height:100%;overflow:hidden;box-sizing:border-box;">${(sounds.length ? sounds : ['🔊','🔔','🎵','🚀']).map((snd, i) => `<button onclick="try{new Audio('${esc(snd)}').play();}catch(e){}" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:700;font-family:inherit;">${i + 1}</button>`).join('')}</div>`;
+    }
+    case 'mood-tracker': {
+      const moods = { happy: '◕‿◕', sad: '◕︵◕', neutral: '◕_◕', angry: '◕皿◕', excited: '★‿★' };
+      const m = s.mood || 'happy';
+      return `<div style="display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#fff;font-weight:700;width:100%;height:100%;">${moods[m] || moods.happy}</div>`;
     }
 
     /* ═══ DECORATION ═══ */
@@ -548,6 +574,46 @@ function renderWidgetInner(widget, s, ctx) {
     case 'shape': {
       const r = s.shape === 'circle' ? 'border-radius:50%;' : s.shape === 'square' ? '' : 'border-radius:14px;';
       return `<div style="width:100%;height:100%;background:${esc(s.color || '#fff')};${r}"></div>`;
+    }
+
+    /* ═══ ADVANCED ═══ */
+    case 'code': {
+      const html = s.html || '';
+      const css  = s.css  || '';
+      const js   = s.js   || '';
+      if (!html && !css && !js) return `<div style="width:100%;height:100%;"></div>`;
+      const safeJs = String(js).replace(/<\/script>/gi, '<\\/script>');
+      const wrappedJs = safeJs ? `try { ${safeJs} } catch(e) { console.error('[code-widget]', e); }` : '';
+      return `<div class="chroma-code-widget" style="width:100%;height:100%;position:relative;">
+        ${css ? `<style>${css}</style>` : ''}
+        ${html}
+        ${wrappedJs ? `<script>${wrappedJs}<\/script>` : ''}
+      </div>`;
+    }
+    case 'custom-cursor':
+      return `<style>body{cursor:url('${esc(s.url)}'),auto;}</style>`;
+    case 'font-selector':
+      return `<style>body * { font-family: '${esc(s.font)}', sans-serif !important; }</style>`;
+    case 'theme-switcher': {
+      const themes = toArr(s.themes).length ? toArr(s.themes) : ['dark','light','purple'];
+      return `<div style="position:fixed;bottom:20px;right:20px;z-index:9999;background:rgba(10,10,16,0.92);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.14);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:6px;font-family:Inter,sans-serif;">
+        ${themes.map(t => `<button onclick="document.documentElement.setAttribute('data-theme','${esc(t)}')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.72rem;font-weight:600;text-transform:capitalize;font-family:inherit;">${esc(t)}</button>`).join('')}
+      </div>`;
+    }
+    case 'page-indicator': {
+      const total = s.total || 3, current = s.current || 1;
+      return `<div style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;">${Array.from({length: total}, (_, i) => `<span style="width:8px;height:8px;border-radius:50%;background:${i === current - 1 ? '#fff' : 'rgba(255,255,255,0.25)'};"></span>`).join('')}</div>`;
+    }
+
+    /* ═══ FUN ═══ */
+    case 'sparkle-button':
+      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><button onclick="(function(el){for(let i=0;i<20;i++){const s=document.createElement('span');s.textContent='✦';s.style.cssText='position:fixed;left:'+el.getBoundingClientRect().left+'px;top:'+el.getBoundingClientRect().top+'px;font-size:'+(10+Math.random()*20)+'px;pointer-events:none;transition:all 1s ease;color:#fff;';document.body.appendChild(s);const a=Math.random()*Math.PI*2,r=60+Math.random()*100;setTimeout(()=>{s.style.transform='translate('+Math.cos(a)*r+'px,'+Math.sin(a)*r+'px)';s.style.opacity='0';},10);setTimeout(()=>s.remove(),1100);}})(this)" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:10px 22px;border-radius:12px;cursor:pointer;font-weight:800;font-size:.82rem;font-family:inherit;">${esc(s.label || 'Sparkle!')}</button></div>`;
+    case 'confetti-button':
+      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><button onclick="(function(el){const colors=['#fff','#fbbf24','#7dd3fc','#c084fc','#ff5566'];for(let i=0;i<40;i++){const c=document.createElement('div');c.style.cssText='position:fixed;left:'+el.getBoundingClientRect().left+'px;top:'+el.getBoundingClientRect().top+'px;width:8px;height:8px;background:'+colors[i%colors.length]+';pointer-events:none;transition:all 1.5s ease;';document.body.appendChild(c);const a=Math.random()*Math.PI*2,r=80+Math.random()*180;setTimeout(()=>{c.style.transform='translate('+Math.cos(a)*r+'px,'+(Math.sin(a)*r+120)+'px) rotate('+(Math.random()*720)+'deg)';c.style.opacity='0';},10);setTimeout(()=>c.remove(),1600);}})(this)" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:10px 22px;border-radius:12px;cursor:pointer;font-weight:800;font-size:.82rem;font-family:inherit;">${esc(s.label || 'Confetti!')}</button></div>`;
+    case 'matrix-rain': {
+      const wid = widget.id;
+      return `<canvas id="mr-${wid}" style="width:100%;height:100%;background:#000;border-radius:inherit;"></canvas>
+        <script>(function(){const c=document.getElementById('mr-${wid}');if(!c)return;const ctx=c.getContext('2d');const chars='01';const fs=14;function resize(){c.width=c.offsetWidth;c.height=c.offsetHeight;}resize();window.addEventListener('resize',resize);const cols=Math.floor(c.width/fs);const drops=Array(cols).fill(0);function draw(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='${esc(s.color || '#4ade80')}';ctx.font=fs+'px monospace';for(let i=0;i<drops.length;i++){ctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*fs,drops[i]*fs);if(drops[i]*fs>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++;}}setInterval(draw,50);})();<\/script>`;
     }
 
     default:
@@ -562,10 +628,7 @@ export default async function handler(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const segments = url.pathname.split('/').filter(Boolean);
 
-  if (segments.length !== 1) {
-    res.statusCode = 404;
-    return res.end();
-  }
+  if (segments.length !== 1) { res.statusCode = 404; return res.end(); }
 
   const slug = decodeURIComponent(segments[0]).toLowerCase();
 
@@ -584,10 +647,7 @@ export default async function handler(req, res) {
     } catch (e) {
       console.warn('[profile.js] full user query failed:', e.message);
       try {
-        const r = await pool.query(
-          `SELECT id, username, created_at FROM users WHERE LOWER(username) = $1 LIMIT 1`,
-          [slug]
-        );
+        const r = await pool.query(`SELECT id, username, created_at FROM users WHERE LOWER(username) = $1 LIMIT 1`, [slug]);
         userRow = r.rows[0];
       } catch (e2) { console.error('[profile.js] fallback failed:', e2.message); }
     }
@@ -615,14 +675,9 @@ export default async function handler(req, res) {
 
     let layoutData = { layout: [], settings: {} };
     try {
-      const layoutRow = (await pool.query(
-        `SELECT layout_data FROM profiles WHERE user_id = $1`,
-        [userRow.id]
-      )).rows[0];
+      const layoutRow = (await pool.query(`SELECT layout_data FROM profiles WHERE user_id = $1`, [userRow.id])).rows[0];
       if (layoutRow?.layout_data) {
-        layoutData = typeof layoutRow.layout_data === 'string'
-          ? JSON.parse(layoutRow.layout_data)
-          : layoutRow.layout_data;
+        layoutData = typeof layoutRow.layout_data === 'string' ? JSON.parse(layoutRow.layout_data) : layoutRow.layout_data;
       }
     } catch (e) { console.warn('[profile.js] layout fetch failed:', e.message); }
 
@@ -638,10 +693,23 @@ export default async function handler(req, res) {
     } catch (e) {}
     if (isBanned && !badges.includes('banned')) badges.push('banned');
 
+    /* View count */
     pool.query(`UPDATE profiles SET view_count = COALESCE(view_count, 0) + 1 WHERE user_id = $1`, [userRow.id]).catch(() => {});
 
+    /* Avatar */
     const avatar = profileData.avatar
       || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(userRow.username)}&backgroundColor=1a1a1a&textColor=ffffff`;
+
+    /* ═══ Fetch Discord presence ═══ */
+    let discordPresence = null;
+    if (profileData.discordId && process.env.CHROMATICC_BOT_URL) {
+      try {
+        const r = await fetch(`${process.env.CHROMATICC_BOT_URL}/presence/${profileData.discordId}`);
+        if (r.ok) discordPresence = await r.json();
+      } catch (e) {
+        console.warn('[profile] discord fetch failed:', e.message);
+      }
+    }
 
     const ctx = {
       host: req.headers.host || 'localhost',
@@ -661,7 +729,7 @@ export default async function handler(req, res) {
         avatar,
         socials: profileData.socials || [],
       },
-      discord: profileData.discord || {},
+      discord: discordPresence || {},
       stats: { views: 0, guestbook: 0, widgets: widgets.length },
       badges,
     };
@@ -692,15 +760,11 @@ export default async function handler(req, res) {
       banBanner = `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,rgba(176,0,32,0.9),rgba(255,68,68,0.9));color:#fff;padding:10px 20px;text-align:center;font-family:Inter,sans-serif;font-size:0.82rem;font-weight:600;">This account is banned ${until}.</div>`;
     }
 
-    /* ═══════════════════════════════════════════════
-       CLICK-TO-ENTER — iOS playback session fix
-       ═══════════════════════════════════════════════ */
     let clickEnterHTML = '';
     const hasClickEnterWidget = widgets.some(w => w.type === 'click-enter');
     if (settings.clickToEnter && !hasClickEnterWidget) {
       const audioUrl = settings.clickAudioUrl || settings.audioUrl || '';
       const shouldPlayAudio = audioUrl && (settings.autoplay !== false);
-
       clickEnterHTML = `
         ${shouldPlayAudio ? `<audio id="clickEnterAudio" src="${esc(audioUrl)}" preload="auto" loop playsinline webkit-playsinline crossorigin="anonymous" style="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.001;pointer-events:none;"></audio>` : ''}
         <div id="globalClickEnter" style="position:fixed;inset:0;background:rgba(0,0,1,0.94);display:flex;align-items:center;justify-content:center;z-index:9998;cursor:pointer;flex-direction:column;gap:16px;font-family:Inter,sans-serif;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;">
@@ -712,35 +776,20 @@ export default async function handler(req, res) {
             var overlay = document.getElementById('globalClickEnter');
             var audio = document.getElementById('clickEnterAudio');
             var dismissed = false;
-
-            // Force iOS into playback session — ignores the silent switch on iOS 16.4+
-            if (audio && 'audioSession' in navigator) {
-              try { navigator.audioSession.type = 'playback'; } catch(e) {}
-            }
-
+            if (audio && 'audioSession' in navigator) { try { navigator.audioSession.type = 'playback'; } catch(e) {} }
             function dismiss() {
               if (dismissed) return;
               dismissed = true;
-
               if (audio) {
                 audio.volume = 1;
                 audio.muted = false;
-                try {
-                  var p = audio.play();
-                  if (p && p.then) {
-                    p.catch(function(){
-                      setTimeout(function(){ audio.play().catch(function(){}); }, 100);
-                    });
-                  }
-                } catch(e){}
+                try { var p = audio.play(); if (p && p.then) p.catch(function(){ setTimeout(function(){ audio.play().catch(function(){}); },100); }); } catch(e){}
               }
-
               overlay.style.transition = 'opacity 0.3s';
               overlay.style.opacity = '0';
               overlay.style.pointerEvents = 'none';
               setTimeout(function(){ overlay.style.display = 'none'; }, 300);
             }
-
             overlay.addEventListener('touchend', dismiss, { once: true });
             overlay.addEventListener('click', dismiss, { once: true });
             overlay.addEventListener('pointerup', dismiss, { once: true });
