@@ -494,6 +494,24 @@ function renderWidgetInner(widget, s, ctx) {
       const pct = Math.min(100, Math.round(((s.value || 0) / (s.max || 100)) * 100));
       return `<div style="display:flex;align-items:center;width:100%;height:100%;padding:8px;box-sizing:border-box;"><div style="width:100%;height:14px;background:rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${esc(s.color || '#fff')};border-radius:8px;"></div></div></div>`;
     }
+      case 'code': {
+  const html = s.html || '';
+  const css  = s.css  || '';
+  const js   = s.js   || '';
+
+  if (!html && !css && !js) {
+    return `<div style="width:100%;height:100%;"></div>`;
+  }
+
+  // Escape any </script> inside the JS so it doesn't break out of the tag
+  const safeJs = String(js).replace(/<\/script>/gi, '<\\/script>');
+
+  return `<div class="chroma-code-widget" style="width:100%;height:100%;position:relative;">
+    ${css ? `<style>${css}</style>` : ''}
+    ${html}
+    ${safeJs ? `<script>${safeJs}<\/script>` : ''}
+  </div>`;
+}
     case 'qr-code':
       return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${s.size || 200}x${s.size || 200}&data=${encodeURIComponent(rc('url'))}" style="width:100%;height:100%;object-fit:contain;">`;
 
