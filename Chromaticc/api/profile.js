@@ -44,10 +44,10 @@ const RARITY_GLOW = {
   mythic: '0 0 20px rgba(255,100,180,0.75)',
   special: '0 0 8px rgba(120,120,120,0.4)',
 };
-function renderBadges(ids) {
-  if (!ids || !ids.length) return '';
+function renderBadges(badgeIds) {
+  if (!badgeIds || !badgeIds.length) return '';
   const order = ['mythic', 'epic', 'rare', 'uncommon', 'common', 'special'];
-  return [...ids]
+  return [...badgeIds]
     .map(id => ({ id, ...BADGES[id] }))
     .filter(b => b.file)
     .sort((a, b) => order.indexOf(a.rarity) - order.indexOf(b.rarity))
@@ -56,7 +56,7 @@ function renderBadges(ids) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   INTERPOLATION
+   TIER 1 INTERPOLATION
    ═══════════════════════════════════════════════════════ */
 function interpolate(str, ctx) {
   if (typeof str !== 'string') return str;
@@ -71,7 +71,7 @@ function interpolate(str, ctx) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   FAVICON
+   FAVICON MAP
    ═══════════════════════════════════════════════════════ */
 const FAVICON_MAP = {
   'discord.com': '<svg viewBox="0 0 24 24" fill="#5865F2" style="width:100%;height:100%"><path d="M20.317 4.37a19.79 19.79 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.3 12.3 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.84 19.84 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>',
@@ -111,6 +111,7 @@ function buildWidgetClasses(st) {
   if (st.customClass) cls.push(...st.customClass.split(/\s+/).filter(Boolean));
   return cls.join(' ');
 }
+
 function buildWidgetStyleString(w) {
   const st = w.style || {};
   const bg = st.bg || {}, b = st.border || {}, sh = st.shadow || {}, ty = st.typography || {};
@@ -144,6 +145,7 @@ function buildWidgetStyleString(w) {
   if (ty.color && ty.color !== 'inherit') css.push(`color:${ty.color}`);
   return css.join(';');
 }
+
 function wrapStyled(widget, inner, ctx) {
   const st = widget.style || {};
   const classes = ['chroma-widget', buildWidgetClasses(st)].filter(Boolean).join(' ');
@@ -156,6 +158,9 @@ function wrapStyled(widget, inner, ctx) {
   return `${customCSS}<div class="${classes}" style="${base}${styleStr}">${inner}${childrenHTML}</div>`;
 }
 
+/* ═══════════════════════════════════════════════════════
+   TIME HELPER
+   ═══════════════════════════════════════════════════════ */
 function timeAgoServer(date) {
   if (!date) return 'recently';
   const diff = (Date.now() - new Date(date).getTime()) / 1000;
@@ -169,7 +174,7 @@ function timeAgoServer(date) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   GLOBAL CSS
+   GLOBAL WIDGET CSS
    ═══════════════════════════════════════════════════════ */
 const GLOBAL_WIDGET_CSS = `<style>
   .chroma-widget { position: absolute; }
@@ -232,6 +237,7 @@ function renderWidgetInner(widget, s, ctx) {
   const rc = (key) => interpolate(s[key] ?? '', ctx);
 
   switch (widget.type) {
+    /* TEXT */
     case 'text':
       return `<div style="overflow:hidden;width:100%;height:100%;">${esc(rc('content'))}</div>`;
     case 'gradient-text':
@@ -246,6 +252,7 @@ function renderWidgetInner(widget, s, ctx) {
     case 'glitch-text':
       return `<div style="position:relative;width:100%;height:100%;"><span class="w-text-glitch" style="color:${esc(s.color || '#fff')};">${esc(rc('content'))}</span></div>`;
 
+    /* MEDIA */
     case 'image':
       return `<img src="${esc(s.src)}" alt="${esc(s.alt || '')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.opacity='0.2'">`;
     case 'video':
@@ -275,12 +282,12 @@ function renderWidgetInner(widget, s, ctx) {
     case 'audio-viz':
       return `<canvas class="audio-viz-canvas" data-src="${esc(s.src)}" data-color="${esc(s.color || '#fff')}" style="width:100%;height:100%;background:rgba(255,255,255,0.04);border-radius:inherit;cursor:pointer;"></canvas>`;
 
+    /* PROFILE */
     case 'profile-circle': {
       const avatar = rc('src') || ctx.user.avatar || '';
       const dot = s.showPresence !== false ? `<span style="position:absolute;bottom:6%;right:6%;width:16%;height:16%;border-radius:50%;background:#4ade80;border:2px solid #000;box-shadow:0 0 10px #4ade80;"></span>` : '';
       return `<div style="width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;"><img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;border:3px solid ${esc(s.borderColor || '#fff')};object-fit:cover;box-shadow:0 0 24px rgba(255,255,255,0.35);">${dot}</div>`;
     }
-
     case 'profile-card': {
       const preset = s.preset || 'minimal';
       const slots = toArr(s.slots || 'avatar,name,badges,tagline,location,socials,views');
@@ -303,13 +310,13 @@ function renderWidgetInner(widget, s, ctx) {
       if (slots.includes('socials') && socials.length) {
         parts.push(`<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;">${socials.map(so => `<a href="${esc(so.url)}" target="_blank" rel="noopener" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;text-decoration:none;overflow:hidden;">${so.iconUrl ? `<img src="${esc(so.iconUrl)}" style="width:70%;height:70%;object-fit:contain;">` : (getFavicon(so.url) || `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:18px;height:18px;"><circle cx="12" cy="12" r="10"/></svg>`)}</a>`).join('')}</div>`);
       }
-      if (slots.includes('joined') && ctx.user.createdAt) parts.push(`<div style="font-size:.72rem;color:rgba(255,255,255,0.45);text-align:center;margin-bottom:8px;">joined ${timeAgoServer(ctx.user.createdAt)}</div>`);
+      if (slots.includes('joined')) parts.push(`<div style="font-size:.72rem;color:rgba(255,255,255,0.45);text-align:center;margin-bottom:8px;">joined ${timeAgoServer(ctx.user.createdAt)}</div>`);
       if (slots.includes('views')) parts.push(`<div style="position:absolute;left:16px;bottom:12px;display:flex;align-items:center;gap:6px;font-size:.72rem;color:rgba(255,255,255,0.6);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${(ctx.user.views || 0).toLocaleString()}</div>`);
       const frameStyle = s.frameEnabled !== false
-        ? `background:rgba(20,20,25,0.55);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid ${esc(s.frameColor || 'rgba(255,255,255,0.18)')};border-radius:24px;padding:32px 24px 48px;box-shadow:0 20px 60px rgba(0,0,0,0.5);` : '';
+        ? `background:rgba(20,20,25,0.55);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid ${esc(s.frameColor || 'rgba(255,255,255,0.18)')};border-radius:24px;padding:32px 24px 48px;box-shadow:0 20px 60px rgba(0,0,0,0.5);`
+        : '';
       return `<div style="${frameStyle}position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box;">${parts.join('')}</div>`;
     }
-
     case 'badges':
     case 'badges-row': {
       const list = toArr(s.badges);
@@ -317,17 +324,20 @@ function renderWidgetInner(widget, s, ctx) {
       return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;width:100%;height:100%;">${renderBadges(ids)}</div>`;
     }
 
+    /* LINKS */
     case 'link-list': {
       const rows = widget.children || [];
       if (!rows.length) return `<div style="padding:14px;text-align:center;color:rgba(255,255,255,0.4);font-size:.78rem;">Empty link list</div>`;
       return `<div style="display:flex;flex-direction:column;gap:8px;width:100%;height:100%;">${rows.map(r => renderWidget(r, ctx)).join('')}</div>`;
     }
-
     case 'link-row': {
       const icon = s.iconUrl ? `<img src="${esc(s.iconUrl)}" style="width:22px;height:22px;object-fit:contain;border-radius:6px;">` : (getFavicon(rc('url')) || '');
-      return `<a href="${esc(rc('url'))}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;text-decoration:none;color:#fff;font-weight:600;font-size:.85rem;"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(rc('label') || rc('url'))}</span></a>`;
+      return `<a href="${esc(rc('url'))}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;text-decoration:none;color:#fff;font-weight:600;font-size:.85rem;">
+        ${icon ? `<span style="width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">${icon}</span>` : ''}
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(rc('label') || rc('url'))}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;opacity:0.5;flex-shrink:0;"><path d="M7 17L17 7M9 7h8v8"/></svg>
+      </a>`;
     }
-
     case 'link-embed':
     case 'social-link': {
       const url = rc('url');
@@ -335,6 +345,7 @@ function renderWidgetInner(widget, s, ctx) {
       return `<a href="${esc(url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;text-decoration:none;color:inherit;font-weight:600;">${icon ? `<span style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;">${icon}</span>` : ''}<span>${esc(rc('label') || url)}</span></a>`;
     }
 
+    /* EMBEDS */
     case 'youtube':
       return `<iframe src="https://www.youtube.com/embed/${esc(s.videoId)}" style="width:100%;height:100%;border:0;border-radius:inherit;" allowfullscreen></iframe>`;
     case 'spotify':
@@ -344,6 +355,7 @@ function renderWidgetInner(widget, s, ctx) {
     case 'soundcloud':
       return `<iframe src="https://w.soundcloud.com/player/?url=${encodeURIComponent(s.trackUrl || '')}" style="width:100%;height:100%;border:0;border-radius:inherit;"></iframe>`;
 
+    /* UTILITY */
     case 'clock':
       return `<div id="clk-${widget.id}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-variant-numeric:tabular-nums;"></div>
         <script>(function(){const el=document.getElementById('clk-${widget.id}');if(!el)return;function tick(){el.textContent=new Date().toLocaleTimeString('en-US',{hour12:${s.format !== '24h'},second:${s.showSeconds !== false}});}tick();setInterval(tick,1000);})();<\/script>`;
@@ -364,6 +376,7 @@ function renderWidgetInner(widget, s, ctx) {
     case 'qr-code':
       return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${s.size || 200}x${s.size || 200}&data=${encodeURIComponent(rc('url'))}" style="width:100%;height:100%;object-fit:contain;">`;
 
+    /* SOCIAL */
     case 'lanyard':
       return `<div id="ln-${widget.id}" data-user="${esc(s.userId || '')}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;font-size:.8rem;font-weight:600;"></div>
         <script>(async function(){const el=document.getElementById('ln-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set userId';return;}try{const r=await fetch('https://api.lanyard.rest/v1/users/'+uid);const d=await r.json();if(!d.success)throw 0;const u=d.data;const color=u.discord_status==='online'?'#4ade80':u.discord_status==='idle'?'#fbbf24':u.discord_status==='dnd'?'#ff5566':'#666';el.innerHTML='<span style="width:10px;height:10px;border-radius:50%;background:'+color+';display:inline-block;"></span><span>'+u.discord_status+'</span>';}catch(e){el.textContent='N/A';}})();<\/script>`;
@@ -376,6 +389,7 @@ function renderWidgetInner(widget, s, ctx) {
       return `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;place-items:center;width:100%;height:100%;">${(list.length ? list : ['React','Node','TS']).map(i => `<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:5px 11px;border-radius:10px;font-size:.72rem;font-weight:600;">${esc(i)}</span>`).join('')}</div>`;
     }
 
+    /* INTERACTIVE */
     case 'guestbook': {
       const wid = 'gb-' + widget.id;
       return `<div id="${wid}" style="display:flex;flex-direction:column;width:100%;height:100%;padding:12px;background:rgba(255,255,255,0.06);border-radius:inherit;overflow:hidden;box-sizing:border-box;">
@@ -388,6 +402,7 @@ function renderWidgetInner(widget, s, ctx) {
       </div>`;
     }
 
+    /* DECORATION */
     case 'divider':
     case 'section-divider':
       return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;position:relative;"><hr style="border:none;border-top:${s.thickness || 2}px ${esc(s.style || 'solid')} ${esc(s.color || '#fff')};width:100%;margin:0;"></div>`;
@@ -416,18 +431,33 @@ export default async function handler(req, res) {
   const slug = decodeURIComponent(segments[0]).toLowerCase();
 
   try {
-    // ── User lookup (exact schema) ──
-    const r = await pool.query(
-      `SELECT id, username, alias, created_at, banned_until, banned_permanent,
-              ban_reason, ban_keep_profile, terminated, profile_data
-       FROM users
-       WHERE LOWER(username) = $1 OR LOWER(alias) = $1
-       LIMIT 1`,
-      [slug]
-    );
-    const userRow = r.rows[0];
+    /* User lookup */
+    let userRow = null;
+    try {
+      const r = await pool.query(
+        `SELECT id, username, alias, created_at, banned_until, banned_permanent,
+                ban_reason, ban_keep_profile, terminated, profile_data
+         FROM users
+         WHERE LOWER(username) = $1 OR LOWER(alias) = $1
+         LIMIT 1`,
+        [slug]
+      );
+      userRow = r.rows[0];
+    } catch (e) {
+      console.warn('[profile.js] full user query failed, using fallback:', e.message);
+      try {
+        const r = await pool.query(
+          `SELECT id, username, created_at FROM users WHERE LOWER(username) = $1 LIMIT 1`,
+          [slug]
+        );
+        userRow = r.rows[0];
+      } catch (e2) {
+        console.error('[profile.js] fallback query failed:', e2.message);
+      }
+    }
 
     if (!userRow) {
+      console.log('[profile.js] no user for slug:', slug);
       res.statusCode = 404;
       return res.end();
     }
@@ -437,7 +467,7 @@ export default async function handler(req, res) {
       return res.end();
     }
 
-    // ── Profile data ──
+    /* Profile data */
     let profileData = {};
     if (userRow.profile_data) {
       profileData = typeof userRow.profile_data === 'string'
@@ -445,7 +475,7 @@ export default async function handler(req, res) {
         : userRow.profile_data;
     }
 
-    // ── Hidden mode ──
+    /* Hidden mode */
     const hidden = profileData.hidden || {};
     const isRealUsername = slug === userRow.username.toLowerCase();
     const isAlias = userRow.alias && slug === userRow.alias.toLowerCase();
@@ -454,7 +484,7 @@ export default async function handler(req, res) {
       return res.end();
     }
 
-    // ── Ban ──
+    /* Ban check */
     const isBanned = userRow.banned_permanent
       || (userRow.banned_until && new Date(userRow.banned_until).getTime() > Date.now());
     if (isBanned && userRow.ban_keep_profile === false) {
@@ -462,17 +492,17 @@ export default async function handler(req, res) {
       return res.end();
     }
 
-    // ── Layout ──
+    /* Layout */
     let layoutData = { layout: [], settings: {} };
     try {
-      const lr = await pool.query(
-        `SELECT layout_data FROM profiles WHERE user_id = $1 LIMIT 1`,
+      const layoutRow = (await pool.query(
+        `SELECT layout_data FROM profiles WHERE user_id = $1`,
         [userRow.id]
-      );
-      if (lr.rows[0]?.layout_data) {
-        layoutData = typeof lr.rows[0].layout_data === 'string'
-          ? JSON.parse(lr.rows[0].layout_data)
-          : lr.rows[0].layout_data;
+      )).rows[0];
+      if (layoutRow?.layout_data) {
+        layoutData = typeof layoutRow.layout_data === 'string'
+          ? JSON.parse(layoutRow.layout_data)
+          : layoutRow.layout_data;
       }
     } catch (e) {
       console.warn('[profile.js] layout fetch failed:', e.message);
@@ -483,7 +513,7 @@ export default async function handler(req, res) {
     settings.background = settings.background || {};
     settings.aurora = settings.aurora || { enabled: false };
 
-    // ── Badges ──
+    /* Badges */
     let badges = [];
     try {
       const br = await pool.query(
@@ -494,17 +524,17 @@ export default async function handler(req, res) {
     } catch (e) { /* table may not exist */ }
     if (isBanned && !badges.includes('banned')) badges.push('banned');
 
-    // ── View count ──
+    /* View count */
     pool.query(
       `UPDATE profiles SET view_count = COALESCE(view_count, 0) + 1 WHERE user_id = $1`,
       [userRow.id]
     ).catch(() => {});
 
-    // ── Avatar ──
+    /* Avatar */
     const avatar = profileData.avatar
       || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(userRow.username)}&backgroundColor=1a1a1a&textColor=ffffff`;
 
-    // ── Context ──
+    /* Context */
     const ctx = {
       host: req.headers.host || 'localhost',
       user: {
@@ -530,12 +560,13 @@ export default async function handler(req, res) {
 
     const widgetsHTML = widgets.map(w => renderWidget(w, ctx)).join('\n');
 
-    // ── Styles ──
+    /* Global styles */
     let globalStyles = '';
     if (settings.cursor) globalStyles += `<style>body{cursor:url('${settings.cursor}'),auto;}</style>`;
     if (settings.favicon) globalStyles += `<link rel="icon" href="${settings.favicon}">`;
     else globalStyles += `<link rel="icon" type="image/png" href="Chromaticc.png">`;
 
+    /* Background */
     let bodyStyle = 'background:#000001;';
     if (settings.background && settings.background.value) {
       const bg = settings.background;
@@ -549,25 +580,69 @@ export default async function handler(req, res) {
 
     const auroraCSS = settings.aurora.enabled ? buildAuroraCSS(settings.aurora) : '';
 
-    // ── Ban banner ──
+    /* Ban banner */
     let banBanner = '';
     if (isBanned) {
       const until = userRow.banned_permanent ? 'permanently' : 'until ' + new Date(userRow.banned_until).toLocaleString();
       banBanner = `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,rgba(176,0,32,0.9),rgba(255,68,68,0.9));color:#fff;padding:10px 20px;text-align:center;font-family:Inter,sans-serif;font-size:0.82rem;font-weight:600;">This account is banned ${until}.</div>`;
     }
 
-    // ── Click-to-enter ──
+    /* ═══════════════════════════════════════════════════
+       CLICK-TO-ENTER — now with audio support
+       ═══════════════════════════════════════════════════ */
     let clickEnterHTML = '';
     const hasClickEnterWidget = widgets.some(w => w.type === 'click-enter');
     if (settings.clickToEnter && !hasClickEnterWidget) {
+      const audioUrl = settings.clickAudioUrl || settings.audioUrl || '';
+      const shouldPlayAudio = audioUrl && (settings.autoplay !== false);
+
       clickEnterHTML = `<div id="globalClickEnter" style="position:fixed;inset:0;background:rgba(0,0,1,0.92);display:flex;align-items:center;justify-content:center;z-index:9998;cursor:pointer;flex-direction:column;gap:16px;font-family:Inter,sans-serif;">
         <div style="font-size:1.4rem;font-weight:800;color:#fff;text-align:center;padding:0 20px;">${esc(settings.clickEnterMessage || 'Click anywhere to enter')}</div>
         <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Tap or click to continue</div>
+        ${shouldPlayAudio ? `<audio id="clickEnterAudio" src="${esc(audioUrl)}" preload="auto" loop playsinline></audio>` : ''}
       </div>
-      <script>document.getElementById('globalClickEnter').addEventListener('click',function(){this.style.opacity='0';setTimeout(()=>this.remove(),300);document.querySelectorAll('.audio-viz-canvas').forEach(c=>c.click());},{once:true});<\/script>`;
+      <script>
+        (function(){
+          var overlay = document.getElementById('globalClickEnter');
+          var audio = document.getElementById('clickEnterAudio');
+          var dismissed = false;
+
+          function dismiss() {
+            if (dismissed) return;
+            dismissed = true;
+
+            if (audio) {
+              audio.volume = 1;
+              var p = audio.play();
+              if (p && p.catch) {
+                p.catch(function(err) {
+                  console.warn('[click-enter] audio blocked:', err);
+                  // Retry once after a short delay — some browsers need this
+                  setTimeout(function(){
+                    audio.play().catch(function(e2){ console.warn('[click-enter] retry failed:', e2); });
+                  }, 100);
+                });
+              }
+            }
+
+            overlay.style.transition = 'opacity 0.3s';
+            overlay.style.opacity = '0';
+            setTimeout(function(){
+              overlay.remove();
+              // Kick off any audio visualizers that were waiting for user interaction
+              document.querySelectorAll('.audio-viz-canvas').forEach(function(c){
+                try { c.click(); } catch(e) {}
+              });
+            }, 300);
+          }
+
+          overlay.addEventListener('click', dismiss, { once: true });
+          overlay.addEventListener('touchstart', dismiss, { once: true, passive: true });
+        })();
+      <\/script>`;
     }
 
-    // ── Promo ──
+    /* Promo */
     let promoHTML = '';
     if (settings.promo?.enabled !== false) {
       promoHTML = `<div id="chromaPromo" style="position:fixed;bottom:16px;right:16px;z-index:9997;background:rgba(10,10,16,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:12px 16px;font-family:Inter,sans-serif;font-size:0.75rem;color:#fff;max-width:280px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
@@ -577,9 +652,17 @@ export default async function handler(req, res) {
       <script>try{if(localStorage.getItem('chromaPromoDismissed_${esc(userRow.username)}')){document.getElementById('chromaPromo').remove();}}catch(e){}<\/script>`;
     }
 
-    const pageTitle = profileData.displayName ? `${profileData.displayName} — Chromaticc` : `${userRow.username} — Chromaticc`;
-    const pageDesc = profileData.tagline || `Check out ${userRow.username}'s profile on Chromaticc`;
+    /* Meta */
+    const seo = profileData.seo || {};
+    const pageTitle = seo.title || (profileData.displayName
+      ? `${profileData.displayName} — Chromaticc`
+      : `${userRow.username} — Chromaticc`);
+    const pageDesc = seo.description || profileData.tagline || `Check out ${userRow.username}'s profile on Chromaticc`;
+    const ogImage = seo.ogImage || profileData.avatar || '';
+    const themeColor = seo.themeColor || '#000001';
+    const isIndexable = seo.indexable !== false;
 
+    /* Final HTML */
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -587,8 +670,16 @@ export default async function handler(req, res) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(pageTitle)}</title>
 <meta name="description" content="${esc(pageDesc)}">
-<meta property="og:title" content="${esc(pageTitle)}">
-<meta property="og:description" content="${esc(pageDesc)}">
+<meta name="theme-color" content="${esc(themeColor)}">
+${isIndexable ? '' : '<meta name="robots" content="noindex,nofollow">'}
+<meta property="og:title" content="${esc(seo.ogTitle || pageTitle)}">
+<meta property="og:description" content="${esc(seo.ogDesc || pageDesc)}">
+${ogImage ? `<meta property="og:image" content="${esc(ogImage)}">` : ''}
+<meta property="og:type" content="profile">
+<meta name="twitter:card" content="${esc(seo.twitterCard || 'summary_large_image')}">
+<meta name="twitter:title" content="${esc(seo.ogTitle || pageTitle)}">
+<meta name="twitter:description" content="${esc(seo.ogDesc || pageDesc)}">
+${ogImage ? `<meta name="twitter:image" content="${esc(ogImage)}">` : ''}
 ${globalStyles}
 ${GLOBAL_WIDGET_CSS}
 ${auroraCSS}
@@ -597,6 +688,7 @@ ${auroraCSS}
   html,body{overflow:hidden;height:100%;font-family:'Inter',system-ui,sans-serif;color:#fff;}
   .profile-canvas{position:relative;width:100vw;height:100vh;overflow:hidden;}
   a{color:inherit;}
+  @media(max-width:768px){ .profile-canvas{font-size:90%;} }
 </style>
 </head>
 <body style="${bodyStyle}">
@@ -647,7 +739,7 @@ ${auroraCSS}
     return res.status(200).send(html);
 
   } catch (err) {
-    console.error('[profile.js] error:', err);
+    console.error('[profile.js] unhandled error:', err);
     res.statusCode = 404;
     return res.end();
   }
