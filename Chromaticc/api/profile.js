@@ -1,4 +1,6 @@
 import { Pool } from 'pg';
+import fs from 'fs';
+import path from 'path';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -9,46 +11,46 @@ const pool = new Pool({
    HELPERS
    ═══════════════════════════════════════════════════════ */
 function esc(str) {
-  return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return String(str ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 function toArr(v) {
   if (Array.isArray(v)) return v;
   if (typeof v === 'string') return v.split(',').map(s => s.trim()).filter(Boolean);
   return [];
 }
-function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
 
 /* ═══════════════════════════════════════════════════════
    BADGE CATALOG
    ═══════════════════════════════════════════════════════ */
 const BADGES = {
-  'bot':              { name: 'Bot',              file: 'Bot.png',                rarity: 'special' },
-  'verified':         { name: 'Verified',         file: 'Verified.png',           rarity: 'uncommon' },
-  'discord-member':   { name: 'Discord Member',   file: 'Discord-member.png',     rarity: 'common' },
-  'coder':            { name: 'Coder',            file: 'Coder.png',              rarity: 'uncommon' },
-  'developer':        { name: 'Developer',        file: 'Developer.png',          rarity: 'uncommon' },
-  'bug-hunter':       { name: 'Bug Hunter',       file: 'Blurple-Bug-Hunter.png', rarity: 'rare' },
-  'ppa':              { name: 'PPA',              file: 'PPA.png',                rarity: 'epic' },
-  'staff':            { name: 'Staff',            file: 'Staff.png',              rarity: 'epic' },
-  'owner':            { name: 'Owner',            file: 'Owner.png',              rarity: 'mythic' },
-  'hidden':           { name: 'Hidden',           file: 'Hidden.png',             rarity: 'special' },
-  'banned':           { name: 'Banned',           file: 'Banned.png',             rarity: 'special' },
-  'terminated':       { name: 'Terminated',       file: 'Terminated.png',         rarity: 'special' }
+  'bot':            { name: 'Bot',            file: 'Bot.png',                rarity: 'special' },
+  'verified':       { name: 'Verified',       file: 'Verified.png',           rarity: 'uncommon' },
+  'discord-member': { name: 'Discord Member', file: 'Discord-member.png',     rarity: 'common' },
+  'coder':          { name: 'Coder',          file: 'Coder.png',              rarity: 'uncommon' },
+  'developer':      { name: 'Developer',      file: 'Developer.png',          rarity: 'uncommon' },
+  'bug-hunter':     { name: 'Bug Hunter',     file: 'Blurple-Bug-Hunter.png', rarity: 'rare' },
+  'ppa':            { name: 'PPA',            file: 'PPA.png',                rarity: 'epic' },
+  'staff':          { name: 'Staff',          file: 'Staff.png',              rarity: 'epic' },
+  'owner':          { name: 'Owner',          file: 'Owner.png',              rarity: 'mythic' },
+  'hidden':         { name: 'Hidden',         file: 'Hidden.png',             rarity: 'special' },
+  'banned':         { name: 'Banned',         file: 'Banned.png',             rarity: 'special' },
+  'terminated':     { name: 'Terminated',     file: 'Terminated.png',         rarity: 'special' },
 };
 
 const RARITY_GLOW = {
-  common:    '0 0 10px rgba(192,192,192,0.5)',
-  uncommon:  '0 0 12px rgba(125,211,252,0.55)',
-  rare:      '0 0 14px rgba(192,132,252,0.6)',
-  epic:      '0 0 16px rgba(251,191,36,0.65)',
-  mythic:    '0 0 20px rgba(255,100,180,0.75)',
-  special:   '0 0 8px rgba(120,120,120,0.4)'
+  common:   '0 0 10px rgba(192,192,192,0.5)',
+  uncommon: '0 0 12px rgba(125,211,252,0.55)',
+  rare:     '0 0 14px rgba(192,132,252,0.6)',
+  epic:     '0 0 16px rgba(251,191,36,0.65)',
+  mythic:   '0 0 20px rgba(255,100,180,0.75)',
+  special:  '0 0 8px rgba(120,120,120,0.4)',
 };
 
 function renderBadges(badgeIds) {
   if (!badgeIds || !badgeIds.length) return '';
-  const order = ['mythic','epic','rare','uncommon','common','special'];
+  const order = ['mythic', 'epic', 'rare', 'uncommon', 'common', 'special'];
   const sorted = [...badgeIds]
     .map(id => ({ id, ...BADGES[id] }))
     .filter(b => b.file)
@@ -65,12 +67,11 @@ function renderBadges(badgeIds) {
    ═══════════════════════════════════════════════════════ */
 function interpolate(str, ctx) {
   if (typeof str !== 'string') return str;
-  return str.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, path) => {
-    const parts = path.split('.');
+  return str.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, p) => {
     let cur = ctx;
-    for (const p of parts) {
+    for (const k of p.split('.')) {
       if (cur == null) return '';
-      cur = cur[p];
+      cur = cur[k];
     }
     return cur == null ? '' : String(cur);
   });
@@ -90,8 +91,9 @@ const FAVICON_MAP = {
   'twitch.tv': '<svg viewBox="0 0 24 24" fill="#9146FF" style="width:100%;height:100%"><path d="M11.57 4.71h1.72v5.14h-1.72zm4.72 0H18v5.14h-1.71zM6 0L1.71 4.29v15.43h5.15V24l4.28-4.29h3.43L22.29 12V0H6zm14.57 11.14l-3.43 3.43h-3.43l-3 3v-3H6.86V1.71h13.71v9.43z"/></svg>',
   'instagram.com': '<svg viewBox="0 0 24 24" fill="#E4405F" style="width:100%;height:100%"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85 0 3.2-.01 3.58-.07 4.85-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.64.07-4.85.07-3.2 0-3.58-.01-4.85-.07-3.26-.15-4.77-1.7-4.92-4.92C2.17 15.58 2.16 15.2 2.16 12c0-3.2.01-3.58.07-4.85.15-3.23 1.66-4.77 4.92-4.92C8.42 2.17 8.8 2.16 12 2.16z"/></svg>',
   'reddit.com': '<svg viewBox="0 0 24 24" fill="#FF4500" style="width:100%;height:100%"><path d="M24 11.78c0-1.46-1.19-2.65-2.66-2.65-.71 0-1.36.29-1.84.75-1.81-1.19-4.26-1.95-6.97-2.05l1.48-4.67 4.02.94c0 1.19.97 2.16 2.17 2.16 1.2 0 2.17-.97 2.17-2.16 0-1.2-.97-2.16-2.17-2.16-.92 0-1.7.57-2.02 1.38l-4.33-1.02c-.19-.05-.38.06-.44.25l-1.65 5.21c-2.84.03-5.41.8-7.3 2.02-.47-.44-1.1-.71-1.8-.71C1.19 9.13 0 10.32 0 11.78c0 1.02.59 1.91 1.45 2.36-.03.21-.05.42-.05.63 0 3.57 4.17 6.47 9.31 6.47 5.14 0 9.31-2.9 9.31-6.47 0-.21-.02-.42-.05-.63.86-.45 1.45-1.34 1.45-2.36z"/></svg>',
-  'tiktok.com': '<svg viewBox="0 0 24 24" fill="#e8e8f0" style="width:100%;height:100%"><path d="M12.53.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>'
+  'tiktok.com': '<svg viewBox="0 0 24 24" fill="#e8e8f0" style="width:100%;height:100%"><path d="M12.53.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>',
 };
+
 function getFavicon(url) {
   if (!url) return null;
   try {
@@ -103,7 +105,7 @@ function getFavicon(url) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   WIDGET STYLE WRAPPER
+   WIDGET STYLE ENGINE
    ═══════════════════════════════════════════════════════ */
 function buildWidgetClasses(st) {
   const cls = [];
@@ -173,254 +175,11 @@ function wrapStyled(widget, inner, ctx) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   WIDGET RENDERER
-   ═══════════════════════════════════════════════════════ */
-function renderWidget(widget, ctx) {
-  if (!widget) return '';
-  const s = widget.settings || {};
-  const rawContent = (key) => interpolate(s[key] ?? '', ctx);
-  const inner = renderWidgetInner(widget, s, ctx, rawContent);
-  return wrapStyled(widget, inner, ctx);
-}
-
-function renderWidgetInner(widget, s, ctx, rc) {
-  switch (widget.type) {
-
-    /* ── TEXT ── */
-    case 'text':
-      return `<div style="overflow:hidden;width:100%;height:100%;">${esc(rc('content'))}</div>`;
-    case 'gradient-text':
-      return `<div style="background:${esc(s.gradient || 'linear-gradient(90deg,#fff,#aaa)')};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;overflow:hidden;width:100%;height:100%;">${esc(rc('content'))}</div>`;
-    case 'neon-text':
-      return `<div style="color:${esc(s.color || '#fff')};text-shadow:0 0 10px currentColor,0 0 20px currentColor;overflow:hidden;width:100%;height:100%;">${esc(rc('content'))}</div>`;
-    case 'marquee-text':
-      return `<div style="overflow:hidden;width:100%;height:100%;"><marquee scrollamount="${s.speed || 5}" style="color:inherit;">${esc(rc('content'))}</marquee></div>`;
-    case 'typewriter':
-      return `<div id="tw-${widget.id}" style="width:100%;height:100%;"></div>
-        <script>(function(){const el=document.getElementById('tw-${widget.id}');if(!el)return;const t=${JSON.stringify(rc('text') || '')};let i=0;(function go(){if(i<t.length){el.textContent+=t.charAt(i++);setTimeout(go,${s.speed || 80});}})();})();<\/script>`;
-    case 'glitch-text':
-      return `<div style="position:relative;width:100%;height:100%;"><span class="w-text-glitch" style="color:${esc(s.color || '#fff')};">${esc(rc('content'))}</span></div>`;
-
-    /* ── MEDIA ── */
-    case 'image':
-      return `<img src="${esc(s.src)}" alt="${esc(s.alt || '')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.opacity='0.2'">`;
-    case 'video':
-      return `<video src="${esc(s.src)}" ${s.controls ? 'controls' : 'autoplay muted loop playsinline'} style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></video>`;
-    case 'audio':
-      return `<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:8px;overflow:hidden;"><strong style="font-size:0.8rem;color:inherit;">${esc(rc('title') || 'Track')}</strong><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
-    case 'audio-player': {
-      const imgSrc = s.albumArt || s.fallbackImage || 'AudioImage.png';
-      return `<div style="display:flex;align-items:center;gap:12px;width:100%;height:100%;padding:10px 14px;background:rgba(20,20,20,0.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:inherit;">
-        <div style="width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
-          <img src="${esc(imgSrc)}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='<svg viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'1.5\\' style=\\'width:24px;height:24px;opacity:0.5\\'><path d=\\'M9 18V5l12-2v13\\'/><circle cx=\\'6\\' cy=\\'18\\' r=\\'3\\'/><circle cx=\\'18\\' cy=\\'16\\' r=\\'3\\'/></svg>'">
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:0.85rem;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(rc('trackName') || 'novocaine (slowed)')}</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:0.65rem;color:rgba(255,255,255,0.6);">
-            <span class="ap-cur">0:00</span>
-            <div class="ap-bar" style="flex:1;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;overflow:hidden;cursor:pointer;">
-              <div class="ap-fill" style="height:100%;width:0;background:linear-gradient(90deg,#c0c0c0,#fff);transition:width 0.1s linear;"></div>
-            </div>
-            <span class="ap-dur">0:00</span>
-          </div>
-        </div>
-        <div style="display:flex;gap:2px;flex-shrink:0;">
-          <button class="ap-prev" style="background:none;border:none;color:#c0c0c0;cursor:pointer;padding:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
-          <button class="ap-play" style="background:none;border:none;color:#fff;cursor:pointer;padding:6px;"><svg class="ap-icon" viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M6 4l15 8-15 8z"/></svg></button>
-          <button class="ap-next" style="background:none;border:none;color:#c0c0c0;cursor:pointer;padding:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
-        </div>
-        <audio class="ap-audio" src="${esc(s.src)}" preload="metadata"></audio>
-        <script>(function(){const root=document.currentScript.closest('.chroma-widget');if(!root)return;const a=root.querySelector('.ap-audio'),btn=root.querySelector('.ap-play'),icon=root.querySelector('.ap-icon'),fill=root.querySelector('.ap-fill'),bar=root.querySelector('.ap-bar'),cur=root.querySelector('.ap-cur'),dur=root.querySelector('.ap-dur');const fmt=t=>{const m=Math.floor(t/60),s=Math.floor(t%60);return m+':'+(s<10?'0':'')+s;};btn.onclick=()=>a.paused?a.play():a.pause();a.onplay=()=>icon.innerHTML='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';a.onpause=()=>icon.innerHTML='<path d="M6 4l15 8-15 8z"/>';a.onloadedmetadata=()=>dur.textContent=fmt(a.duration);a.ontimeupdate=()=>{fill.style.width=(a.currentTime/a.duration*100)+'%';cur.textContent=fmt(a.currentTime);};bar.onclick=e=>{const r=bar.getBoundingClientRect();a.currentTime=((e.clientX-r.left)/r.width)*a.duration;};})();<\/script>
-      </div>`;
-    }
-    case 'audio-viz':
-      return `<canvas class="audio-viz-canvas" data-src="${esc(s.src)}" data-color="${esc(s.color || '#fff')}" style="width:100%;height:100%;background:rgba(255,255,255,0.04);border-radius:inherit;cursor:pointer;"></canvas>`;
-
-    /* ── PROFILE ── */
-    case 'profile-circle': {
-      const avatar = rc('src') || ctx.user.avatar || '';
-      const dot = s.showPresence ? `<span style="position:absolute;bottom:6%;right:6%;width:16%;height:16%;border-radius:50%;background:#4ade80;border:2px solid #000;box-shadow:0 0 10px #4ade80;"></span>` : '';
-      return `<div style="width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;">
-        <img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;border:3px solid ${esc(s.borderColor || '#fff')};object-fit:cover;box-shadow:0 0 24px rgba(255,255,255,0.35);" onerror="this.style.background='rgba(255,255,255,0.1)';this.style.display='block';this.removeAttribute('src')">
-        ${dot}
-      </div>`;
-    }
-
-    case 'profile-card': {
-      const preset = s.preset || 'minimal';
-      const slots = s.slots || ['avatar','name','tagline','location','socials','views'];
-      const u = ctx.user;
-      const p = ctx.profile;
-      const avatar = p.avatar || u.avatar || '';
-      const displayName = p.displayName || u.username;
-      const tagline = p.tagline || '';
-      const location = p.location || '';
-      const socials = (p.socials || []).filter(x => x.url);
-
-      const htmlParts = [];
-      if (slots.includes('avatar')) {
-        htmlParts.push(`<div style="position:relative;width:${preset === 'discord-focused' ? '96px' : '84px'};height:${preset === 'discord-focused' ? '96px' : '84px'};margin:0 auto 14px;">
-          <img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.35);box-shadow:0 0 24px rgba(255,255,255,0.2);">
-        </div>`);
-      }
-      if (slots.includes('name')) {
-        const eff = s.nameEffect || 'none';
-        const nameClass = eff === 'glitch' ? 'w-text-glitch' : eff === 'neon' ? 'w-text-neon' : eff === 'gradient' ? 'w-text-gradient' : '';
-        htmlParts.push(`<div class="${nameClass}" style="font-size:1.65rem;font-weight:800;letter-spacing:-0.5px;text-align:center;margin-bottom:8px;color:#fff;">${esc(displayName)}</div>`);
-      }
-      if (slots.includes('badges') && ctx.badges && ctx.badges.length) {
-        htmlParts.push(`<div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px;flex-wrap:wrap;">${renderBadges(ctx.badges)}</div>`);
-      }
-      if (slots.includes('tagline') && tagline) {
-        htmlParts.push(`<div style="font-size:0.95rem;color:rgba(255,255,255,0.75);text-align:center;line-height:1.55;margin-bottom:12px;max-width:92%;margin-left:auto;margin-right:auto;">${esc(tagline)}</div>`);
-      }
-      if (slots.includes('location') && location) {
-        htmlParts.push(`<div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:0.82rem;color:rgba(255,255,255,0.6);margin-bottom:14px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          ${esc(location)}
-        </div>`);
-      }
-      if (slots.includes('socials') && socials.length) {
-        htmlParts.push(`<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;">
-          ${socials.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;text-decoration:none;overflow:hidden;transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
-            ${s.iconUrl ? `<img src="${esc(s.iconUrl)}" style="width:70%;height:70%;object-fit:contain;">` : (getFavicon(s.url) || `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:18px;height:18px;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20 15.3 15.3 0 010-20z"/></svg>`)}
-          </a>`).join('')}
-        </div>`);
-      }
-      if (slots.includes('joined')) {
-        htmlParts.push(`<div style="font-size:0.72rem;color:rgba(255,255,255,0.45);text-align:center;margin-bottom:8px;">joined ${timeAgoServer(ctx.user.createdAt)}</div>`);
-      }
-      if (slots.includes('views')) {
-        htmlParts.push(`<div style="position:absolute;left:16px;bottom:12px;display:flex;align-items:center;gap:6px;font-size:0.72rem;color:rgba(255,255,255,0.6);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          ${(ctx.user.views || 0).toLocaleString()}
-        </div>`);
-      }
-
-      const frameStyle = s.frameEnabled !== false
-        ? `background:rgba(20,20,25,0.55);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid ${esc(s.frameColor || 'rgba(255,255,255,0.18)')};border-radius:24px;padding:32px 24px 48px;box-shadow:0 20px 60px rgba(0,0,0,0.5);`
-        : '';
-      return `<div style="${frameStyle}position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">${htmlParts.join('')}</div>`;
-    }
-
-    case 'badges':
-    case 'badges-row': {
-      const list = toArr(s.badges);
-      const auto = s.autoFromAccount ? ctx.badges : null;
-      const ids = auto || list;
-      return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;width:100%;height:100%;">${renderBadges(ids)}</div>`;
-    }
-
-    /* ── LINK LIST (container) ── */
-    case 'link-list': {
-      const rows = widget.children || [];
-      if (!rows.length) {
-        return `<div style="padding:14px;text-align:center;color:rgba(255,255,255,0.4);font-size:0.78rem;">Empty link list</div>`;
-      }
-      return `<div style="display:flex;flex-direction:column;gap:8px;width:100%;height:100%;">${rows.map(r => renderWidget(r, ctx)).join('')}</div>`;
-    }
-
-    case 'link-row': {
-      const icon = s.iconUrl ? `<img src="${esc(s.iconUrl)}" style="width:22px;height:22px;object-fit:contain;border-radius:6px;">` : (getFavicon(rc('url')) || '');
-      return `<a href="${esc(rc('url'))}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;text-decoration:none;color:#fff;font-weight:600;font-size:0.85rem;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:transform 0.2s,background 0.2s;" onmouseover="this.style.transform='translateX(3px)';this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.transform='';this.style.background='rgba(255,255,255,0.07)'">
-        ${icon ? `<span style="width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">${icon}</span>` : ''}
-        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(rc('label') || rc('url'))}</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;opacity:0.5;flex-shrink:0;"><path d="M7 17L17 7M9 7h8v8"/></svg>
-      </a>`;
-    }
-
-    /* ── EMBEDS ── */
-    case 'youtube':
-      return `<iframe src="https://www.youtube.com/embed/${esc(s.videoId)}" style="width:100%;height:100%;border:0;border-radius:inherit;" allowfullscreen></iframe>`;
-    case 'spotify':
-      return `<iframe src="https://open.spotify.com/embed/track/${esc(s.uri)}" style="width:100%;height:100%;border:0;border-radius:inherit;" allowfullscreen></iframe>`;
-    case 'twitch':
-      return `<iframe src="https://player.twitch.tv/?channel=${esc(s.channel)}&parent=${ctx.host}" style="width:100%;height:100%;border:0;border-radius:inherit;" allowfullscreen></iframe>`;
-    case 'soundcloud':
-      return `<iframe src="https://w.soundcloud.com/player/?url=${encodeURIComponent(s.trackUrl || '')}" style="width:100%;height:100%;border:0;border-radius:inherit;"></iframe>`;
-    case 'link-embed':
-    case 'social-link': {
-      const url = rc('url');
-      const icon = s.iconUrl ? `<img src="${esc(s.iconUrl)}" style="width:22px;height:22px;object-fit:contain;">` : (getFavicon(url) || '');
-      return `<a href="${esc(url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;text-decoration:none;color:inherit;font-weight:600;">
-        ${icon ? `<span style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;">${icon}</span>` : ''}
-        <span>${esc(rc('label') || url)}</span>
-      </a>`;
-    }
-
-    /* ── UTILITY ── */
-    case 'clock':
-      return `<div id="clk-${widget.id}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-variant-numeric:tabular-nums;"></div>
-        <script>(function(){const el=document.getElementById('clk-${widget.id}');if(!el)return;function tick(){el.textContent=new Date().toLocaleTimeString('en-US',{hour12:${s.format !== '24h'},second:${s.showSeconds !== false}});}tick();setInterval(tick,1000);})();<\/script>`;
-    case 'countdown': {
-      const target = s.targetDate ? new Date(s.targetDate).getTime() : 0;
-      const startDiff = target - Date.now();
-      const startTxt = startDiff > 0 ? 'loading...' : 'passed';
-      return `<div id="cd-${widget.id}" data-target="${target}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;">${startTxt}</div>
-        <script>(function(){const el=document.getElementById('cd-${widget.id}');if(!el)return;const t=+el.dataset.target;function tick(){const d=t-Date.now();if(d<=0){el.textContent='passed';return;}const D=Math.floor(d/86400000),H=Math.floor((d%86400000)/3600000),M=Math.floor((d%3600000)/60000),S=Math.floor((d%60000)/1000);el.textContent=D+'d '+H+'h '+M+'m '+S+'s';}tick();setInterval(tick,1000);})();<\/script>`;
-    }
-    case 'days-counter': {
-      const start = new Date(s.startDate);
-      const days = s.startDate && !isNaN(start.getTime()) ? Math.floor((Date.now() - start.getTime()) / 86400000) : 0;
-      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:4px;"><span style="font-size:0.7rem;opacity:0.6;">${esc(s.label || 'Since')}</span><span style="font-size:1.6rem;font-weight:800;">${days}d</span></div>`;
-    }
-    case 'visitor-counter':
-      return `<div id="vc-${widget.id}" data-user="${esc(ctx.user.username)}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;">${(ctx.user.views || 0).toLocaleString()} views</div>`;
-    case 'progress-bar': {
-      const pct = Math.min(100, Math.round(((s.value || 0) / (s.max || 100)) * 100));
-      return `<div style="display:flex;align-items:center;width:100%;height:100%;padding:8px;"><div style="width:100%;height:14px;background:rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${esc(s.color || '#fff')};border-radius:8px;"></div></div></div>`;
-    }
-    case 'qr-code':
-      return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${s.size || 200}x${s.size || 200}&data=${encodeURIComponent(rc('url'))}" style="width:100%;height:100%;object-fit:contain;">`;
-
-    /* ── SOCIAL ── */
-    case 'lanyard':
-      return `<div id="ln-${widget.id}" data-user="${esc(s.userId || '')}" data-status="${s.showStatus !== false}" data-game="${s.showGame !== false}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;font-size:0.8rem;font-weight:600;"></div>
-        <script>(async function(){const el=document.getElementById('ln-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set userId';return;}try{const r=await fetch('https://api.lanyard.rest/v1/users/'+uid);const d=await r.json();if(!d.success)throw 0;const u=d.data;const color=u.discord_status==='online'?'#4ade80':u.discord_status==='idle'?'#fbbf24':u.discord_status==='dnd'?'#ff5566':'#666';let h='<span style="width:10px;height:10px;border-radius:50%;background:'+color+';display:inline-block;"></span>';if(el.dataset.status==='true')h+='<span>'+u.discord_status+'</span>';if(el.dataset.game==='true'){const g=(u.activities||[]).find(a=>a.type===0);if(g)h+='<span>· '+g.name+'</span>';}el.innerHTML=h;}catch(e){el.textContent='N/A';}})();<\/script>`;
-    case 'github-stats':
-      return `<div id="gh-${widget.id}" data-user="${esc(s.username)}" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;height:100%;font-size:0.8rem;font-weight:600;"></div>
-        <script>(async function(){const el=document.getElementById('gh-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set username';return;}try{const r=await fetch('https://api.github.com/users/'+uid);if(!r.ok)throw 0;const d=await r.json();el.innerHTML='<div><div style="font-size:1rem;">'+(d.followers||0)+'</div><div style="font-size:0.62rem;opacity:0.6;">Followers</div></div><div><div style="font-size:1rem;">'+(d.public_repos||0)+'</div><div style="font-size:0.62rem;opacity:0.6;">Repos</div></div>';}catch(e){el.textContent='N/A';}})();<\/script>`;
-    case 'tech-stack': {
-      const list = toArr(s.items);
-      const cols = s.columns || 3;
-      return `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;place-items:center;width:100%;height:100%;">${(list.length ? list : ['React','Node','TS']).map(i => `<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:5px 11px;border-radius:10px;font-size:0.72rem;font-weight:600;">${esc(i)}</span>`).join('')}</div>`;
-    }
-
-    /* ── INTERACTIVE ── */
-    case 'guestbook': {
-      const wid = 'gb-' + widget.id;
-      return `<div id="${wid}" style="display:flex;flex-direction:column;width:100%;height:100%;padding:12px;background:rgba(255,255,255,0.06);border-radius:inherit;overflow:hidden;">
-        <h4 style="margin:0 0 8px;font-size:0.85rem;font-weight:700;">${esc(rc('title') || 'Leave a message')}</h4>
-        <div id="${wid}-msgs" style="flex:1;overflow-y:auto;margin-bottom:8px;font-size:0.74rem;display:flex;flex-direction:column;gap:6px;"></div>
-        <input id="${wid}-name" placeholder="Name" style="width:100%;padding:6px 8px;margin-bottom:4px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:0.72rem;outline:none;">
-        <textarea id="${wid}-text" placeholder="Message" rows="2" style="width:100%;padding:6px 8px;margin-bottom:4px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:0.72rem;outline:none;resize:none;font-family:inherit;"></textarea>
-        <button id="${wid}-send" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:6px;border-radius:6px;font-weight:700;font-size:0.72rem;cursor:pointer;">Send</button>
-        <script>(function(){const root=document.getElementById('${wid}');if(!root)return;const u='${esc(ctx.user.username)}';const msgs=document.getElementById('${wid}-msgs');const ni=document.getElementById('${wid}-name');const ti=document.getElementById('${wid}-text');const sb=document.getElementById('${wid}-send');const e2=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');async function load(){try{const r=await fetch('/api/guestbook?username='+u);const a=await r.json();msgs.innerHTML=(a||[]).map(m=>'<div><b style="color:#fff;">'+e2(m.author||'Anon')+'</b>: <span style="opacity:0.8;">'+e2(m.text)+'</span></div>').join('');}catch(e){}}sb.onclick=async()=>{const t=ti.value.trim();if(!t)return;try{await fetch('/api/guestbook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,text:t,author:ni.value.trim()||'Anonymous'})});ti.value='';load();}catch(e){}};load();})();<\/script>
-      </div>`;
-    }
-
-    /* ── DECORATION ── */
-    case 'divider':
-    case 'section-divider':
-      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><hr style="border:none;border-top:${s.thickness || 2}px ${esc(s.style || 'solid')} ${esc(s.color || '#fff')};width:100%;margin:0;">${s.label ? `<span style="position:absolute;padding:0 12px;background:rgba(0,0,0,0.7);border-radius:8px;font-size:0.7rem;font-weight:600;">${esc(s.label)}</span>` : ''}</div>`;
-    case 'shape': {
-      const r = s.shape === 'circle' ? 'border-radius:50%;' : s.shape === 'square' ? '' : 'border-radius:14px;';
-      return `<div style="width:100%;height:100%;background:${esc(s.color || '#fff')};${r}"></div>`;
-    }
-
-    /* ── FALLBACK ── */
-    default:
-      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:0.72rem;opacity:0.5;border:1px dashed currentColor;border-radius:8px;">${esc(widget.type)}</div>`;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════
    TIME HELPER
    ═══════════════════════════════════════════════════════ */
 function timeAgoServer(date) {
   if (!date) return 'recently';
-  const d = new Date(date);
-  const diff = (Date.now() - d.getTime()) / 1000;
+  const diff = (Date.now() - new Date(date).getTime()) / 1000;
   if (diff < 60) return 'just now';
   if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
   if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
@@ -429,6 +188,32 @@ function timeAgoServer(date) {
   if (diff < 31536000) return Math.floor(diff / 2592000) + 'mo ago';
   return Math.floor(diff / 31536000) + 'y ago';
 }
+
+/* ═══════════════════════════════════════════════════════
+   GLOBAL WIDGET CSS
+   ═══════════════════════════════════════════════════════ */
+const GLOBAL_WIDGET_CSS = `<style>
+  .chroma-widget { position: absolute; }
+  .w-anim-float { animation: wFloat 4s ease-in-out infinite; }
+  .w-anim-pulse { animation: wPulse 2.4s ease-in-out infinite; }
+  .w-anim-shimmer { animation: wShimmer 4s linear infinite; background-size:300% 300% !important; }
+  .w-anim-wobble { animation: wWobble 3s ease-in-out infinite; }
+  .w-anim-glitch { animation: wGlitch 2.5s steps(2,end) infinite; }
+  @keyframes wFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
+  @keyframes wPulse { 0%,100% { opacity:1; } 50% { opacity:0.75; } }
+  @keyframes wShimmer { 0% { background-position:0% 50%; } 100% { background-position:300% 50%; } }
+  @keyframes wWobble { 0%,100% { transform:rotate(-1deg); } 50% { transform:rotate(1deg); } }
+  @keyframes wGlitch { 0%,100% { transform:translate(0); } 20% { transform:translate(-1px,1px); } 40% { transform:translate(1px,-1px); } 60% { transform:translate(-1px,-1px); } 80% { transform:translate(1px,1px); } }
+  .w-hover-lift:hover { transform:translateY(-4px); transition:transform 0.25s ease; }
+  .w-hover-scale:hover { transform:scale(1.03); transition:transform 0.25s ease; }
+  .w-hover-glow:hover { box-shadow:0 0 32px rgba(255,255,255,0.5) !important; transition:box-shadow 0.25s ease; }
+  .w-hover-tilt:hover { transform:perspective(800px) rotateX(4deg) rotateY(-4deg); transition:transform 0.3s ease; }
+  .w-text-gradient { background:linear-gradient(90deg,#fff,#aaa,#fff); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; animation:wShimmer 4s linear infinite; }
+  .w-text-neon { text-shadow:0 0 8px currentColor,0 0 20px currentColor; }
+  .w-text-glitch { animation:wGlitch 2.5s steps(2,end) infinite; }
+  .w-text-shimmer { background:linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:wShimmer 3s linear infinite; }
+  @media (max-width:640px) { .w-hide-mobile { display:none !important; } }
+</style>`;
 
 /* ═══════════════════════════════════════════════════════
    AURORA (MONOCHROME)
@@ -458,38 +243,270 @@ function buildAuroraCSS(a) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   GLOBAL STYLE MODIFIERS (animations, hover, text effects)
+   WIDGET RENDERER
    ═══════════════════════════════════════════════════════ */
-const GLOBAL_WIDGET_CSS = `<style>
-  .w-anim-float { animation: wFloat 4s ease-in-out infinite; }
-  .w-anim-pulse { animation: wPulse 2.4s ease-in-out infinite; }
-  .w-anim-shimmer { animation: wShimmer 4s linear infinite; background-size:300% 300% !important; }
-  .w-anim-wobble { animation: wWobble 3s ease-in-out infinite; }
-  .w-anim-glitch { animation: wGlitch 2.5s steps(2,end) infinite; }
-  @keyframes wFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
-  @keyframes wPulse { 0%,100% { opacity:1; } 50% { opacity:0.75; } }
-  @keyframes wShimmer { 0% { background-position:0% 50%; } 100% { background-position:300% 50%; } }
-  @keyframes wWobble { 0%,100% { transform:rotate(-1deg); } 50% { transform:rotate(1deg); } }
-  @keyframes wGlitch { 0%,100% { transform:translate(0); } 20% { transform:translate(-1px,1px); } 40% { transform:translate(1px,-1px); } 60% { transform:translate(-1px,-1px); } 80% { transform:translate(1px,1px); } }
-  .w-hover-lift:hover { transform:translateY(-4px); transition:transform 0.25s ease; }
-  .w-hover-scale:hover { transform:scale(1.03); transition:transform 0.25s ease; }
-  .w-hover-glow:hover { box-shadow:0 0 32px rgba(255,255,255,0.5) !important; transition:box-shadow 0.25s ease; }
-  .w-hover-tilt:hover { transform:perspective(800px) rotateX(4deg) rotateY(-4deg); transition:transform 0.3s ease; }
-  .w-text-gradient { background:linear-gradient(90deg,#fff,#aaa,#fff); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; animation:wShimmer 4s linear infinite; }
-  .w-text-neon { text-shadow:0 0 8px currentColor,0 0 20px currentColor; }
-  .w-text-glitch { animation:wGlitch 2.5s steps(2,end) infinite; }
-  .w-text-shimmer { background:linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:wShimmer 3s linear infinite; }
-  @media (max-width:640px) { .w-hide-mobile { display:none !important; } }
-</style>`;
+function renderWidget(widget, ctx) {
+  if (!widget) return '';
+  const s = widget.settings || {};
+  const inner = renderWidgetInner(widget, s, ctx);
+  return wrapStyled(widget, inner, ctx);
+}
+
+function renderWidgetInner(widget, s, ctx) {
+  const rc = (key) => interpolate(s[key] ?? '', ctx);
+
+  switch (widget.type) {
+
+    /* ── TEXT ── */
+    case 'text':
+      return `<div style="overflow:hidden;width:100%;height:100%;">${esc(rc('content'))}</div>`;
+    case 'gradient-text':
+      return `<div style="background:${esc(s.gradient || 'linear-gradient(90deg,#fff,#aaa)')};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;overflow:hidden;width:100%;height:100%;">${esc(rc('content'))}</div>`;
+    case 'neon-text':
+      return `<div style="color:${esc(s.color || '#fff')};text-shadow:0 0 10px currentColor,0 0 20px currentColor;overflow:hidden;width:100%;height:100%;">${esc(rc('content'))}</div>`;
+    case 'marquee-text':
+      return `<div style="overflow:hidden;width:100%;height:100%;"><marquee scrollamount="${s.speed || 5}" style="color:inherit;">${esc(rc('content'))}</marquee></div>`;
+    case 'typewriter':
+      return `<div id="tw-${widget.id}" style="width:100%;height:100%;"></div>
+        <script>(function(){const el=document.getElementById('tw-${widget.id}');if(!el)return;const t=${JSON.stringify(rc('text') || '')};let i=0;(function go(){if(i<t.length){el.textContent+=t.charAt(i++);setTimeout(go,${s.speed || 80});}})();})();<\/script>`;
+    case 'glitch-text':
+      return `<div style="position:relative;width:100%;height:100%;"><span class="w-text-glitch" style="color:${esc(s.color || '#fff')};">${esc(rc('content'))}</span></div>`;
+
+    /* ── MEDIA ── */
+    case 'image':
+      return `<img src="${esc(s.src)}" alt="${esc(s.alt || '')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.opacity='0.2'">`;
+    case 'video':
+      return `<video src="${esc(s.src)}" ${s.controls ? 'controls' : 'autoplay muted loop playsinline'} style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></video>`;
+    case 'audio':
+      return `<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:8px;overflow:hidden;"><strong style="font-size:.8rem;color:inherit;">${esc(rc('title') || 'Track')}</strong><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
+    case 'audio-player': {
+      const imgSrc = s.albumArt || s.fallbackImage || 'AudioImage.png';
+      const wid = widget.id;
+      return `<div style="display:flex;align-items:center;gap:12px;width:100%;height:100%;padding:10px 14px;background:rgba(20,20,20,0.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:inherit;box-sizing:border-box;">
+        <div style="width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+          <img src="${esc(imgSrc)}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.85rem;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(rc('trackName') || 'Track')}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:.65rem;color:rgba(255,255,255,0.6);">
+            <span class="ap-cur-${wid}">0:00</span>
+            <div class="ap-bar-${wid}" style="flex:1;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;overflow:hidden;cursor:pointer;">
+              <div class="ap-fill-${wid}" style="height:100%;width:0;background:linear-gradient(90deg,#c0c0c0,#fff);transition:width 0.1s linear;"></div>
+            </div>
+            <span class="ap-dur-${wid}">0:00</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:2px;flex-shrink:0;">
+          <button class="ap-prev-${wid}" style="background:none;border:none;color:#c0c0c0;cursor:pointer;padding:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+          <button class="ap-play-${wid}" style="background:none;border:none;color:#fff;cursor:pointer;padding:6px;"><svg class="ap-icon-${wid}" viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M6 4l15 8-15 8z"/></svg></button>
+          <button class="ap-next-${wid}" style="background:none;border:none;color:#c0c0c0;cursor:pointer;padding:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+        </div>
+        <audio class="ap-audio-${wid}" src="${esc(s.src)}" preload="metadata"></audio>
+        <script>(function(){const a=document.querySelector('.ap-audio-${wid}'),btn=document.querySelector('.ap-play-${wid}'),icon=document.querySelector('.ap-icon-${wid}'),fill=document.querySelector('.ap-fill-${wid}'),bar=document.querySelector('.ap-bar-${wid}'),cur=document.querySelector('.ap-cur-${wid}'),dur=document.querySelector('.ap-dur-${wid}');if(!a)return;const fmt=t=>{const m=Math.floor(t/60),s=Math.floor(t%60);return m+':'+(s<10?'0':'')+s;};btn.onclick=()=>a.paused?a.play():a.pause();a.onplay=()=>icon.innerHTML='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';a.onpause=()=>icon.innerHTML='<path d="M6 4l15 8-15 8z"/>';a.onloadedmetadata=()=>dur.textContent=fmt(a.duration);a.ontimeupdate=()=>{fill.style.width=(a.currentTime/a.duration*100)+'%';cur.textContent=fmt(a.currentTime);};bar.onclick=e=>{const r=bar.getBoundingClientRect();a.currentTime=((e.clientX-r.left)/r.width)*a.duration;};})();<\/script>
+      </div>`;
+    }
+    case 'audio-viz':
+      return `<canvas class="audio-viz-canvas" data-src="${esc(s.src)}" data-color="${esc(s.color || '#fff')}" style="width:100%;height:100%;background:rgba(255,255,255,0.04);border-radius:inherit;cursor:pointer;"></canvas>`;
+
+    /* ── PROFILE ── */
+    case 'profile-circle': {
+      const avatar = rc('src') || ctx.user.avatar || '';
+      const dot = s.showPresence !== false ? `<span style="position:absolute;bottom:6%;right:6%;width:16%;height:16%;border-radius:50%;background:#4ade80;border:2px solid #000;box-shadow:0 0 10px #4ade80;"></span>` : '';
+      return `<div style="width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;">
+        <img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;border:3px solid ${esc(s.borderColor || '#fff')};object-fit:cover;box-shadow:0 0 24px rgba(255,255,255,0.35);">
+        ${dot}
+      </div>`;
+    }
+
+    case 'profile-card': {
+      const preset = s.preset || 'minimal';
+      const slots = toArr(s.slots || 'avatar,name,badges,tagline,location,socials,views');
+      const u = ctx.user;
+      const p = ctx.profile;
+      const avatar = p.avatar || u.avatar || '';
+      const displayName = p.displayName || u.username;
+      const tagline = p.tagline || '';
+      const location = p.location || '';
+      const socials = (p.socials || []).filter(x => x.url);
+
+      const parts = [];
+      if (slots.includes('avatar')) {
+        parts.push(`<div style="position:relative;width:${preset === 'discord-focused' ? '96px' : '84px'};height:${preset === 'discord-focused' ? '96px' : '84px'};margin:0 auto 14px;">
+          <img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.35);box-shadow:0 0 24px rgba(255,255,255,0.2);">
+        </div>`);
+      }
+      if (slots.includes('name')) {
+        const eff = s.nameEffect || 'none';
+        const nameClass = eff === 'glitch' ? 'w-text-glitch' : eff === 'neon' ? 'w-text-neon' : eff === 'gradient' ? 'w-text-gradient' : '';
+        parts.push(`<div class="${nameClass}" style="font-size:1.65rem;font-weight:800;letter-spacing:-0.5px;text-align:center;margin-bottom:8px;color:#fff;">${esc(displayName)}</div>`);
+      }
+      if (slots.includes('badges') && ctx.badges && ctx.badges.length) {
+        parts.push(`<div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px;flex-wrap:wrap;">${renderBadges(ctx.badges)}</div>`);
+      }
+      if (slots.includes('tagline') && tagline) {
+        parts.push(`<div style="font-size:.95rem;color:rgba(255,255,255,0.75);text-align:center;line-height:1.55;margin-bottom:12px;max-width:92%;margin-left:auto;margin-right:auto;">${esc(tagline)}</div>`);
+      }
+      if (slots.includes('location') && location) {
+        parts.push(`<div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:.82rem;color:rgba(255,255,255,0.6);margin-bottom:14px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${esc(location)}
+        </div>`);
+      }
+      if (slots.includes('socials') && socials.length) {
+        parts.push(`<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;">
+          ${socials.map(so => `<a href="${esc(so.url)}" target="_blank" rel="noopener" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;text-decoration:none;overflow:hidden;">
+            ${so.iconUrl ? `<img src="${esc(so.iconUrl)}" style="width:70%;height:70%;object-fit:contain;">` : (getFavicon(so.url) || `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:18px;height:18px;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20 15.3 15.3 0 010-20z"/></svg>`)}
+          </a>`).join('')}
+        </div>`);
+      }
+      if (slots.includes('joined')) {
+        parts.push(`<div style="font-size:.72rem;color:rgba(255,255,255,0.45);text-align:center;margin-bottom:8px;">joined ${timeAgoServer(ctx.user.createdAt)}</div>`);
+      }
+      if (slots.includes('views')) {
+        parts.push(`<div style="position:absolute;left:16px;bottom:12px;display:flex;align-items:center;gap:6px;font-size:.72rem;color:rgba(255,255,255,0.6);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          ${(ctx.user.views || 0).toLocaleString()}
+        </div>`);
+      }
+
+      const frameStyle = s.frameEnabled !== false
+        ? `background:rgba(20,20,25,0.55);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid ${esc(s.frameColor || 'rgba(255,255,255,0.18)')};border-radius:24px;padding:32px 24px 48px;box-shadow:0 20px 60px rgba(0,0,0,0.5);`
+        : '';
+      return `<div style="${frameStyle}position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box;">${parts.join('')}</div>`;
+    }
+
+    case 'badges':
+    case 'badges-row': {
+      const list = toArr(s.badges);
+      const ids = s.autoFromAccount ? (ctx.badges || []) : list;
+      return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;width:100%;height:100%;">${renderBadges(ids)}</div>`;
+    }
+
+    /* ── LINKS ── */
+    case 'link-list': {
+      const rows = widget.children || [];
+      if (!rows.length) {
+        return `<div style="padding:14px;text-align:center;color:rgba(255,255,255,0.4);font-size:.78rem;">Empty link list</div>`;
+      }
+      return `<div style="display:flex;flex-direction:column;gap:8px;width:100%;height:100%;">${rows.map(r => renderWidget(r, ctx)).join('')}</div>`;
+    }
+
+    case 'link-row': {
+      const icon = s.iconUrl ? `<img src="${esc(s.iconUrl)}" style="width:22px;height:22px;object-fit:contain;border-radius:6px;">` : (getFavicon(rc('url')) || '');
+      return `<a href="${esc(rc('url'))}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;text-decoration:none;color:#fff;font-weight:600;font-size:.85rem;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);">
+        ${icon ? `<span style="width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">${icon}</span>` : ''}
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(rc('label') || rc('url'))}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;opacity:0.5;flex-shrink:0;"><path d="M7 17L17 7M9 7h8v8"/></svg>
+      </a>`;
+    }
+
+    case 'link-embed':
+    case 'social-link': {
+      const url = rc('url');
+      const icon = s.iconUrl ? `<img src="${esc(s.iconUrl)}" style="width:22px;height:22px;object-fit:contain;">` : (getFavicon(url) || '');
+      return `<a href="${esc(url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;text-decoration:none;color:inherit;font-weight:600;">
+        ${icon ? `<span style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;">${icon}</span>` : ''}
+        <span>${esc(rc('label') || url)}</span>
+      </a>`;
+    }
+
+    /* ── EMBEDS ── */
+    case 'youtube':
+      return `<iframe src="https://www.youtube.com/embed/${esc(s.videoId)}" style="width:100%;height:100%;border:0;border-radius:inherit;" allowfullscreen></iframe>`;
+    case 'spotify':
+      return `<iframe src="https://open.spotify.com/embed/track/${esc(s.uri)}" style="width:100%;height:100%;border:0;border-radius:inherit;" allowfullscreen></iframe>`;
+    case 'twitch':
+      return `<iframe src="https://player.twitch.tv/?channel=${esc(s.channel)}&parent=${esc(ctx.host)}" style="width:100%;height:100%;border:0;border-radius:inherit;" allowfullscreen></iframe>`;
+    case 'soundcloud':
+      return `<iframe src="https://w.soundcloud.com/player/?url=${encodeURIComponent(s.trackUrl || '')}" style="width:100%;height:100%;border:0;border-radius:inherit;"></iframe>`;
+
+    /* ── UTILITY ── */
+    case 'clock':
+      return `<div id="clk-${widget.id}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-variant-numeric:tabular-nums;"></div>
+        <script>(function(){const el=document.getElementById('clk-${widget.id}');if(!el)return;function tick(){el.textContent=new Date().toLocaleTimeString('en-US',{hour12:${s.format !== '24h'},second:${s.showSeconds !== false}});}tick();setInterval(tick,1000);})();<\/script>`;
+    case 'countdown':
+      return `<div id="cd-${widget.id}" data-target="${s.targetDate ? new Date(s.targetDate).getTime() : 0}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;">loading...</div>
+        <script>(function(){const el=document.getElementById('cd-${widget.id}');if(!el)return;const t=+el.dataset.target;function tick(){const d=t-Date.now();if(d<=0){el.textContent='passed';return;}const D=Math.floor(d/86400000),H=Math.floor((d%86400000)/3600000),M=Math.floor((d%3600000)/60000),S=Math.floor((d%60000)/1000);el.textContent=D+'d '+H+'h '+M+'m '+S+'s';}tick();setInterval(tick,1000);})();<\/script>`;
+    case 'days-counter': {
+      const start = new Date(s.startDate);
+      const days = s.startDate && !isNaN(start.getTime()) ? Math.floor((Date.now() - start.getTime()) / 86400000) : 0;
+      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:4px;"><span style="font-size:.7rem;opacity:0.6;">${esc(s.label || 'Since')}</span><span style="font-size:1.6rem;font-weight:800;">${days}d</span></div>`;
+    }
+    case 'visitor-counter':
+      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;">${(ctx.user.views || 0).toLocaleString()} views</div>`;
+    case 'progress-bar': {
+      const pct = Math.min(100, Math.round(((s.value || 0) / (s.max || 100)) * 100));
+      return `<div style="display:flex;align-items:center;width:100%;height:100%;padding:8px;box-sizing:border-box;"><div style="width:100%;height:14px;background:rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${esc(s.color || '#fff')};border-radius:8px;"></div></div></div>`;
+    }
+    case 'qr-code':
+      return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${s.size || 200}x${s.size || 200}&data=${encodeURIComponent(rc('url'))}" style="width:100%;height:100%;object-fit:contain;">`;
+
+    /* ── SOCIAL ── */
+    case 'lanyard':
+      return `<div id="ln-${widget.id}" data-user="${esc(s.userId || '')}" data-status="${s.showStatus !== false}" data-game="${s.showGame !== false}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;font-size:.8rem;font-weight:600;"></div>
+        <script>(async function(){const el=document.getElementById('ln-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set userId';return;}try{const r=await fetch('https://api.lanyard.rest/v1/users/'+uid);const d=await r.json();if(!d.success)throw 0;const u=d.data;const color=u.discord_status==='online'?'#4ade80':u.discord_status==='idle'?'#fbbf24':u.discord_status==='dnd'?'#ff5566':'#666';let h='<span style="width:10px;height:10px;border-radius:50%;background:'+color+';display:inline-block;"></span>';if(el.dataset.status==='true')h+='<span>'+u.discord_status+'</span>';if(el.dataset.game==='true'){const g=(u.activities||[]).find(a=>a.type===0);if(g)h+='<span>· '+g.name+'</span>';}el.innerHTML=h;}catch(e){el.textContent='N/A';}})();<\/script>`;
+    case 'github-stats':
+      return `<div id="gh-${widget.id}" data-user="${esc(s.username)}" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;height:100%;font-size:.8rem;font-weight:600;"></div>
+        <script>(async function(){const el=document.getElementById('gh-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set username';return;}try{const r=await fetch('https://api.github.com/users/'+uid);if(!r.ok)throw 0;const d=await r.json();el.innerHTML='<div><div style="font-size:1rem;">'+(d.followers||0)+'</div><div style="font-size:.62rem;opacity:0.6;">Followers</div></div><div><div style="font-size:1rem;">'+(d.public_repos||0)+'</div><div style="font-size:.62rem;opacity:0.6;">Repos</div></div>';}catch(e){el.textContent='N/A';}})();<\/script>`;
+    case 'tech-stack': {
+      const list = toArr(s.items);
+      const cols = s.columns || 3;
+      return `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;place-items:center;width:100%;height:100%;">${(list.length ? list : ['React','Node','TS']).map(i => `<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:5px 11px;border-radius:10px;font-size:.72rem;font-weight:600;">${esc(i)}</span>`).join('')}</div>`;
+    }
+
+    /* ── INTERACTIVE ── */
+    case 'guestbook': {
+      const wid = 'gb-' + widget.id;
+      return `<div id="${wid}" style="display:flex;flex-direction:column;width:100%;height:100%;padding:12px;background:rgba(255,255,255,0.06);border-radius:inherit;overflow:hidden;box-sizing:border-box;">
+        <h4 style="margin:0 0 8px;font-size:.85rem;font-weight:700;">${esc(rc('title') || 'Leave a message')}</h4>
+        <div id="${wid}-msgs" style="flex:1;overflow-y:auto;margin-bottom:8px;font-size:.74rem;display:flex;flex-direction:column;gap:6px;"></div>
+        <input id="${wid}-name" placeholder="Name" style="width:100%;padding:6px 8px;margin-bottom:4px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:.72rem;outline:none;box-sizing:border-box;">
+        <textarea id="${wid}-text" placeholder="Message" rows="2" style="width:100%;padding:6px 8px;margin-bottom:4px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:.72rem;outline:none;resize:none;font-family:inherit;box-sizing:border-box;"></textarea>
+        <button id="${wid}-send" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:6px;border-radius:6px;font-weight:700;font-size:.72rem;cursor:pointer;">Send</button>
+        <script>(function(){const u='${esc(ctx.user.username)}';const msgs=document.getElementById('${wid}-msgs');const ni=document.getElementById('${wid}-name');const ti=document.getElementById('${wid}-text');const sb=document.getElementById('${wid}-send');const e2=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');async function load(){try{const r=await fetch('/api/guestbook?username='+u);const a=await r.json();msgs.innerHTML=(a||[]).map(m=>'<div><b style="color:#fff;">'+e2(m.author||'Anon')+'</b>: <span style="opacity:0.8;">'+e2(m.text)+'</span></div>').join('');}catch(e){}}sb.onclick=async()=>{const t=ti.value.trim();if(!t)return;try{await fetch('/api/guestbook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,text:t,author:ni.value.trim()||'Anonymous'})});ti.value='';load();}catch(e){}};load();})();<\/script>
+      </div>`;
+    }
+
+    /* ── DECORATION ── */
+    case 'divider':
+    case 'section-divider':
+      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;position:relative;"><hr style="border:none;border-top:${s.thickness || 2}px ${esc(s.style || 'solid')} ${esc(s.color || '#fff')};width:100%;margin:0;">${s.label ? `<span style="position:absolute;padding:0 12px;background:rgba(0,0,0,0.7);border-radius:8px;font-size:.7rem;font-weight:600;">${esc(s.label)}</span>` : ''}</div>`;
+    case 'shape': {
+      const r = s.shape === 'circle' ? 'border-radius:50%;' : s.shape === 'square' ? '' : 'border-radius:14px;';
+      return `<div style="width:100%;height:100%;background:${esc(s.color || '#fff')};${r}"></div>`;
+    }
+
+    default:
+      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:.72rem;opacity:0.5;border:1px dashed currentColor;border-radius:8px;">${esc(widget.type)}</div>`;
+  }
+}
 
 /* ═══════════════════════════════════════════════════════
-   HANDLER
+   404 HANDLER — serves 404.html directly
+   ═══════════════════════════════════════════════════════ */
+let cached404 = null;
+function send404(res) {
+  res.statusCode = 404;
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  if (cached404) return res.end(cached404);
+  try {
+    cached404 = fs.readFileSync(path.join(process.cwd(), '404.html'), 'utf8');
+    return res.end(cached404);
+  } catch (e) {
+    return res.end(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>404</title>
+      <style>body{background:#000001;color:#fff;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;flex-direction:column;gap:20px;}a{color:#fff;}</style>
+      </head><body><h1 style="font-size:4rem;margin:0;">404</h1><p>Nothing here. <a href="/">Go home</a></p></body></html>`);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN HANDLER
    ═══════════════════════════════════════════════════════ */
 export default async function handler(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname;
 
-  // ── Skip routes that aren't bio pages ──
+  // ── Short-circuit non-bio routes ──
   if (
     pathname.startsWith('/api/') ||
     pathname.startsWith('/admin') ||
@@ -501,7 +518,9 @@ export default async function handler(req, res) {
     pathname === '/discover' ||
     pathname === '/discover.html' ||
     pathname === '/favicon.ico' ||
-    /\.(png|jpg|jpeg|svg|gif|webp|mp3|mp4|css|js|woff2?|ico|json|txt|xml|webmanifest)$/i.test(pathname)
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
+    /\.(png|jpg|jpeg|svg|gif|webp|mp3|mp4|css|js|woff2?|ico|json|txt|xml|webmanifest|html)$/i.test(pathname)
   ) {
     res.statusCode = 404;
     res.setHeader('Content-Type', 'text/plain');
@@ -520,23 +539,48 @@ export default async function handler(req, res) {
   const slug = decodeURIComponent(segments[0]).toLowerCase();
 
   try {
-    // ── Resolve user by username OR alias ──
-    let userRow = (await pool.query(
-      `SELECT id, username, alias, created_at, banned_until, banned_permanent,
-              ban_reason, ban_keep_profile, terminated, profile_data
-       FROM users
-       WHERE LOWER(username) = $1 OR LOWER(alias) = $1
-       LIMIT 1`,
-      [slug]
-    )).rows[0];
+    /* ── Resolve user (defensive) ── */
+    let userRow = null;
+    try {
+      const r = await pool.query(
+        `SELECT id, username, alias, created_at, banned_until, banned_permanent,
+                ban_reason, ban_keep_profile, terminated, profile_data
+         FROM users
+         WHERE LOWER(username) = $1 OR LOWER(alias) = $1
+         LIMIT 1`,
+        [slug]
+      );
+      userRow = r.rows[0];
+    } catch (e) {
+      console.warn('[profile.js] full user query failed, using fallback:', e.message);
+      try {
+        const r = await pool.query(
+          `SELECT id, username, created_at FROM users WHERE LOWER(username) = $1 LIMIT 1`,
+          [slug]
+        );
+        userRow = r.rows[0];
+      } catch (e2) {
+        console.error('[profile.js] fallback user query failed:', e2.message);
+      }
+    }
 
-    if (!userRow) return send404(res);
+    if (!userRow) {
+      console.log('[profile.js] no user for slug:', slug);
+      return send404(res);
+    }
 
-    // ── Terminated → always 404 ──
+    /* ── Terminated ── */
     if (userRow.terminated) return send404(res);
 
-    // ── Hidden mode + slug === real username → 404 (unless viewing via alias) ──
-    const profileData = userRow.profile_data || {};
+    /* ── Profile data ── */
+    let profileData = {};
+    if (userRow.profile_data) {
+      profileData = typeof userRow.profile_data === 'string'
+        ? JSON.parse(userRow.profile_data)
+        : userRow.profile_data;
+    }
+
+    /* ── Hidden mode ── */
     const hidden = profileData.hidden || {};
     const isRealUsername = slug === userRow.username.toLowerCase();
     const isAlias = userRow.alias && slug === userRow.alias.toLowerCase();
@@ -544,27 +588,33 @@ export default async function handler(req, res) {
       return send404(res);
     }
 
-    // ── Ban check ──
-    const now = Date.now();
+    /* ── Ban check ── */
     const isBanned = userRow.banned_permanent
-      || (userRow.banned_until && new Date(userRow.banned_until).getTime() > now);
+      || (userRow.banned_until && new Date(userRow.banned_until).getTime() > Date.now());
+    if (isBanned && !userRow.ban_keep_profile) return send404(res);
 
-    if (isBanned && !userRow.ban_keep_profile) {
-      return send404(res);
+    /* ── Layout ── */
+    let layoutData = { layout: [], settings: {} };
+    try {
+      const layoutRow = (await pool.query(
+        `SELECT layout_data FROM profiles WHERE user_id = $1`,
+        [userRow.id]
+      )).rows[0];
+      if (layoutRow?.layout_data) {
+        layoutData = typeof layoutRow.layout_data === 'string'
+          ? JSON.parse(layoutRow.layout_data)
+          : layoutRow.layout_data;
+      }
+    } catch (e) {
+      console.warn('[profile.js] layout fetch failed:', e.message);
     }
 
-    // ── Load layout + badges ──
-    const layoutRow = (await pool.query(
-      `SELECT layout_data FROM profiles WHERE user_id = $1`,
-      [userRow.id]
-    )).rows[0];
-    const layoutData = layoutRow?.layout_data || { layout: [], settings: {} };
     const widgets = Array.isArray(layoutData.layout) ? layoutData.layout : [];
     const settings = layoutData.settings || {};
     settings.background = settings.background || {};
     settings.aurora = settings.aurora || { enabled: false };
 
-    // ── Badges ──
+    /* ── Badges ── */
     let badges = [];
     try {
       const br = await pool.query(
@@ -572,20 +622,22 @@ export default async function handler(req, res) {
         [userRow.id]
       );
       badges = br.rows.map(r => r.badge_id);
-    } catch {}
+    } catch (e) {
+      // user_badges table may not exist yet
+    }
     if (isBanned && !badges.includes('banned')) badges.push('banned');
 
-    // ── View count (fire-and-forget) ──
+    /* ── View count ── */
     pool.query(
       `UPDATE profiles SET view_count = COALESCE(view_count, 0) + 1 WHERE user_id = $1`,
       [userRow.id]
     ).catch(() => {});
 
-    // ── Avatar (auto-fallback) ──
+    /* ── Avatar fallback ── */
     const avatar = profileData.avatar
       || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(userRow.username)}&backgroundColor=1a1a1a&textColor=ffffff`;
 
-    // ── Build interpolation context ──
+    /* ── Interpolation context ── */
     const ctx = {
       host: req.headers.host || 'localhost',
       user: {
@@ -593,7 +645,7 @@ export default async function handler(req, res) {
         displayName: profileData.displayName || userRow.username,
         avatar,
         views: 0,
-        createdAt: userRow.created_at
+        createdAt: userRow.created_at,
       },
       profile: {
         displayName: profileData.displayName || userRow.username,
@@ -602,23 +654,23 @@ export default async function handler(req, res) {
         location: profileData.location || '',
         pronouns: profileData.pronouns || '',
         avatar,
-        socials: profileData.socials || []
+        socials: profileData.socials || [],
       },
       discord: profileData.discord || {},
       stats: { views: 0, guestbook: 0, widgets: widgets.length },
-      badges
+      badges,
     };
 
-    // ── Render widgets ──
+    /* ── Render widgets ── */
     const widgetsHTML = widgets.map(w => renderWidget(w, ctx)).join('\n');
 
-    // ── Global styles ──
+    /* ── Global styles ── */
     let globalStyles = '';
     if (settings.cursor) globalStyles += `<style>body{cursor:url('${settings.cursor}'),auto;}</style>`;
     if (settings.favicon) globalStyles += `<link rel="icon" href="${settings.favicon}">`;
     else globalStyles += `<link rel="icon" type="image/png" href="Chromaticc.png">`;
 
-    // ── Background ──
+    /* ── Background ── */
     let bodyStyle = 'background:#000001;';
     if (settings.background && settings.background.value) {
       const bg = settings.background;
@@ -630,19 +682,17 @@ export default async function handler(req, res) {
       bodyStyle = `background:${rule} !important;`;
     }
 
-    // ── Aurora ──
+    /* ── Aurora ── */
     const auroraCSS = settings.aurora.enabled ? buildAuroraCSS(settings.aurora) : '';
 
-    // ── Ban banner ──
+    /* ── Ban banner ── */
     let banBanner = '';
     if (isBanned) {
       const until = userRow.banned_permanent ? 'permanently' : 'until ' + new Date(userRow.banned_until).toLocaleString();
-      banBanner = `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,rgba(176,0,32,0.9),rgba(255,68,68,0.9));color:#fff;padding:10px 20px;text-align:center;font-family:Inter,sans-serif;font-size:0.82rem;font-weight:600;">
-        This account is banned ${until}.
-      </div>`;
+      banBanner = `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,rgba(176,0,32,0.9),rgba(255,68,68,0.9));color:#fff;padding:10px 20px;text-align:center;font-family:Inter,sans-serif;font-size:0.82rem;font-weight:600;">This account is banned ${until}.</div>`;
     }
 
-    // ── Click-to-enter ──
+    /* ── Click-to-enter ── */
     let clickEnterHTML = '';
     const hasClickEnterWidget = widgets.some(w => w.type === 'click-enter');
     if (settings.clickToEnter && !hasClickEnterWidget) {
@@ -653,22 +703,23 @@ export default async function handler(req, res) {
       <script>document.getElementById('globalClickEnter').addEventListener('click',function(){this.style.opacity='0';setTimeout(()=>this.remove(),300);document.querySelectorAll('.audio-viz-canvas').forEach(c=>c.click());},{once:true});<\/script>`;
     }
 
-    // ── Promotion badge ──
+    /* ── Promo badge ── */
     let promoHTML = '';
     if (settings.promo?.enabled !== false) {
-      promoHTML = `<div id="chromaPromo" style="position:fixed;bottom:16px;right:16px;z-index:9997;background:rgba(10,10,16,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:12px 16px;font-family:Inter,sans-serif;font-size:0.75rem;color:#fff;max-width:280px;backdrop-filter:blur(16px);display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+      promoHTML = `<div id="chromaPromo" style="position:fixed;bottom:16px;right:16px;z-index:9997;background:rgba(10,10,16,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:12px 16px;font-family:Inter,sans-serif;font-size:0.75rem;color:#fff;max-width:280px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
         <div style="flex:1;line-height:1.4;">Made with <b>Chromaticc</b>! Join users today and make your own link in bio page!</div>
         <button onclick="this.parentElement.remove();try{localStorage.setItem('chromaPromoDismissed_${esc(userRow.username)}','1')}catch(e){}" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:1.1rem;padding:0 4px;flex-shrink:0;">×</button>
       </div>
       <script>try{if(localStorage.getItem('chromaPromoDismissed_${esc(userRow.username)}')){document.getElementById('chromaPromo').remove();}}catch(e){}<\/script>`;
     }
 
-    // ── Meta ──
+    /* ── Meta ── */
     const pageTitle = profileData.displayName
       ? `${profileData.displayName} — Chromaticc`
       : `${userRow.username} — Chromaticc`;
     const pageDesc = profileData.tagline || `Check out ${userRow.username}'s profile on Chromaticc`;
 
+    /* ── Final HTML ── */
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -738,18 +789,7 @@ ${auroraCSS}
     return res.status(200).send(html);
 
   } catch (err) {
-    console.error('[profile.js] error:', err);
+    console.error('[profile.js] unhandled error:', err);
     return send404(res);
   }
-}
-
-/* ── 404 helper ── */
-function send404(res) {
-  res.statusCode = 404;
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  // Serve the static 404.html file if available
-  return res.end(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>404</title>
-  <meta http-equiv="refresh" content="0; url=/404.html">
-  <style>body{background:#000001;color:#fff;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;}</style>
-  </head><body><div>Loading 404…</div></body></html>`);
 }
