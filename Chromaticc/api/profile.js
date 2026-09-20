@@ -36,32 +36,27 @@ const BADGES = {
   'banned':         { name: 'Banned',         file: 'Banned.png',             rarity: 'special' },
   'terminated':     { name: 'Terminated',     file: 'Terminated.png',         rarity: 'special' },
 };
-
 const RARITY_GLOW = {
-  common:   '0 0 10px rgba(192,192,192,0.5)',
+  common: '0 0 10px rgba(192,192,192,0.5)',
   uncommon: '0 0 12px rgba(125,211,252,0.55)',
-  rare:     '0 0 14px rgba(192,132,252,0.6)',
-  epic:     '0 0 16px rgba(251,191,36,0.65)',
-  mythic:   '0 0 20px rgba(255,100,180,0.75)',
-  special:  '0 0 8px rgba(120,120,120,0.4)',
+  rare: '0 0 14px rgba(192,132,252,0.6)',
+  epic: '0 0 16px rgba(251,191,36,0.65)',
+  mythic: '0 0 20px rgba(255,100,180,0.75)',
+  special: '0 0 8px rgba(120,120,120,0.4)',
 };
-
-function renderBadges(badgeIds) {
-  if (!badgeIds || !badgeIds.length) return '';
+function renderBadges(ids) {
+  if (!ids || !ids.length) return '';
   const order = ['mythic', 'epic', 'rare', 'uncommon', 'common', 'special'];
-  const sorted = [...badgeIds]
+  return [...ids]
     .map(id => ({ id, ...BADGES[id] }))
     .filter(b => b.file)
-    .sort((a, b) => order.indexOf(a.rarity) - order.indexOf(b.rarity));
-  return sorted.map(b => {
-    const glow = RARITY_GLOW[b.rarity] || RARITY_GLOW.special;
-    return `<img src="${b.file}" alt="${esc(b.name)}" title="${esc(b.name)}"
-      style="width:22px;height:22px;object-fit:contain;border-radius:6px;filter:drop-shadow(${glow});" />`;
-  }).join('');
+    .sort((a, b) => order.indexOf(a.rarity) - order.indexOf(b.rarity))
+    .map(b => `<img src="${b.file}" alt="${esc(b.name)}" title="${esc(b.name)}" style="width:22px;height:22px;object-fit:contain;border-radius:6px;filter:drop-shadow(${RARITY_GLOW[b.rarity]});" />`)
+    .join('');
 }
 
 /* ═══════════════════════════════════════════════════════
-   TIER 1 INTERPOLATION
+   INTERPOLATION
    ═══════════════════════════════════════════════════════ */
 function interpolate(str, ctx) {
   if (typeof str !== 'string') return str;
@@ -76,7 +71,7 @@ function interpolate(str, ctx) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   FAVICON MAP
+   FAVICON
    ═══════════════════════════════════════════════════════ */
 const FAVICON_MAP = {
   'discord.com': '<svg viewBox="0 0 24 24" fill="#5865F2" style="width:100%;height:100%"><path d="M20.317 4.37a19.79 19.79 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.3 12.3 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.84 19.84 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>',
@@ -91,7 +86,6 @@ const FAVICON_MAP = {
   'reddit.com': '<svg viewBox="0 0 24 24" fill="#FF4500" style="width:100%;height:100%"><path d="M24 11.78c0-1.46-1.19-2.65-2.66-2.65-.71 0-1.36.29-1.84.75-1.81-1.19-4.26-1.95-6.97-2.05l1.48-4.67 4.02.94c0 1.19.97 2.16 2.17 2.16 1.2 0 2.17-.97 2.17-2.16 0-1.2-.97-2.16-2.17-2.16-.92 0-1.7.57-2.02 1.38l-4.33-1.02c-.19-.05-.38.06-.44.25l-1.65 5.21c-2.84.03-5.41.8-7.3 2.02-.47-.44-1.1-.71-1.8-.71C1.19 9.13 0 10.32 0 11.78c0 1.02.59 1.91 1.45 2.36-.03.21-.05.42-.05.63 0 3.57 4.17 6.47 9.31 6.47 5.14 0 9.31-2.9 9.31-6.47 0-.21-.02-.42-.05-.63.86-.45 1.45-1.34 1.45-2.36z"/></svg>',
   'tiktok.com': '<svg viewBox="0 0 24 24" fill="#e8e8f0" style="width:100%;height:100%"><path d="M12.53.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>',
 };
-
 function getFavicon(url) {
   if (!url) return null;
   try {
@@ -117,15 +111,10 @@ function buildWidgetClasses(st) {
   if (st.customClass) cls.push(...st.customClass.split(/\s+/).filter(Boolean));
   return cls.join(' ');
 }
-
 function buildWidgetStyleString(w) {
   const st = w.style || {};
-  const bg = st.bg || {};
-  const b = st.border || {};
-  const sh = st.shadow || {};
-  const ty = st.typography || {};
+  const bg = st.bg || {}, b = st.border || {}, sh = st.shadow || {}, ty = st.typography || {};
   const css = [];
-
   if (bg.type === 'color' && bg.value) css.push(`background:${bg.value}`);
   else if (bg.type === 'gradient' && bg.value) css.push(`background:${bg.value}`);
   else if (bg.type === 'image' && bg.value) css.push(`background:url('${bg.value}') center/cover`);
@@ -137,18 +126,15 @@ function buildWidgetStyleString(w) {
     css.push(`background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent,rgba(255,255,255,0.15))`);
     css.push(`background-size:300% 300%`);
   } else if (bg.type === 'none') css.push(`background:transparent`);
-
   css.push(`opacity:${bg.opacity ?? 1}`);
   css.push(`border-radius:${b.radius ?? 14}px`);
   if (b.style && b.style !== 'none' && b.width > 0) css.push(`border:${b.width}px ${b.style} ${b.color}`);
   css.push(`padding:${st.padding ?? 0}px`);
   css.push(`z-index:${st.zIndex ?? 1}`);
-
   if (sh.type === 'soft') css.push(`box-shadow:0 8px 24px rgba(0,0,0,0.35)`);
   else if (sh.type === 'hard') css.push(`box-shadow:4px 4px 0 rgba(0,0,0,0.6)`);
   else if (sh.type === 'glow') css.push(`box-shadow:0 0 ${sh.blur}px ${sh.color}`);
   else if (sh.type === 'custom') css.push(`box-shadow:${sh.x}px ${sh.y}px ${sh.blur}px ${sh.color}`);
-
   if (ty.family && ty.family !== 'inherit') css.push(`font-family:'${ty.family}',sans-serif`);
   if (ty.size) css.push(`font-size:${ty.size}px`);
   if (ty.weight) css.push(`font-weight:${ty.weight}`);
@@ -156,10 +142,8 @@ function buildWidgetStyleString(w) {
   if (ty.lineHeight) css.push(`line-height:${ty.lineHeight}`);
   if (ty.align) css.push(`text-align:${ty.align}`);
   if (ty.color && ty.color !== 'inherit') css.push(`color:${ty.color}`);
-
   return css.join(';');
 }
-
 function wrapStyled(widget, inner, ctx) {
   const st = widget.style || {};
   const classes = ['chroma-widget', buildWidgetClasses(st)].filter(Boolean).join(' ');
@@ -172,9 +156,6 @@ function wrapStyled(widget, inner, ctx) {
   return `${customCSS}<div class="${classes}" style="${base}${styleStr}">${inner}${childrenHTML}</div>`;
 }
 
-/* ═══════════════════════════════════════════════════════
-   TIME HELPER
-   ═══════════════════════════════════════════════════════ */
 function timeAgoServer(date) {
   if (!date) return 'recently';
   const diff = (Date.now() - new Date(date).getTime()) / 1000;
@@ -188,7 +169,7 @@ function timeAgoServer(date) {
 }
 
 /* ═══════════════════════════════════════════════════════
-   GLOBAL WIDGET CSS
+   GLOBAL CSS
    ═══════════════════════════════════════════════════════ */
 const GLOBAL_WIDGET_CSS = `<style>
   .chroma-widget { position: absolute; }
@@ -213,9 +194,6 @@ const GLOBAL_WIDGET_CSS = `<style>
   @media (max-width:640px) { .w-hide-mobile { display:none !important; } }
 </style>`;
 
-/* ═══════════════════════════════════════════════════════
-   AURORA (MONOCHROME)
-   ═══════════════════════════════════════════════════════ */
 function buildAuroraCSS(a) {
   const accent = a.accent || '#ffffff';
   const glowMap = { low: '16px', medium: '32px', high: '55px', extreme: '80px' };
@@ -254,8 +232,6 @@ function renderWidgetInner(widget, s, ctx) {
   const rc = (key) => interpolate(s[key] ?? '', ctx);
 
   switch (widget.type) {
-
-    /* ── TEXT ── */
     case 'text':
       return `<div style="overflow:hidden;width:100%;height:100%;">${esc(rc('content'))}</div>`;
     case 'gradient-text':
@@ -270,7 +246,6 @@ function renderWidgetInner(widget, s, ctx) {
     case 'glitch-text':
       return `<div style="position:relative;width:100%;height:100%;"><span class="w-text-glitch" style="color:${esc(s.color || '#fff')};">${esc(rc('content'))}</span></div>`;
 
-    /* ── MEDIA ── */
     case 'image':
       return `<img src="${esc(s.src)}" alt="${esc(s.alt || '')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.opacity='0.2'">`;
     case 'video':
@@ -281,23 +256,17 @@ function renderWidgetInner(widget, s, ctx) {
       const imgSrc = s.albumArt || s.fallbackImage || 'AudioImage.png';
       const wid = widget.id;
       return `<div style="display:flex;align-items:center;gap:12px;width:100%;height:100%;padding:10px 14px;background:rgba(20,20,20,0.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:inherit;box-sizing:border-box;">
-        <div style="width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
-          <img src="${esc(imgSrc)}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">
-        </div>
+        <div style="width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;"><img src="${esc(imgSrc)}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:.85rem;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(rc('trackName') || 'Track')}</div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:.65rem;color:rgba(255,255,255,0.6);">
             <span class="ap-cur-${wid}">0:00</span>
-            <div class="ap-bar-${wid}" style="flex:1;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;overflow:hidden;cursor:pointer;">
-              <div class="ap-fill-${wid}" style="height:100%;width:0;background:linear-gradient(90deg,#c0c0c0,#fff);transition:width 0.1s linear;"></div>
-            </div>
+            <div class="ap-bar-${wid}" style="flex:1;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;overflow:hidden;cursor:pointer;"><div class="ap-fill-${wid}" style="height:100%;width:0;background:linear-gradient(90deg,#c0c0c0,#fff);transition:width 0.1s linear;"></div></div>
             <span class="ap-dur-${wid}">0:00</span>
           </div>
         </div>
         <div style="display:flex;gap:2px;flex-shrink:0;">
-          <button class="ap-prev-${wid}" style="background:none;border:none;color:#c0c0c0;cursor:pointer;padding:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
           <button class="ap-play-${wid}" style="background:none;border:none;color:#fff;cursor:pointer;padding:6px;"><svg class="ap-icon-${wid}" viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M6 4l15 8-15 8z"/></svg></button>
-          <button class="ap-next-${wid}" style="background:none;border:none;color:#c0c0c0;cursor:pointer;padding:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
         </div>
         <audio class="ap-audio-${wid}" src="${esc(s.src)}" preload="metadata"></audio>
         <script>(function(){const a=document.querySelector('.ap-audio-${wid}'),btn=document.querySelector('.ap-play-${wid}'),icon=document.querySelector('.ap-icon-${wid}'),fill=document.querySelector('.ap-fill-${wid}'),bar=document.querySelector('.ap-bar-${wid}'),cur=document.querySelector('.ap-cur-${wid}'),dur=document.querySelector('.ap-dur-${wid}');if(!a)return;const fmt=t=>{const m=Math.floor(t/60),s=Math.floor(t%60);return m+':'+(s<10?'0':'')+s;};btn.onclick=()=>a.paused?a.play():a.pause();a.onplay=()=>icon.innerHTML='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';a.onpause=()=>icon.innerHTML='<path d="M6 4l15 8-15 8z"/>';a.onloadedmetadata=()=>dur.textContent=fmt(a.duration);a.ontimeupdate=()=>{fill.style.width=(a.currentTime/a.duration*100)+'%';cur.textContent=fmt(a.currentTime);};bar.onclick=e=>{const r=bar.getBoundingClientRect();a.currentTime=((e.clientX-r.left)/r.width)*a.duration;};})();<\/script>
@@ -306,70 +275,38 @@ function renderWidgetInner(widget, s, ctx) {
     case 'audio-viz':
       return `<canvas class="audio-viz-canvas" data-src="${esc(s.src)}" data-color="${esc(s.color || '#fff')}" style="width:100%;height:100%;background:rgba(255,255,255,0.04);border-radius:inherit;cursor:pointer;"></canvas>`;
 
-    /* ── PROFILE ── */
     case 'profile-circle': {
       const avatar = rc('src') || ctx.user.avatar || '';
       const dot = s.showPresence !== false ? `<span style="position:absolute;bottom:6%;right:6%;width:16%;height:16%;border-radius:50%;background:#4ade80;border:2px solid #000;box-shadow:0 0 10px #4ade80;"></span>` : '';
-      return `<div style="width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;">
-        <img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;border:3px solid ${esc(s.borderColor || '#fff')};object-fit:cover;box-shadow:0 0 24px rgba(255,255,255,0.35);">
-        ${dot}
-      </div>`;
+      return `<div style="width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;"><img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;border:3px solid ${esc(s.borderColor || '#fff')};object-fit:cover;box-shadow:0 0 24px rgba(255,255,255,0.35);">${dot}</div>`;
     }
 
     case 'profile-card': {
       const preset = s.preset || 'minimal';
       const slots = toArr(s.slots || 'avatar,name,badges,tagline,location,socials,views');
-      const u = ctx.user;
-      const p = ctx.profile;
+      const u = ctx.user, p = ctx.profile;
       const avatar = p.avatar || u.avatar || '';
       const displayName = p.displayName || u.username;
       const tagline = p.tagline || '';
       const location = p.location || '';
       const socials = (p.socials || []).filter(x => x.url);
-
       const parts = [];
-      if (slots.includes('avatar')) {
-        parts.push(`<div style="position:relative;width:${preset === 'discord-focused' ? '96px' : '84px'};height:${preset === 'discord-focused' ? '96px' : '84px'};margin:0 auto 14px;">
-          <img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.35);box-shadow:0 0 24px rgba(255,255,255,0.2);">
-        </div>`);
-      }
+      if (slots.includes('avatar')) parts.push(`<div style="position:relative;width:${preset === 'discord-focused' ? '96px' : '84px'};height:${preset === 'discord-focused' ? '96px' : '84px'};margin:0 auto 14px;"><img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.35);box-shadow:0 0 24px rgba(255,255,255,0.2);"></div>`);
       if (slots.includes('name')) {
         const eff = s.nameEffect || 'none';
         const nameClass = eff === 'glitch' ? 'w-text-glitch' : eff === 'neon' ? 'w-text-neon' : eff === 'gradient' ? 'w-text-gradient' : '';
         parts.push(`<div class="${nameClass}" style="font-size:1.65rem;font-weight:800;letter-spacing:-0.5px;text-align:center;margin-bottom:8px;color:#fff;">${esc(displayName)}</div>`);
       }
-      if (slots.includes('badges') && ctx.badges && ctx.badges.length) {
-        parts.push(`<div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px;flex-wrap:wrap;">${renderBadges(ctx.badges)}</div>`);
-      }
-      if (slots.includes('tagline') && tagline) {
-        parts.push(`<div style="font-size:.95rem;color:rgba(255,255,255,0.75);text-align:center;line-height:1.55;margin-bottom:12px;max-width:92%;margin-left:auto;margin-right:auto;">${esc(tagline)}</div>`);
-      }
-      if (slots.includes('location') && location) {
-        parts.push(`<div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:.82rem;color:rgba(255,255,255,0.6);margin-bottom:14px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          ${esc(location)}
-        </div>`);
-      }
+      if (slots.includes('badges') && ctx.badges && ctx.badges.length) parts.push(`<div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px;flex-wrap:wrap;">${renderBadges(ctx.badges)}</div>`);
+      if (slots.includes('tagline') && tagline) parts.push(`<div style="font-size:.95rem;color:rgba(255,255,255,0.75);text-align:center;line-height:1.55;margin-bottom:12px;max-width:92%;margin-left:auto;margin-right:auto;">${esc(tagline)}</div>`);
+      if (slots.includes('location') && location) parts.push(`<div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:.82rem;color:rgba(255,255,255,0.6);margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${esc(location)}</div>`);
       if (slots.includes('socials') && socials.length) {
-        parts.push(`<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;">
-          ${socials.map(so => `<a href="${esc(so.url)}" target="_blank" rel="noopener" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;text-decoration:none;overflow:hidden;">
-            ${so.iconUrl ? `<img src="${esc(so.iconUrl)}" style="width:70%;height:70%;object-fit:contain;">` : (getFavicon(so.url) || `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:18px;height:18px;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20 15.3 15.3 0 010-20z"/></svg>`)}
-          </a>`).join('')}
-        </div>`);
+        parts.push(`<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;">${socials.map(so => `<a href="${esc(so.url)}" target="_blank" rel="noopener" style="width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;text-decoration:none;overflow:hidden;">${so.iconUrl ? `<img src="${esc(so.iconUrl)}" style="width:70%;height:70%;object-fit:contain;">` : (getFavicon(so.url) || `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:18px;height:18px;"><circle cx="12" cy="12" r="10"/></svg>`)}</a>`).join('')}</div>`);
       }
-      if (slots.includes('joined')) {
-        parts.push(`<div style="font-size:.72rem;color:rgba(255,255,255,0.45);text-align:center;margin-bottom:8px;">joined ${timeAgoServer(ctx.user.createdAt)}</div>`);
-      }
-      if (slots.includes('views')) {
-        parts.push(`<div style="position:absolute;left:16px;bottom:12px;display:flex;align-items:center;gap:6px;font-size:.72rem;color:rgba(255,255,255,0.6);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          ${(ctx.user.views || 0).toLocaleString()}
-        </div>`);
-      }
-
+      if (slots.includes('joined') && ctx.user.createdAt) parts.push(`<div style="font-size:.72rem;color:rgba(255,255,255,0.45);text-align:center;margin-bottom:8px;">joined ${timeAgoServer(ctx.user.createdAt)}</div>`);
+      if (slots.includes('views')) parts.push(`<div style="position:absolute;left:16px;bottom:12px;display:flex;align-items:center;gap:6px;font-size:.72rem;color:rgba(255,255,255,0.6);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${(ctx.user.views || 0).toLocaleString()}</div>`);
       const frameStyle = s.frameEnabled !== false
-        ? `background:rgba(20,20,25,0.55);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid ${esc(s.frameColor || 'rgba(255,255,255,0.18)')};border-radius:24px;padding:32px 24px 48px;box-shadow:0 20px 60px rgba(0,0,0,0.5);`
-        : '';
+        ? `background:rgba(20,20,25,0.55);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid ${esc(s.frameColor || 'rgba(255,255,255,0.18)')};border-radius:24px;padding:32px 24px 48px;box-shadow:0 20px 60px rgba(0,0,0,0.5);` : '';
       return `<div style="${frameStyle}position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box;">${parts.join('')}</div>`;
     }
 
@@ -380,35 +317,24 @@ function renderWidgetInner(widget, s, ctx) {
       return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;width:100%;height:100%;">${renderBadges(ids)}</div>`;
     }
 
-    /* ── LINKS ── */
     case 'link-list': {
       const rows = widget.children || [];
-      if (!rows.length) {
-        return `<div style="padding:14px;text-align:center;color:rgba(255,255,255,0.4);font-size:.78rem;">Empty link list</div>`;
-      }
+      if (!rows.length) return `<div style="padding:14px;text-align:center;color:rgba(255,255,255,0.4);font-size:.78rem;">Empty link list</div>`;
       return `<div style="display:flex;flex-direction:column;gap:8px;width:100%;height:100%;">${rows.map(r => renderWidget(r, ctx)).join('')}</div>`;
     }
 
     case 'link-row': {
       const icon = s.iconUrl ? `<img src="${esc(s.iconUrl)}" style="width:22px;height:22px;object-fit:contain;border-radius:6px;">` : (getFavicon(rc('url')) || '');
-      return `<a href="${esc(rc('url'))}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;text-decoration:none;color:#fff;font-weight:600;font-size:.85rem;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);">
-        ${icon ? `<span style="width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">${icon}</span>` : ''}
-        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(rc('label') || rc('url'))}</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;opacity:0.5;flex-shrink:0;"><path d="M7 17L17 7M9 7h8v8"/></svg>
-      </a>`;
+      return `<a href="${esc(rc('url'))}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;text-decoration:none;color:#fff;font-weight:600;font-size:.85rem;"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(rc('label') || rc('url'))}</span></a>`;
     }
 
     case 'link-embed':
     case 'social-link': {
       const url = rc('url');
       const icon = s.iconUrl ? `<img src="${esc(s.iconUrl)}" style="width:22px;height:22px;object-fit:contain;">` : (getFavicon(url) || '');
-      return `<a href="${esc(url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;text-decoration:none;color:inherit;font-weight:600;">
-        ${icon ? `<span style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;">${icon}</span>` : ''}
-        <span>${esc(rc('label') || url)}</span>
-      </a>`;
+      return `<a href="${esc(url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;text-decoration:none;color:inherit;font-weight:600;">${icon ? `<span style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;">${icon}</span>` : ''}<span>${esc(rc('label') || url)}</span></a>`;
     }
 
-    /* ── EMBEDS ── */
     case 'youtube':
       return `<iframe src="https://www.youtube.com/embed/${esc(s.videoId)}" style="width:100%;height:100%;border:0;border-radius:inherit;" allowfullscreen></iframe>`;
     case 'spotify':
@@ -418,7 +344,6 @@ function renderWidgetInner(widget, s, ctx) {
     case 'soundcloud':
       return `<iframe src="https://w.soundcloud.com/player/?url=${encodeURIComponent(s.trackUrl || '')}" style="width:100%;height:100%;border:0;border-radius:inherit;"></iframe>`;
 
-    /* ── UTILITY ── */
     case 'clock':
       return `<div id="clk-${widget.id}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-variant-numeric:tabular-nums;"></div>
         <script>(function(){const el=document.getElementById('clk-${widget.id}');if(!el)return;function tick(){el.textContent=new Date().toLocaleTimeString('en-US',{hour12:${s.format !== '24h'},second:${s.showSeconds !== false}});}tick();setInterval(tick,1000);})();<\/script>`;
@@ -439,10 +364,9 @@ function renderWidgetInner(widget, s, ctx) {
     case 'qr-code':
       return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${s.size || 200}x${s.size || 200}&data=${encodeURIComponent(rc('url'))}" style="width:100%;height:100%;object-fit:contain;">`;
 
-    /* ── SOCIAL ── */
     case 'lanyard':
-      return `<div id="ln-${widget.id}" data-user="${esc(s.userId || '')}" data-status="${s.showStatus !== false}" data-game="${s.showGame !== false}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;font-size:.8rem;font-weight:600;"></div>
-        <script>(async function(){const el=document.getElementById('ln-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set userId';return;}try{const r=await fetch('https://api.lanyard.rest/v1/users/'+uid);const d=await r.json();if(!d.success)throw 0;const u=d.data;const color=u.discord_status==='online'?'#4ade80':u.discord_status==='idle'?'#fbbf24':u.discord_status==='dnd'?'#ff5566':'#666';let h='<span style="width:10px;height:10px;border-radius:50%;background:'+color+';display:inline-block;"></span>';if(el.dataset.status==='true')h+='<span>'+u.discord_status+'</span>';if(el.dataset.game==='true'){const g=(u.activities||[]).find(a=>a.type===0);if(g)h+='<span>· '+g.name+'</span>';}el.innerHTML=h;}catch(e){el.textContent='N/A';}})();<\/script>`;
+      return `<div id="ln-${widget.id}" data-user="${esc(s.userId || '')}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;font-size:.8rem;font-weight:600;"></div>
+        <script>(async function(){const el=document.getElementById('ln-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set userId';return;}try{const r=await fetch('https://api.lanyard.rest/v1/users/'+uid);const d=await r.json();if(!d.success)throw 0;const u=d.data;const color=u.discord_status==='online'?'#4ade80':u.discord_status==='idle'?'#fbbf24':u.discord_status==='dnd'?'#ff5566':'#666';el.innerHTML='<span style="width:10px;height:10px;border-radius:50%;background:'+color+';display:inline-block;"></span><span>'+u.discord_status+'</span>';}catch(e){el.textContent='N/A';}})();<\/script>`;
     case 'github-stats':
       return `<div id="gh-${widget.id}" data-user="${esc(s.username)}" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;height:100%;font-size:.8rem;font-weight:600;"></div>
         <script>(async function(){const el=document.getElementById('gh-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set username';return;}try{const r=await fetch('https://api.github.com/users/'+uid);if(!r.ok)throw 0;const d=await r.json();el.innerHTML='<div><div style="font-size:1rem;">'+(d.followers||0)+'</div><div style="font-size:.62rem;opacity:0.6;">Followers</div></div><div><div style="font-size:1rem;">'+(d.public_repos||0)+'</div><div style="font-size:.62rem;opacity:0.6;">Repos</div></div>';}catch(e){el.textContent='N/A';}})();<\/script>`;
@@ -452,7 +376,6 @@ function renderWidgetInner(widget, s, ctx) {
       return `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;place-items:center;width:100%;height:100%;">${(list.length ? list : ['React','Node','TS']).map(i => `<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:5px 11px;border-radius:10px;font-size:.72rem;font-weight:600;">${esc(i)}</span>`).join('')}</div>`;
     }
 
-    /* ── INTERACTIVE ── */
     case 'guestbook': {
       const wid = 'gb-' + widget.id;
       return `<div id="${wid}" style="display:flex;flex-direction:column;width:100%;height:100%;padding:12px;background:rgba(255,255,255,0.06);border-radius:inherit;overflow:hidden;box-sizing:border-box;">
@@ -465,10 +388,9 @@ function renderWidgetInner(widget, s, ctx) {
       </div>`;
     }
 
-    /* ── DECORATION ── */
     case 'divider':
     case 'section-divider':
-      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;position:relative;"><hr style="border:none;border-top:${s.thickness || 2}px ${esc(s.style || 'solid')} ${esc(s.color || '#fff')};width:100%;margin:0;">${s.label ? `<span style="position:absolute;padding:0 12px;background:rgba(0,0,0,0.7);border-radius:8px;font-size:.7rem;font-weight:600;">${esc(s.label)}</span>` : ''}</div>`;
+      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;position:relative;"><hr style="border:none;border-top:${s.thickness || 2}px ${esc(s.style || 'solid')} ${esc(s.color || '#fff')};width:100%;margin:0;"></div>`;
     case 'shape': {
       const r = s.shape === 'circle' ? 'border-radius:50%;' : s.shape === 'square' ? '' : 'border-radius:14px;';
       return `<div style="width:100%;height:100%;background:${esc(s.color || '#fff')};${r}"></div>`;
@@ -484,10 +406,8 @@ function renderWidgetInner(widget, s, ctx) {
    ═══════════════════════════════════════════════════════ */
 export default async function handler(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-  const pathname = url.pathname;
+  const segments = url.pathname.split('/').filter(Boolean);
 
-  // ── Only bio routes (single segment) reach here ──
-  const segments = pathname.split('/').filter(Boolean);
   if (segments.length !== 1) {
     res.statusCode = 404;
     return res.end();
@@ -496,44 +416,28 @@ export default async function handler(req, res) {
   const slug = decodeURIComponent(segments[0]).toLowerCase();
 
   try {
-    /* ── Resolve user (defensive) ── */
-    let userRow = null;
-    try {
-      const r = await pool.query(
-        `SELECT id, username, alias, created_at, banned_until, banned_permanent,
-                ban_reason, ban_keep_profile, terminated, profile_data
-         FROM users
-         WHERE LOWER(username) = $1 OR LOWER(alias) = $1
-         LIMIT 1`,
-        [slug]
-      );
-      userRow = r.rows[0];
-    } catch (e) {
-      console.warn('[profile.js] full user query failed, using fallback:', e.message);
-      try {
-        const r = await pool.query(
-          `SELECT id, username, created_at FROM users WHERE LOWER(username) = $1 LIMIT 1`,
-          [slug]
-        );
-        userRow = r.rows[0];
-      } catch (e2) {
-        console.error('[profile.js] fallback user query failed:', e2.message);
-      }
-    }
+    // ── User lookup (exact schema) ──
+    const r = await pool.query(
+      `SELECT id, username, alias, created_at, banned_until, banned_permanent,
+              ban_reason, ban_keep_profile, terminated, profile_data
+       FROM users
+       WHERE LOWER(username) = $1 OR LOWER(alias) = $1
+       LIMIT 1`,
+      [slug]
+    );
+    const userRow = r.rows[0];
 
-    // Unknown user → plain 404 status (Vercel renders its 404 page)
     if (!userRow) {
       res.statusCode = 404;
       return res.end();
     }
 
-    /* ── Terminated ── */
     if (userRow.terminated) {
       res.statusCode = 404;
       return res.end();
     }
 
-    /* ── Profile data ── */
+    // ── Profile data ──
     let profileData = {};
     if (userRow.profile_data) {
       profileData = typeof userRow.profile_data === 'string'
@@ -541,7 +445,7 @@ export default async function handler(req, res) {
         : userRow.profile_data;
     }
 
-    /* ── Hidden mode → 404 for real username if configured ── */
+    // ── Hidden mode ──
     const hidden = profileData.hidden || {};
     const isRealUsername = slug === userRow.username.toLowerCase();
     const isAlias = userRow.alias && slug === userRow.alias.toLowerCase();
@@ -550,25 +454,25 @@ export default async function handler(req, res) {
       return res.end();
     }
 
-    /* ── Ban check: 404 if profile hidden by admin ── */
+    // ── Ban ──
     const isBanned = userRow.banned_permanent
       || (userRow.banned_until && new Date(userRow.banned_until).getTime() > Date.now());
-    if (isBanned && !userRow.ban_keep_profile) {
+    if (isBanned && userRow.ban_keep_profile === false) {
       res.statusCode = 404;
       return res.end();
     }
 
-    /* ── Layout ── */
+    // ── Layout ──
     let layoutData = { layout: [], settings: {} };
     try {
-      const layoutRow = (await pool.query(
-        `SELECT layout_data FROM profiles WHERE user_id = $1`,
+      const lr = await pool.query(
+        `SELECT layout_data FROM profiles WHERE user_id = $1 LIMIT 1`,
         [userRow.id]
-      )).rows[0];
-      if (layoutRow?.layout_data) {
-        layoutData = typeof layoutRow.layout_data === 'string'
-          ? JSON.parse(layoutRow.layout_data)
-          : layoutRow.layout_data;
+      );
+      if (lr.rows[0]?.layout_data) {
+        layoutData = typeof lr.rows[0].layout_data === 'string'
+          ? JSON.parse(lr.rows[0].layout_data)
+          : lr.rows[0].layout_data;
       }
     } catch (e) {
       console.warn('[profile.js] layout fetch failed:', e.message);
@@ -579,7 +483,7 @@ export default async function handler(req, res) {
     settings.background = settings.background || {};
     settings.aurora = settings.aurora || { enabled: false };
 
-    /* ── Badges ── */
+    // ── Badges ──
     let badges = [];
     try {
       const br = await pool.query(
@@ -587,22 +491,20 @@ export default async function handler(req, res) {
         [userRow.id]
       );
       badges = br.rows.map(r => r.badge_id);
-    } catch (e) {
-      // user_badges table may not exist yet — skip silently
-    }
+    } catch (e) { /* table may not exist */ }
     if (isBanned && !badges.includes('banned')) badges.push('banned');
 
-    /* ── View count (fire and forget) ── */
+    // ── View count ──
     pool.query(
       `UPDATE profiles SET view_count = COALESCE(view_count, 0) + 1 WHERE user_id = $1`,
       [userRow.id]
     ).catch(() => {});
 
-    /* ── Avatar fallback ── */
+    // ── Avatar ──
     const avatar = profileData.avatar
       || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(userRow.username)}&backgroundColor=1a1a1a&textColor=ffffff`;
 
-    /* ── Interpolation context ── */
+    // ── Context ──
     const ctx = {
       host: req.headers.host || 'localhost',
       user: {
@@ -626,16 +528,14 @@ export default async function handler(req, res) {
       badges,
     };
 
-    /* ── Render widgets ── */
     const widgetsHTML = widgets.map(w => renderWidget(w, ctx)).join('\n');
 
-    /* ── Global styles ── */
+    // ── Styles ──
     let globalStyles = '';
     if (settings.cursor) globalStyles += `<style>body{cursor:url('${settings.cursor}'),auto;}</style>`;
     if (settings.favicon) globalStyles += `<link rel="icon" href="${settings.favicon}">`;
     else globalStyles += `<link rel="icon" type="image/png" href="Chromaticc.png">`;
 
-    /* ── Background ── */
     let bodyStyle = 'background:#000001;';
     if (settings.background && settings.background.value) {
       const bg = settings.background;
@@ -647,17 +547,16 @@ export default async function handler(req, res) {
       bodyStyle = `background:${rule} !important;`;
     }
 
-    /* ── Aurora ── */
     const auroraCSS = settings.aurora.enabled ? buildAuroraCSS(settings.aurora) : '';
 
-    /* ── Ban banner ── */
+    // ── Ban banner ──
     let banBanner = '';
     if (isBanned) {
       const until = userRow.banned_permanent ? 'permanently' : 'until ' + new Date(userRow.banned_until).toLocaleString();
       banBanner = `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,rgba(176,0,32,0.9),rgba(255,68,68,0.9));color:#fff;padding:10px 20px;text-align:center;font-family:Inter,sans-serif;font-size:0.82rem;font-weight:600;">This account is banned ${until}.</div>`;
     }
 
-    /* ── Click-to-enter ── */
+    // ── Click-to-enter ──
     let clickEnterHTML = '';
     const hasClickEnterWidget = widgets.some(w => w.type === 'click-enter');
     if (settings.clickToEnter && !hasClickEnterWidget) {
@@ -668,7 +567,7 @@ export default async function handler(req, res) {
       <script>document.getElementById('globalClickEnter').addEventListener('click',function(){this.style.opacity='0';setTimeout(()=>this.remove(),300);document.querySelectorAll('.audio-viz-canvas').forEach(c=>c.click());},{once:true});<\/script>`;
     }
 
-    /* ── Promo badge ── */
+    // ── Promo ──
     let promoHTML = '';
     if (settings.promo?.enabled !== false) {
       promoHTML = `<div id="chromaPromo" style="position:fixed;bottom:16px;right:16px;z-index:9997;background:rgba(10,10,16,0.9);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:12px 16px;font-family:Inter,sans-serif;font-size:0.75rem;color:#fff;max-width:280px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
@@ -678,13 +577,9 @@ export default async function handler(req, res) {
       <script>try{if(localStorage.getItem('chromaPromoDismissed_${esc(userRow.username)}')){document.getElementById('chromaPromo').remove();}}catch(e){}<\/script>`;
     }
 
-    /* ── Meta ── */
-    const pageTitle = profileData.displayName
-      ? `${profileData.displayName} — Chromaticc`
-      : `${userRow.username} — Chromaticc`;
+    const pageTitle = profileData.displayName ? `${profileData.displayName} — Chromaticc` : `${userRow.username} — Chromaticc`;
     const pageDesc = profileData.tagline || `Check out ${userRow.username}'s profile on Chromaticc`;
 
-    /* ── Final HTML ── */
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -694,7 +589,6 @@ export default async function handler(req, res) {
 <meta name="description" content="${esc(pageDesc)}">
 <meta property="og:title" content="${esc(pageTitle)}">
 <meta property="og:description" content="${esc(pageDesc)}">
-${profileData.avatar ? `<meta property="og:image" content="${esc(profileData.avatar)}">` : ''}
 ${globalStyles}
 ${GLOBAL_WIDGET_CSS}
 ${auroraCSS}
@@ -703,7 +597,6 @@ ${auroraCSS}
   html,body{overflow:hidden;height:100%;font-family:'Inter',system-ui,sans-serif;color:#fff;}
   .profile-canvas{position:relative;width:100vw;height:100vh;overflow:hidden;}
   a{color:inherit;}
-  @media(max-width:768px){ .profile-canvas{font-size:90%;} }
 </style>
 </head>
 <body style="${bodyStyle}">
@@ -754,8 +647,7 @@ ${auroraCSS}
     return res.status(200).send(html);
 
   } catch (err) {
-    console.error('[profile.js] unhandled error:', err);
-    // Unexpected error → 404 status, Vercel shows its page
+    console.error('[profile.js] error:', err);
     res.statusCode = 404;
     return res.end();
   }
