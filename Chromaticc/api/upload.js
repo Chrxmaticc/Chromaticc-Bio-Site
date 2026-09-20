@@ -1,33 +1,53 @@
-// api/upload.js
-import { handleUpload } from '@vercel/blob/client';
+import { put } from '@vercel/blob';
+import formidable from 'formidable';
+import fs from 'fs';
+
+export const config = {
+  api: { bodyParser: false },
+};
+
+function sanitizeFilename(name) {
+  return String(name || 'file')
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9._-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^[-.]+|[-.]+$/g, '')
+    .slice(0, 100)
+    || 'file';
+}
+
+function getExtension(name) {
+  const m = String(name || '').match(/\.([a-z0-9]+)$/i);
+  return m ? '.' + m[1].toLowerCase() : '';
+}
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const body = req.body;
+  const form = formidable({ multiples: false, maxFileSize: 500 * 1024 * 1024 });
+
   try {
-    const jsonResponse = await handleUpload({
-      body,
-      request: req,
-      onBeforeGenerateToken: async (pathname) => {
-        // Optional: Add authentication here to verify the user before generating a token.
-        // e.g., check for a valid session or admin key.
-        return {
-          allowedContentTypes: ['image/*', 'video/*', 'audio/*', 'application/octet-stream'],
-          maximumSizeInBytes: 500 * 1024 * 1024, // 500MB
-          addRandomSuffix: true,
-        };
-      },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // This callback can be used to save the blob URL to your database.
-        console.log('Blob upload completed:', blob.url);
-      },
+    const [fields, files] = await form.parse(req);
+    const file = files.file?.[0];
+
+    if (!file) return res.status(400).json({ error: 'No file uploaded' });
+
+    const originalName = file.originalFilename || file.newFilename || 'upload';
+    const buffer = fs.readFileSync(file.filepath);
+    const ext = getExtension(originalName);
+    const base = sanitizeFilename(originalName.replace(/\.[^.]+$/, ''));
+    const safeName = `${base || 'upload'}${ext}`;
+
+    const blob = await put(safeName, buffer, {
+      access: 'public',
+      contentType: file.mimetype || 'application/octet-stream',
+      addRandomSuffix: true,
     });
-    res.status(200).json(jsonResponse);
+
+    return res.status(200).json({ url: blob.url });
   } catch (err) {
-    console.error('Upload route error:', err);
-    res.status(500).json({ error: err.message });
+    console.error('[upload] error:', err);
+    return res.status(500).json({ error: err.message || 'Upload failed' });
   }
 }
