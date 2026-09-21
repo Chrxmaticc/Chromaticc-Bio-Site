@@ -489,8 +489,13 @@ function renderWidgetInner(widget, s, ctx) {
         line2 = `${esc(d.spotify.song)} — ${esc(d.spotify.artist)}`;
         if (d.spotify.albumArt) artHTML = `<img src="${esc(d.spotify.albumArt)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;">`;
       } else if (activity) {
-        line1 = activity.typeName || 'Playing';
-        line2 = `${esc(activity.name)}${activity.details ? ' — ' + esc(activity.details) : ''}`;
+        if (activity.type === 4) {
+  line1 = 'Custom Status';
+  line2 = esc(activity.state || '');
+} else {
+  line1 = activity.typeName || 'Playing';
+  line2 = `${esc(activity.name)}${activity.details ? ' — ' + esc(activity.details) : ''}`;
+}
         if (activity.largeImage) {
           const img = activity.largeImage.startsWith('http') ? activity.largeImage : 'https://cdn.discordapp.com/' + activity.largeImage;
           artHTML = `<img src="${esc(img)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;">`;
