@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{--bg:#000001;--surface:rgba(10,10,16,.72);--surface-2:rgba(18,18,26,.55);--surface-solid:#0a0a12;--border:rgba(255,255,255,.12);--border-strong:rgba(255,255,255,.35);--text:#ececf4;--text-muted:#8a8aa0;--text-dim:#56566a;--accent:#fff;--accent-2:#b0b0b0;--accent-glow:rgba(255,255,255,.4);--success:#4ade80;--danger:#ff5566;--warn:#fbbf24;--info:#7dd3fc;--purple:#c084fc;--radius:16px;--radius-sm:10px;--transition:.2s ease;--grid-line:rgba(255,255,255,.04);--autosave:#4ade80;}
+:root{--bg:#000001;--surface:rgba(10,10,16,.72);--surface-2:rgba(18,18,26,.55);--surface-solid:#0a0a12;--border:rgba(255,255,255,.12);--border-strong:rgba(255,255,255,.35);--text:#ececf4;--text-muted:#8a8aa0;--text-dim:#56566a;--accent:#fff;--accent-2:#b0b0b0;--accent-glow:rgba(255,255,255,.4);--success:#4ade80;--danger:#ff5566;--warn:#fbbf24;--info:#7dd3fc;--purple:#c084fc;--radius:16px;--radius-sm:10px;--transition:.2s ease;--grid-line:rgba(255,255,255,.04);--autosave:#4ade80;--discord:#5865F2;}
 [data-theme="light"]{--bg:#f4f2f5;--surface:rgba(255,255,255,.85);--surface-2:rgba(245,240,244,.9);--surface-solid:#fff;--border:rgba(0,0,0,.12);--border-strong:rgba(0,0,0,.35);--text:#0a0a0a;--text-muted:#6a6a80;--text-dim:#8a8aa0;--accent:#0a0a0a;--accent-2:#444;--accent-glow:rgba(0,0,0,.3);--grid-line:rgba(0,0,0,.05);}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;}
 .grid-overlay-fine,.grid-overlay-medium,.grid-overlay-coarse,.grid-overlay-radial{position:fixed;inset:0;pointer-events:none;}
@@ -78,6 +78,8 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,255,255,.45);}
 .btn-outline{background:var(--surface-2);color:var(--text);border-color:var(--border);}
 .btn-outline:hover{border-color:var(--border-strong);color:var(--accent);transform:translateY(-2px);}
+.btn-discord{background:var(--discord);color:#fff;border:none;}
+.btn-discord:hover{background:#4752C4;transform:translateY(-2px);box-shadow:0 8px 24px rgba(88,101,242,.4);}
 .btn-danger{background:linear-gradient(135deg,#b00020,#ff4444);color:#fff;}
 .btn-sm{padding:6px 12px;font-size:.72rem;border-radius:8px;}
 .save-status{font-size:.7rem;color:var(--autosave);font-weight:700;display:flex;align-items:center;gap:6px;padding:0 10px;}
@@ -91,6 +93,8 @@ body::after{content:'';position:fixed;bottom:-25%;right:5%;width:65vw;height:65v
 .panel-title{font-size:.95rem;font-weight:700;}
 .panel-sub{font-size:.7rem;color:var(--text-muted);margin-top:3px;}
 .panel-pill{padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid var(--border-strong);color:var(--accent);font-size:.65rem;font-weight:700;}
+.panel-pill.linked{background:rgba(74,222,128,.15);color:var(--success);border-color:rgba(74,222,128,.35);}
+.panel-pill.discord-linked{background:rgba(88,101,242,.15);color:#8891F2;border-color:rgba(88,101,242,.4);}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;backdrop-filter:blur(28px);position:relative;overflow:hidden;transition:var(--transition);}
 .stat-card::after{content:'';position:absolute;bottom:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,#fff,transparent);transform:scaleX(0);transition:transform .4s ease;}
@@ -184,12 +188,15 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .apply-btn{width:100%;padding:11px;background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;margin-top:10px;transition:var(--transition);font-family:inherit;letter-spacing:.3px;text-transform:uppercase;}
 .apply-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.35);}
 .apply-btn.secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--border);}
+.apply-btn.secondary:hover{border-color:var(--border-strong);color:var(--accent);box-shadow:none;}
+.apply-btn.discord{background:var(--discord);color:#fff;}
+.apply-btn.discord:hover{background:#4752C4;box-shadow:0 8px 24px rgba(88,101,242,.4);}
 .apply-btn.danger{background:linear-gradient(135deg,#b00020,#ff4444);color:#fff;}
 .customize-layout{display:grid;grid-template-columns:260px 1fr 340px;gap:14px;min-height:calc(100vh - 200px);}
 .widget-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;overflow-y:auto;backdrop-filter:blur(28px);max-height:calc(100vh - 170px);position:sticky;top:20px;}
 .widget-search{width:100%;padding:9px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-size:.78rem;font-family:inherit;outline:none;margin-bottom:10px;transition:var(--transition);}
 .widget-search:focus{border-color:var(--border-strong);box-shadow:0 0 0 3px rgba(255,255,255,.08);}
-.widget-category{font-size:.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:1.8px;padding:12px 10px 4px;font-weight:800;border-top:1px solid var(--border);margin-top:6px;user-select:none;}
+.widget-category{font-size:.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:1.8px;padding:12px 10px 4px;font-weight:800;border-top:1px solid var(--border);margin-top:6px;user-select:none;cursor:pointer;}
 .widget-category:first-of-type{border-top:none;margin-top:0;padding-top:4px;}
 .widget-category.collapsed+.widget-item{display:none;}
 .widget-category::after{content:'▾';float:right;font-size:.7rem;opacity:.5;transition:transform .2s;}
@@ -293,8 +300,15 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .seo-preview .desc{font-size:.78rem;color:var(--text-muted);line-height:1.4;}
 .audio-preview{display:flex;align-items:center;gap:12px;margin-top:10px;padding:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;}
 .audio-preview audio{flex:1;height:32px;}
-
-/* ═══ WIRE MODE ═══ */
+.discord-card{border:1px solid rgba(88,101,242,.4);background:linear-gradient(135deg,rgba(88,101,242,.08),rgba(88,101,242,.02));}
+.discord-card .panel-head .panel-title{color:#8891F2;}
+.discord-live{display:flex;align-items:center;gap:10px;padding:12px;background:var(--surface-2);border-radius:10px;border:1px solid var(--border);margin-bottom:14px;}
+.discord-live-avatar{width:44px;height:44px;border-radius:50%;background:var(--discord);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;overflow:hidden;flex-shrink:0;position:relative;}
+.discord-live-avatar img{width:100%;height:100%;object-fit:cover;}
+.discord-live-avatar .status-dot{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;border:3px solid var(--surface-2);}
+.discord-live-info{flex:1;min-width:0;}
+.discord-live-info b{display:block;font-size:.85rem;font-weight:700;margin-bottom:2px;}
+.discord-live-info small{display:block;font-size:.7rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .wire-toggle-btn{padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-muted);font-size:.75rem;font-weight:700;cursor:pointer;transition:var(--transition);font-family:inherit;display:flex;align-items:center;gap:6px;}
 .wire-toggle-btn:hover{color:var(--accent);border-color:var(--border-strong);}
 .wire-toggle-btn.active{background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border-color:transparent;box-shadow:0 0 18px rgba(255,255,255,.35);}
@@ -309,7 +323,6 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 .wire-port.input{left:-7px;top:50%;margin-top:-7px;background:#7dd3fc;box-shadow:0 0 12px rgba(125,211,252,.7);}
 .canvas-widget.wire-target{border-color:#7dd3fc !important;box-shadow:0 0 0 2px #7dd3fc,0 0 24px rgba(125,211,252,.5) !important;}
 .canvas-widget.wire-source{border-color:#fff !important;box-shadow:0 0 0 2px #fff,0 0 24px rgba(255,255,255,.5) !important;}
-
 ::-webkit-scrollbar{width:10px;height:10px;}
 ::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:6px;}
 ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#fff,#808080);border-radius:6px;border:2px solid transparent;background-clip:padding-box;}
@@ -327,10 +340,7 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 
 <div class="preview-scrim" id="previewScrim" onclick="togglePreview()"></div>
 <aside class="preview-drawer" id="previewDrawer">
-  <div class="preview-head">
-    <b>Live Preview</b>
-    <button onclick="togglePreview()">×</button>
-  </div>
+  <div class="preview-head"><b>Live Preview</b><button onclick="togglePreview()">×</button></div>
   <div class="preview-body"><iframe id="previewFrame" src="about:blank"></iframe></div>
 </aside>
 
@@ -388,7 +398,6 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     </div>
   </div>
 
-  <!-- INDEX -->
   <section class="view active" id="view-index">
     <div class="page-header">
       <div><h1>Dashboard</h1><p id="greeting">Loading…</p></div>
@@ -440,7 +449,6 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     </div>
   </section>
 
-  <!-- PROFILE -->
   <section class="view" id="view-profile">
     <div class="page-header">
       <div><h1>Profile</h1><p>Shared data. Widgets pull from here.</p></div>
@@ -471,21 +479,63 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
         <div class="field"><label>Accent Color</label><input type="color" id="pfAccentColor" value="#ffffff"></div>
       </div>
     </div>
-    <div class="panel">
-      <div class="panel-head"><div><div class="panel-title">Discord Presence</div><div class="panel-sub">Shows your live Discord status on your profile</div></div><span class="panel-pill" id="discordStatusPill">Not linked</span></div>
-      <div class="field"><label>Discord User ID</label><input type="text" id="pfDiscordId" placeholder="Use /link in Discord to get yours"></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="apply-btn" onclick="saveDiscordId()" style="flex:1;margin-top:0;">Save Discord ID</button>
+
+    <div class="panel discord-card">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Discord Presence</div>
+          <div class="panel-sub">Show your live Discord status on your Chromaticc profile</div>
+        </div>
+        <span class="panel-pill" id="discordStatusPill">Not linked</span>
+      </div>
+
+      <div id="discordLivePreview" style="display:none;">
+        <div class="discord-live">
+          <div class="discord-live-avatar" id="discordLiveAvatar">
+            <img id="discordLiveAvatarImg" src="" style="display:none;">
+            <span id="discordLiveAvatarFallback">?</span>
+            <span class="status-dot" id="discordLiveStatusDot" style="background:#666;"></span>
+          </div>
+          <div class="discord-live-info">
+            <b id="discordLiveUsername">—</b>
+            <small id="discordLiveActivity">—</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Discord User ID</label>
+        <input type="text" id="pfDiscordId" placeholder="e.g. 1527403360880431275">
+        <p style="font-size:.68rem;color:var(--text-muted);margin-top:6px;line-height:1.5;">
+          Type <code style="background:var(--surface-2);padding:2px 6px;border-radius:4px;">/link</code> in Discord to get your ID. You must be in a server with the Chromaticc bot.
+        </p>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
+        <button class="apply-btn" onclick="saveDiscordId()" style="flex:1;margin-top:0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+          Save Discord ID
+        </button>
         <button class="apply-btn secondary" onclick="checkDiscordStatus()" style="flex:1;margin-top:0;">Check Status</button>
       </div>
+
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="https://discord.gg/chrxmaticc" target="_blank" rel="noopener" class="btn btn-discord btn-sm" style="flex:1;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><path d="M20.317 4.37a19.79 19.79 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.3 12.3 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.84 19.84 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>
+          Join Chromaticc Server
+        </a>
+        <a href="https://discord.com/api/oauth2/authorize?client_id=YOUR_APP_ID&permissions=1024&scope=bot" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="flex:1;justify-content:center;">
+          Add Bot to Your Server
+        </a>
+      </div>
     </div>
+
     <div class="panel">
       <div class="panel-head"><div><div class="panel-title">Social Links</div></div><button class="btn btn-outline btn-sm" onclick="addSocial()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add</button></div>
       <div class="social-editor" id="socialEditor"></div>
     </div>
   </section>
 
-  <!-- CUSTOMIZE -->
   <section class="view" id="view-customize">
     <div class="page-header">
       <div><h1>Customize</h1><p>Changes auto-save live. Click Apply to commit to history.</p></div>
@@ -526,14 +576,12 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     </div>
   </section>
 
-  <!-- BADGES -->
   <section class="view" id="view-badges">
     <div class="page-header"><div><h1>Badges</h1><p>Earned and locked badges.</p></div></div>
     <div class="panel"><div class="panel-head"><div><div class="panel-title">Your Badges</div></div></div><div id="earnedBadges" class="badge-grid-dash"></div></div>
     <div class="panel"><div class="panel-head"><div><div class="panel-title">All Badges</div></div></div><div id="allBadges" class="badge-grid-dash"></div></div>
   </section>
 
-  <!-- STATS -->
   <section class="view" id="view-stats">
     <div class="page-header"><div><h1>Stats</h1><p>Every number — honest.</p></div></div>
     <div class="panel"><div class="panel-head"><div><div class="panel-title">All Numbers</div></div></div>
@@ -549,7 +597,6 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     <div class="panel"><div class="panel-head"><div><div class="panel-title">Raw Data</div></div></div><pre id="rawData" class="raw-data">Loading…</pre></div>
   </section>
 
-  <!-- SEO -->
   <section class="view" id="view-seo">
     <div class="page-header">
       <div><h1>SEO & Meta</h1><p>How your profile shows up on Google, Discord, Twitter.</p></div>
@@ -584,7 +631,6 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     </div>
   </section>
 
-  <!-- SIMPLIFIED -->
   <section class="view" id="view-simplified">
     <div class="page-header">
       <div><h1>Simplified</h1><p>Global settings.</p></div>
@@ -641,7 +687,6 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     </div>
   </section>
 
-  <!-- ANALYTICS -->
   <section class="view" id="view-analytics">
     <div class="page-header"><div><h1>Analytics</h1><p>Honest numbers.</p></div></div>
     <div class="stats-grid">
@@ -663,20 +708,17 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     </div>
   </section>
 
-  <!-- GUESTS -->
   <section class="view" id="view-guests">
     <div class="page-header"><div><h1>Guests</h1><p>Recent guestbook messages.</p></div></div>
     <div class="panel"><div class="panel-head"><div><div class="panel-title">Messages</div></div></div><div id="guestsList"><div class="empty">Loading…</div></div></div>
   </section>
 
-  <!-- TEMPLATES -->
   <section class="view" id="view-templates">
     <div class="page-header"><div><h1>Templates</h1><p>Quick-start layouts.</p></div></div>
     <div class="template-grid" id="templateGridMain"></div>
     <button class="apply-btn" onclick="openModal('templateModal')">Browse All</button>
   </section>
 
-  <!-- SETTINGS -->
   <section class="view" id="view-settings">
     <div class="page-header"><div><h1>Settings</h1><p>Account preferences.</p></div></div>
     <div class="grid-2">
@@ -694,14 +736,13 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
     </div>
   </section>
 
-  <!-- HELP -->
   <section class="view" id="view-help">
     <div class="page-header"><div><h1>Help</h1><p>Quick tips.</p></div></div>
     <div class="panel">
       <div class="list-row"><div class="list-avatar">1</div><div class="list-info"><b>Fill out your Profile tab</b><small>Everything pulls from there</small></div></div>
       <div class="list-row"><div class="list-avatar">2</div><div class="list-info"><b>Add widgets in Customize</b><small>Changes auto-save live</small></div></div>
-      <div class="list-row"><div class="list-avatar">3</div><div class="list-info"><b>Wire Mode connects widgets</b><small>Drag output → input to link</small></div></div>
-      <div class="list-row"><div class="list-avatar">4</div><div class="list-info"><b>Link Discord for live status</b><small>Use /link in Discord</small></div></div>
+      <div class="list-row"><div class="list-avatar">3</div><div class="list-info"><b>Link Discord for live status</b><small>Run /link in Discord then paste your ID</small></div></div>
+      <div class="list-row"><div class="list-avatar">4</div><div class="list-info"><b>Wire Mode connects widgets</b><small>Drag output → input to link</small></div></div>
       <div class="list-row"><div class="list-avatar">5</div><div class="list-info"><b>Style presets</b><small>Glass / No BG / Solid / Outline</small></div></div>
     </div>
   </section>
@@ -727,7 +768,8 @@ input[type="checkbox"]:checked::after{content:'';position:absolute;left:6px;top:
 (function(){
 'use strict';
 
-/* ═══════════ AUTH ═══════════ */
+const BOT_URL = 'https://chronic-bot.onrender.com';
+
 const token = localStorage.getItem('chromaticc_token');
 const currentUser = JSON.parse(localStorage.getItem('chromaticc_user') || '{}');
 if (!token || !currentUser.username) { window.location.href = '/accounts.html'; return; }
@@ -736,7 +778,6 @@ document.getElementById('userName').textContent = currentUser.username;
 document.getElementById('userEmail').textContent = '@' + currentUser.username;
 document.getElementById('setUsername').value = currentUser.username;
 
-/* ═══════════ THEME ═══════════ */
 const savedTheme = localStorage.getItem('chromaticc_theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
 window.toggleTheme = function(){
@@ -747,7 +788,6 @@ window.toggleTheme = function(){
   showToast('Theme: ' + next);
 };
 
-/* ═══════════ TOAST ═══════════ */
 window.showToast = function(msg){
   const t = document.getElementById('toast');
   document.getElementById('toastMsg').textContent = msg;
@@ -756,20 +796,9 @@ window.showToast = function(msg){
   window._toastT = setTimeout(() => t.classList.remove('show'), 2400);
 };
 
-/* ═══════════ AUTOSAVE ═══════════ */
 let isDirty = false;
-function markDirty(){
-  isDirty = true;
-  const s = document.getElementById('saveStatus');
-  s.textContent = 'Unsaved changes';
-  s.classList.add('dirty');
-}
-function markSaved(){
-  isDirty = false;
-  const s = document.getElementById('saveStatus');
-  s.textContent = 'All changes saved';
-  s.classList.remove('dirty');
-}
+function markDirty(){ isDirty = true; const s = document.getElementById('saveStatus'); s.textContent = 'Unsaved changes'; s.classList.add('dirty'); }
+function markSaved(){ isDirty = false; const s = document.getElementById('saveStatus'); s.textContent = 'All changes saved'; s.classList.remove('dirty'); }
 
 window.togglePreview = function(){
   const d = document.getElementById('previewDrawer');
@@ -843,7 +872,6 @@ async function uploadAnyFile(file, statusEl){
   return null;
 }
 
-/* ═══════════ BADGES ═══════════ */
 const BADGES = [
   { id:'bot', name:'Bot', file:'Bot.png', rarity:'special', hint:'Default badge' },
   { id:'verified', name:'Verified', file:'Verified.png', rarity:'uncommon', hint:'Get verified' },
@@ -859,7 +887,6 @@ const BADGES = [
   { id:'terminated', name:'Terminated', file:'Terminated.png', rarity:'special', hint:'Terminated' }
 ];
 
-/* ═══════════ WIDGET TYPES ═══════════ */
 const widgetTypes = [
   { category:'Text', type:'text', name:'Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{content:'Hello {{user.displayName}}', fontSize:16, color:'#e8e8f0', align:'left'} },
   { category:'Text', type:'gradient-text', name:'Gradient Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{content:'Gradient', fontSize:20, gradient:'linear-gradient(90deg,#fff,#b0b0b0)'} },
@@ -867,11 +894,9 @@ const widgetTypes = [
   { category:'Text', type:'marquee-text', name:'Marquee', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>', defaults:{content:'Scrolling...', speed:5} },
   { category:'Text', type:'typewriter', name:'Typewriter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/></svg>', defaults:{text:'Hello world', speed:80, color:'#ffffff'} },
   { category:'Text', type:'glitch-text', name:'Glitch Text', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>', defaults:{content:'GLITCH', color:'#ffffff'} },
-
   { category:'Profile', type:'profile-card', name:'Profile Card', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>', isContainer:true, defaults:{preset:'minimal', slots:'avatar,name,badges,tagline,location,socials,views', nameEffect:'none', frameEnabled:true, frameColor:'rgba(255,255,255,0.18)'} },
   { category:'Profile', type:'profile-circle', name:'Profile Circle', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{src:'', borderColor:'#ffffff', showPresence:true} },
   { category:'Profile', type:'badges', name:'Badges Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/></svg>', defaults:{autoFromAccount:true, badges:''} },
-
   { category:'Media', type:'image', name:'Image', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>', defaults:{src:'', alt:''} },
   { category:'Media', type:'video', name:'Video', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/></svg>', defaults:{src:'', controls:true} },
   { category:'Media', type:'video-embed', name:'Video Embed', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/></svg>', defaults:{src:''} },
@@ -880,12 +905,10 @@ const widgetTypes = [
   { category:'Media', type:'audio-player', name:'Audio Player', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/></svg>', defaults:{src:'', trackName:'Track', albumArt:'', fallbackImage:'AudioImage.png'} },
   { category:'Media', type:'audio-viz', name:'Audio Visualizer', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', defaults:{src:'', color:'#ffffff'} },
   { category:'Media', type:'image-carousel', name:'Image Carousel', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>', defaults:{images:'', interval:3500} },
-
   { category:'Links', type:'link-list', name:'Link List', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>', isContainer:true, defaults:{} },
   { category:'Links', type:'link-row', name:'Link Row', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3"/></svg>', hidden:true, defaults:{label:'My Link', url:'', iconUrl:'', description:''} },
   { category:'Links', type:'link-embed', name:'Link Embed', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3"/></svg>', defaults:{url:'', label:'My Link', iconUrl:'', description:''} },
   { category:'Links', type:'social-link', name:'Social Link', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{url:'', label:'Social', iconUrl:'', description:''} },
-
   { category:'Embeds', type:'youtube', name:'YouTube', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/></svg>', defaults:{videoId:''} },
   { category:'Embeds', type:'spotify', name:'Spotify', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{uri:''} },
   { category:'Embeds', type:'twitch', name:'Twitch', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 0L1.71 4.29v15.43h5.15V24l4.28-4.29h3.43L22.29 12V0H6z"/></svg>', defaults:{channel:''} },
@@ -893,7 +916,6 @@ const widgetTypes = [
   { category:'Embeds', type:'instagram', name:'Instagram', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/></svg>', defaults:{username:''} },
   { category:'Embeds', type:'reddit', name:'Reddit', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{subreddit:''} },
   { category:'Embeds', type:'tiktok', name:'TikTok', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12v9"/></svg>', defaults:{username:''} },
-
   { category:'Utility', type:'clock', name:'Clock', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{format:'12h', showSeconds:true} },
   { category:'Utility', type:'countdown', name:'Countdown', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{targetDate:'', label:''} },
   { category:'Utility', type:'days-counter', name:'Days Counter', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{startDate:'', label:'Since'} },
@@ -909,14 +931,12 @@ const widgetTypes = [
   { category:'Utility', type:'stopwatch', name:'Stopwatch', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{} },
   { category:'Utility', type:'pomodoro', name:'Pomodoro', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{work:25, break:5} },
   { category:'Utility', type:'color-picker', name:'Color Picker', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{color:'#ffffff'} },
-
-  { category:'Social', type:'discord-presence', name:'Discord Presence', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>', defaults:{ showStatusDot:true, showSpotify:true, showActivity:true } },
+  { category:'Social', type:'discord-presence', name:'Discord Presence', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>', defaults:{showStatusDot:true, showSpotify:true, showActivity:true} },
   { category:'Social', type:'lanyard', name:'Lanyard (Legacy)', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{userId:'', showStatus:true, showGame:true} },
   { category:'Social', type:'github-stats', name:'GitHub Stats', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/></svg>', defaults:{username:''} },
   { category:'Social', type:'tech-stack', name:'Tech Stack', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/></svg>', defaults:{items:'React,Node,TS', columns:3} },
   { category:'Social', type:'game-library', name:'Game Library', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>', defaults:{games:'Valorant,Minecraft,CS2'} },
   { category:'Social', type:'friend-code', name:'Friend Code', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>', defaults:{code:'YOUR-CODE', label:'Friend Code'} },
-
   { category:'Interactive', type:'guestbook', name:'Guestbook', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', defaults:{title:'Leave a message'} },
   { category:'Interactive', type:'mini-poll', name:'Mini Poll', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/></svg>', defaults:{question:'Favorite?', options:'Yes,No'} },
   { category:'Interactive', type:'flip-card', name:'Flip Card', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>', defaults:{front:'Click me', back:'Surprise!'} },
@@ -925,17 +945,14 @@ const widgetTypes = [
   { category:'Interactive', type:'virtual-pet', name:'Virtual Pet', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{name:'Chrxy'} },
   { category:'Interactive', type:'soundboard', name:'Soundboard', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/></svg>', defaults:{sounds:''} },
   { category:'Interactive', type:'mood-tracker', name:'Mood Tracker', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{mood:'happy'} },
-
   { category:'Decoration', type:'divider', name:'Divider', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/></svg>', defaults:{color:'#ffffff', thickness:2, style:'solid', label:''} },
   { category:'Decoration', type:'section-divider', name:'Section Divider', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/></svg>', defaults:{color:'#ffffff', thickness:2, label:''} },
   { category:'Decoration', type:'shape', name:'Shape', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>', defaults:{shape:'rect', color:'#ffffff'} },
-
   { category:'Advanced', type:'code', name:'Code Widget', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>', defaults:{html:'<div style="color:#fff;font-weight:700;">Custom HTML</div>', css:'', js:''} },
   { category:'Advanced', type:'custom-cursor', name:'Custom Cursor', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>', defaults:{url:''} },
   { category:'Advanced', type:'font-selector', name:'Font Selector', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 12 21 20 7"/></svg>', defaults:{font:'Inter'} },
   { category:'Advanced', type:'theme-switcher', name:'Theme Switcher', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{themes:'dark,light,purple'} },
   { category:'Advanced', type:'page-indicator', name:'Page Indicator', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="18" cy="12" r="2"/></svg>', defaults:{current:1, total:3} },
-
   { category:'Fun', type:'sparkle-button', name:'Sparkle Button', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 10 22 10 17 15 19 22 12 18 5 22 7 15 2 10 9 10 12 2"/></svg>', defaults:{label:'Sparkle!', color:'#ffffff'} },
   { category:'Fun', type:'confetti-button', name:'Confetti Button', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>', defaults:{label:'Confetti!'} },
   { category:'Fun', type:'matrix-rain', name:'Matrix Rain', icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>', defaults:{color:'#4ade80'} }
@@ -950,7 +967,6 @@ const WIDGET_STYLE_DEFAULTS = {
   textEffect:'none', animation:'none', hover:'none', lock:false, hideMobile:false, zIndex:1, customClass:'', customCSS:''
 };
 
-/* ═══════════ STATE ═══════════ */
 let layout = [];
 let selectedId = null;
 let editMode = 'position';
@@ -966,7 +982,6 @@ const canvas = document.getElementById('canvas');
 const settingsPanel = document.getElementById('widgetSettings');
 const noWidgetMsg = document.getElementById('noWidgetMsg');
 
-/* ═══════════ PALETTE ═══════════ */
 const palette = document.getElementById('widgetPalette');
 const categories = {};
 widgetTypes.forEach(wt => {
@@ -1001,7 +1016,6 @@ document.getElementById('widgetSearch').addEventListener('input', function(){
   });
 });
 
-/* ═══════════ LOAD / SAVE ═══════════ */
 window.loadLayout = async function(){
   try {
     const res = await fetch('/api/get-layout', { headers:{'Authorization':'Bearer '+token} });
@@ -1058,7 +1072,6 @@ window.undo = function(){
   showToast('Undone');
 };
 
-/* ═══════════ STYLE BUILDER ═══════════ */
 function buildWidgetStyle(w){
   const st = w.style || WIDGET_STYLE_DEFAULTS;
   const bg = st.bg || {}, b = st.border || {}, sh = st.shadow || {}, ty = st.typography || {};
@@ -1081,8 +1094,6 @@ function buildWidgetStyle(w){
   return css;
 }
 
-/* ═══════════ RENDER CANVAS ═══════════ */
-let _originalRenderCanvas;
 function renderCanvas(){
   canvas.querySelectorAll('.canvas-widget').forEach(el => el.remove());
   layout.forEach(w => {
@@ -1145,7 +1156,6 @@ function removeWidget(id){
   return loc.list.splice(i, 1)[0];
 }
 
-/* ═══════════ SELECT + SETTINGS PANEL ═══════════ */
 window.selectWidget = function(id, keepTab){
   selectedId = id;
   const w = findWidget(id);
@@ -1175,7 +1185,6 @@ window.selectWidget = function(id, keepTab){
     <div class="widget-tab ${activeTabName==='advanced'?'active':''}" data-tab="advanced">Advanced</div>
   </div>`;
 
-  /* CONTENT */
   html += `<div class="widget-tab-panel ${activeTabName==='content'?'active':''}" data-panel="content">`;
   for (const key in def.defaults) {
     const val = s[key] ?? def.defaults[key];
@@ -1203,7 +1212,6 @@ window.selectWidget = function(id, keepTab){
   }
   html += `</div>`;
 
-  /* STYLE */
   html += `<div class="widget-tab-panel ${activeTabName==='style'?'active':''}" data-panel="style">`;
   html += `<div class="style-section">Quick Presets</div>`;
   html += `<div class="preset-row">
@@ -1212,7 +1220,6 @@ window.selectWidget = function(id, keepTab){
     <button type="button" class="preset-btn" onclick="applyStylePreset('solid')">Solid</button>
     <button type="button" class="preset-btn" onclick="applyStylePreset('outline')">Outline</button>
   </div>`;
-
   html += `<div class="style-section">Background</div>`;
   html += `<div class="style-row"><label>Type</label><select data-style="bg.type">${['none','color','glass','gradient','image','flowing'].map(v => `<option value="${v}" ${st.bg.type===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   if (st.bg.type === 'color') html += `<div class="style-row"><label>Color</label><input type="color" data-style="bg.value" value="${st.bg.value||'#0a0a12'}"></div>`;
@@ -1220,16 +1227,13 @@ window.selectWidget = function(id, keepTab){
   if (st.bg.type === 'image') html += `<div class="style-row"><label>URL</label><input type="text" data-style="bg.value" value="${esc(st.bg.value)}"></div>`;
   if (st.bg.type === 'glass') html += `<div class="style-row"><label>Blur</label><input type="range" min="0" max="40" data-style="bg.blur" value="${st.bg.blur}"></div>`;
   html += `<div class="style-row"><label>Opacity</label><input type="range" min="0" max="1" step="0.05" data-style="bg.opacity" value="${st.bg.opacity}"></div>`;
-
   html += `<div class="style-section">Border</div>`;
   html += `<div class="style-row"><label>Width</label><input type="number" data-style="border.width" value="${st.border.width}" min="0" max="20"></div>`;
   html += `<div class="style-row"><label>Color</label><input type="color" data-style="border.color" value="${rgbToHex(st.border.color)}"></div>`;
   html += `<div class="style-row"><label>Style</label><select data-style="border.style">${['solid','dashed','dotted','none'].map(v=>`<option value="${v}" ${st.border.style===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   html += `<div class="style-row"><label>Radius</label><input type="number" data-style="border.radius" value="${st.border.radius}" min="0" max="100"></div>`;
-
   html += `<div class="style-section">Spacing</div>`;
   html += `<div class="style-row"><label>Padding</label><input type="number" data-style="padding" value="${st.padding}" min="0" max="80"></div>`;
-
   html += `<div class="style-section">Typography</div>`;
   html += `<div class="style-row"><label>Font</label><select data-style="typography.family">${['inherit','Inter','Arial','Georgia','Orbitron','monospace'].map(v=>`<option value="${v}" ${st.typography.family===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   html += `<div class="style-row"><label>Size</label><input type="number" data-style="typography.size" value="${st.typography.size}" min="8" max="120"></div>`;
@@ -1238,10 +1242,8 @@ window.selectWidget = function(id, keepTab){
   html += `<div class="style-row"><label>Line H</label><input type="number" data-style="typography.lineHeight" value="${st.typography.lineHeight}" step="0.1"></div>`;
   html += `<div class="style-row"><label>Align</label><select data-style="typography.align">${['left','center','right','justify'].map(v=>`<option value="${v}" ${st.typography.align===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   html += `<div class="style-row"><label>Color</label><input type="color" data-style="typography.color" value="${rgbToHex(st.typography.color)}"></div>`;
-
   html += `<div class="style-section">Text Effect</div>`;
   html += `<div class="style-row"><label>Effect</label><select data-style="textEffect">${['none','gradient','neon','glitch','shimmer'].map(v=>`<option value="${v}" ${st.textEffect===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
-
   html += `<div class="style-section">Shadow</div>`;
   html += `<div class="style-row"><label>Type</label><select data-style="shadow.type">${['none','soft','hard','glow','custom'].map(v=>`<option value="${v}" ${st.shadow.type===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   if (st.shadow.type === 'custom' || st.shadow.type === 'glow') {
@@ -1250,13 +1252,11 @@ window.selectWidget = function(id, keepTab){
     html += `<div class="style-row"><label>X</label><input type="number" data-style="shadow.x" value="${st.shadow.x}"></div>`;
     html += `<div class="style-row"><label>Y</label><input type="number" data-style="shadow.y" value="${st.shadow.y}"></div>`;
   }
-
   html += `<div class="style-section">Animation</div>`;
   html += `<div class="style-row"><label>Loop</label><select data-style="animation">${['none','float','pulse','shimmer','wobble','glitch'].map(v=>`<option value="${v}" ${st.animation===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   html += `<div class="style-row"><label>Hover</label><select data-style="hover">${['none','lift','scale','glow','tilt'].map(v=>`<option value="${v}" ${st.hover===v?'selected':''}>${v}</option>`).join('')}</select></div>`;
   html += `</div>`;
 
-  /* ADVANCED */
   html += `<div class="widget-tab-panel ${activeTabName==='advanced'?'active':''}" data-panel="advanced">`;
   html += `<div class="style-row"><label>Z-Index</label><input type="number" data-style="zIndex" value="${st.zIndex}"></div>`;
   html += `<div class="style-row"><label style="display:flex;align-items:center;justify-content:space-between;">Lock <input type="checkbox" data-style="lock" ${st.lock?'checked':''}></label></div>`;
@@ -1376,7 +1376,6 @@ window.applyStylePreset = function(preset){
   showToast('Preset: ' + preset);
 };
 
-/* ═══════════ INTERACT ═══════════ */
 function attachInteract(el, widget){
   if (el._int) el._int.unset();
   if (widget.style && widget.style.lock) return;
@@ -1460,7 +1459,6 @@ canvas.addEventListener('click', e => {
   }
 });
 
-/* ═══════════ ADD / DELETE / DUP ═══════════ */
 window.addWidget = function(type){
   const def = widgetTypes.find(t => t.type === type);
   if (!def) return;
@@ -1522,7 +1520,6 @@ window.setEditMode = function(mode){
   renderCanvas();
 };
 
-/* ═══════════ WIRE MODE ═══════════ */
 window.toggleWireMode = function(){
   wireMode = !wireMode;
   document.getElementById('wireToggle').classList.toggle('active', wireMode);
@@ -1615,7 +1612,7 @@ function drawWires(){
   }
 }
 
-/* ═══════════ PROFILE ═══════════ */
+/* ═══════════ DISCORD ═══════════ */
 function loadProfile(){
   document.getElementById('pfDisplayName').value = profileData.displayName || '';
   document.getElementById('pfTagline').value = profileData.tagline || '';
@@ -1636,14 +1633,96 @@ function loadProfile(){
   }
   updateDiscordPill();
   renderSocials();
+  if (profileData.discordId) refreshDiscordPreview();
 }
 
 function updateDiscordPill(){
   const pill = document.getElementById('discordStatusPill');
   if (!pill) return;
-  pill.textContent = profileData.discordId ? 'Linked' : 'Not linked';
-  pill.style.color = profileData.discordId ? 'var(--success)' : 'var(--text-muted)';
+  if (profileData.discordId) {
+    pill.textContent = 'Linked';
+    pill.className = 'panel-pill discord-linked';
+  } else {
+    pill.textContent = 'Not linked';
+    pill.className = 'panel-pill';
+  }
 }
+
+async function refreshDiscordPreview(){
+  const id = profileData.discordId;
+  if (!id) { document.getElementById('discordLivePreview').style.display = 'none'; return; }
+  try {
+    const r = await fetch(BOT_URL + '/presence/' + id);
+    if (!r.ok) { document.getElementById('discordLivePreview').style.display = 'none'; return; }
+    const d = await r.json();
+    document.getElementById('discordLivePreview').style.display = 'block';
+    const avatarImg = document.getElementById('discordLiveAvatarImg');
+    const avatarFallback = document.getElementById('discordLiveAvatarFallback');
+    if (d.avatar) {
+      avatarImg.src = d.avatar;
+      avatarImg.style.display = 'block';
+      avatarFallback.style.display = 'none';
+    } else {
+      avatarImg.style.display = 'none';
+      avatarFallback.style.display = 'block';
+      avatarFallback.textContent = (d.username || '?').charAt(0).toUpperCase();
+    }
+    const colors = { online:'#4ade80', idle:'#fbbf24', dnd:'#ff5566', offline:'#666' };
+    document.getElementById('discordLiveStatusDot').style.background = colors[d.status] || '#666';
+    document.getElementById('discordLiveUsername').textContent = d.globalName || d.username || 'Unknown';
+    let activity = 'No activity';
+    if (d.listeningToSpotify && d.spotify) activity = '🎵 ' + d.spotify.song + ' — ' + d.spotify.artist;
+    else if (d.activities && d.activities.length) {
+      const a = d.activities[0];
+      activity = (a.typeName || 'Playing') + ': ' + a.name + (a.details ? ' — ' + a.details : '');
+    } else if (d.status === 'online') activity = 'Online';
+    else if (d.status === 'idle') activity = 'Idle';
+    else if (d.status === 'dnd') activity = 'Do Not Disturb';
+    document.getElementById('discordLiveActivity').textContent = activity;
+  } catch(e) {
+    document.getElementById('discordLivePreview').style.display = 'none';
+  }
+}
+
+window.saveDiscordId = async function(){
+  const id = document.getElementById('pfDiscordId').value.trim();
+  if (!id) return showToast('Enter a Discord ID');
+  if (!/^\d{17,20}$/.test(id)) return showToast("That doesn't look like a Discord ID");
+  profileData.discordId = id;
+  try {
+    const res = await fetch('/api/save-profile', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({ profile: profileData })
+    });
+    if (res.ok) {
+      showToast('Discord ID saved!');
+      markSaved();
+      updateDiscordPill();
+      refreshDiscordPreview();
+    } else showToast('Save failed: ' + res.status);
+  } catch(e) { showToast('Error: ' + e.message); }
+};
+
+window.checkDiscordStatus = async function(){
+  const id = document.getElementById('pfDiscordId').value.trim() || profileData.discordId;
+  if (!id) return showToast('Save your Discord ID first');
+  showToast('Checking...');
+  try {
+    const r = await fetch(BOT_URL + '/presence/' + id);
+    if (r.ok) {
+      const d = await r.json();
+      showToast('✅ Tracked — ' + d.status);
+      refreshDiscordPreview();
+    } else {
+      const d = await r.json().catch(()=>({}));
+      if (d.error) showToast('⚠️ ' + d.error);
+      else showToast('Bot returned ' + r.status);
+    }
+  } catch(e) {
+    showToast('Bot unreachable (may be asleep)');
+  }
+};
 
 function renderSocials(){
   const editor = document.getElementById('socialEditor');
@@ -1671,36 +1750,6 @@ function renderSocials(){
 }
 window.addSocial = () => { if (!profileData.socials) profileData.socials = []; profileData.socials.push({label:'', url:'', iconUrl:''}); renderSocials(); markDirty(); };
 window.removeSocial = i => { profileData.socials.splice(i, 1); renderSocials(); markDirty(); };
-
-window.saveDiscordId = async function(){
-  profileData.discordId = document.getElementById('pfDiscordId').value.trim();
-  if (!profileData.discordId) return showToast('Enter a Discord ID');
-  if (!/^\d{17,20}$/.test(profileData.discordId)) return showToast("That doesn't look like a Discord ID");
-  try {
-    const res = await fetch('/api/save-profile', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({ profile: profileData })
-    });
-    if (res.ok) { showToast('Discord ID saved!'); markSaved(); updateDiscordPill(); }
-    else showToast('Save failed');
-  } catch(e) { showToast('Error: ' + e.message); }
-};
-
-window.checkDiscordStatus = async function(){
-  const id = document.getElementById('pfDiscordId').value.trim() || profileData.discordId;
-  if (!id) return showToast('Save your Discord ID first');
-  showToast('Checking...');
-  try {
-    const r = await fetch('https://chromaticc-bot.onrender.com/status/' + id);
-    const d = await r.json();
-    if (d.optedOut) showToast('⚠️ Opted out — use /opt-in in Discord');
-    else if (d.tracked) showToast('✅ Being tracked! Add the widget.');
-    else showToast('Bot is up but no activity cached yet');
-  } catch(e) {
-    showToast('Bot unreachable (may be asleep)');
-  }
-};
 
 window.saveProfile = async function(){
   profileData.displayName = document.getElementById('pfDisplayName').value.trim();
@@ -1733,7 +1782,6 @@ window.saveProfile = async function(){
   loadEverything();
 };
 
-/* ═══════════ BADGES ═══════════ */
 async function loadBadges(){
   try {
     const res = await fetch('/api/get-badges', { headers:{'Authorization':'Bearer '+token} });
@@ -1753,7 +1801,6 @@ function renderBadges(){
   }).join('');
 }
 
-/* ═══════════ SEO ═══════════ */
 function loadSEO(){
   const s = profileData.seo || {};
   document.getElementById('seoTitle').value = s.title || '';
@@ -1811,7 +1858,6 @@ window.saveSEO = async function(){
   } catch(e) { showToast('Error'); }
 };
 
-/* ═══════════ SIMPLIFIED ═══════════ */
 function loadSimplified(){
   const s = pageSettings || {};
   const a = s.aurora || {};
@@ -1932,7 +1978,6 @@ window.saveSimplified = async function(){
   } catch(e) { showToast('Error'); }
 };
 
-/* ═══════════ TEMPLATES ═══════════ */
 const templates = {
   minimal: [{ type:'profile-card', x:15, y:15, w:70, h:60, settings:{preset:'minimal', slots:'avatar,name,badges,tagline,views'} }],
   'link-heavy': [
@@ -1983,7 +2028,6 @@ document.getElementById('applyTemplateBtn').onclick = () => {
   switchView('customize');
 };
 
-/* ═══════════ GUESTS ═══════════ */
 async function loadGuests(){
   const list = document.getElementById('guestsList');
   list.innerHTML = '<div class="empty">Loading…</div>';
@@ -2004,7 +2048,6 @@ async function loadGuests(){
   } catch(e) { list.innerHTML = '<div class="empty">Guestbook not available.</div>'; }
 }
 
-/* ═══════════ ACCOUNT ═══════════ */
 window.changePassword = async function(){
   const np = document.getElementById('newPass').value.trim();
   if (!np) return showToast('Enter a new password');
@@ -2026,7 +2069,6 @@ window.deleteAccount = async function(){
   } catch(e) { showToast('Delete failed'); }
 };
 
-/* ═══════════ TIME TRACKER ═══════════ */
 let timerSeconds = 0, timerRunning = false, timerInterval = null;
 const timeDisplay = document.getElementById('timeDisplay');
 const timeIcon = document.getElementById('timeIcon');
@@ -2050,7 +2092,6 @@ window.resetTimer = function(){
 };
 timeDisplay.textContent = formatTime(0);
 
-/* ═══════════ LOAD EVERYTHING ═══════════ */
 window.loadEverything = async function(showMsg){
   const data = { views:0, widgets:0, guestbook:0, badges:0, createdAt:null, profile:{}, layout:[] };
 
@@ -2196,7 +2237,6 @@ function renderTopWidgets(layout){
   container.innerHTML = sorted.map(([type, count], i) => `<div class="list-row"><div class="list-avatar">${i+1}</div><div class="list-info"><b>${esc(type.replace(/-/g,' '))}</b><small>${count} instance${count>1?'s':''}</small></div><span class="list-tag tag-pink">${i===0?'Top':'Active'}</span></div>`).join('');
 }
 
-/* ═══════════ KEYBOARD ═══════════ */
 document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.getElementById('searchInput').focus(); }
   if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); saveLayout(); }
@@ -2205,7 +2245,6 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
 });
 
-/* ═══════════ BOOT ═══════════ */
 (async function boot(){
   await loadBadges();
   await loadLayout();
@@ -2213,6 +2252,7 @@ document.addEventListener('keydown', e => {
   await loadEverything();
   switchView('index');
   setInterval(loadEverything, 60000);
+  setInterval(() => { if (profileData.discordId && document.getElementById('view-profile').classList.contains('active')) refreshDiscordPreview(); }, 30000);
   window.addEventListener('beforeunload', e => {
     if (isDirty) { e.preventDefault(); e.returnValue = ''; }
   });
