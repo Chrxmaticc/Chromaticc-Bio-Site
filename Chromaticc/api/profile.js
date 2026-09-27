@@ -103,6 +103,8 @@ function getFavicon(url) {
 
 /* ═══════════════════════════════════════════════════════
    WIDGET STYLE ENGINE
+   The wrapper is the ONLY source of bg/border/padding.
+   Every inner widget body is content-only.
    ═══════════════════════════════════════════════════════ */
 function buildWidgetClasses(st) {
   const cls = [];
@@ -116,30 +118,44 @@ function buildWidgetClasses(st) {
   if (st.customClass) cls.push(...st.customClass.split(/\s+/).filter(Boolean));
   return cls.join(' ');
 }
+
 function buildWidgetStyleString(w) {
   const st = w.style || {};
   const bg = st.bg || {}, b = st.border || {}, sh = st.shadow || {}, ty = st.typography || {};
   const css = [];
+
+  // ── Background — glass is the DEFAULT ──
   if (bg.type === 'color' && bg.value) css.push(`background:${bg.value}`);
   else if (bg.type === 'gradient' && bg.value) css.push(`background:${bg.value}`);
   else if (bg.type === 'image' && bg.value) css.push(`background:url('${bg.value}') center/cover`);
-  else if (bg.type === 'glass') {
+  else if (bg.type === 'flowing') {
+    css.push(`background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent,rgba(255,255,255,0.15))`);
+    css.push(`background-size:300% 300%`);
+  } else if (bg.type === 'none') {
+    css.push(`background:transparent`);
+  } else {
+    // default = glass
     css.push(`background:rgba(255,255,255,0.08)`);
     css.push(`backdrop-filter:blur(${bg.blur || 12}px)`);
     css.push(`-webkit-backdrop-filter:blur(${bg.blur || 12}px)`);
-  } else if (bg.type === 'flowing') {
-    css.push(`background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent,rgba(255,255,255,0.15))`);
-    css.push(`background-size:300% 300%`);
-  } else if (bg.type === 'none') css.push(`background:transparent`);
+  }
   css.push(`opacity:${bg.opacity ?? 1}`);
+
+  // ── Border ──
   css.push(`border-radius:${b.radius ?? 14}px`);
   if (b.style && b.style !== 'none' && b.width > 0) css.push(`border:${b.width}px ${b.style} ${b.color}`);
+
+  // ── Padding ──
   css.push(`padding:${st.padding ?? 0}px`);
   css.push(`z-index:${st.zIndex ?? 1}`);
+
+  // ── Shadow ──
   if (sh.type === 'soft') css.push(`box-shadow:0 8px 24px rgba(0,0,0,0.35)`);
   else if (sh.type === 'hard') css.push(`box-shadow:4px 4px 0 rgba(0,0,0,0.6)`);
   else if (sh.type === 'glow') css.push(`box-shadow:0 0 ${sh.blur}px ${sh.color}`);
   else if (sh.type === 'custom') css.push(`box-shadow:${sh.x}px ${sh.y}px ${sh.blur}px ${sh.color}`);
+
+  // ── Typography ──
   if (ty.family && ty.family !== 'inherit') css.push(`font-family:'${ty.family}',sans-serif`);
   if (ty.size) css.push(`font-size:${ty.size}px`);
   if (ty.weight) css.push(`font-weight:${ty.weight}`);
@@ -147,8 +163,10 @@ function buildWidgetStyleString(w) {
   if (ty.lineHeight) css.push(`line-height:${ty.lineHeight}`);
   if (ty.align) css.push(`text-align:${ty.align}`);
   if (ty.color && ty.color !== 'inherit') css.push(`color:${ty.color}`);
+
   return css.join(';');
 }
+
 function wrapStyled(widget, inner, ctx) {
   const st = widget.style || {};
   const classes = ['chroma-widget', buildWidgetClasses(st)].filter(Boolean).join(' ');
@@ -177,7 +195,7 @@ function timeAgoServer(date) {
    GLOBAL CSS
    ═══════════════════════════════════════════════════════ */
 const GLOBAL_WIDGET_CSS = `<style>
-  .chroma-widget { position: absolute; }
+  .chroma-widget { position: absolute; overflow: hidden; }
   .w-anim-float { animation: wFloat 4s ease-in-out infinite; }
   .w-anim-pulse { animation: wPulse 2.4s ease-in-out infinite; }
   .w-anim-shimmer { animation: wShimmer 4s linear infinite; background-size:300% 300% !important; }
@@ -197,19 +215,19 @@ const GLOBAL_WIDGET_CSS = `<style>
   .w-text-glitch { animation:wGlitch 2.5s steps(2,end) infinite; }
   .w-text-shimmer { background:linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:wShimmer 3s linear infinite; }
   @media (max-width:640px) { .w-hide-mobile { display:none !important; } }
-  .link-card { display:flex; align-items:center; gap:14px; width:100%; height:100%; padding:12px 16px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:16px; text-decoration:none; color:#fff; font-family:inherit; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); transition:transform 0.22s cubic-bezier(.34,1.56,.64,1), background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease; position:relative; overflow:hidden; box-sizing:border-box; cursor:pointer; }
-  .link-card::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); transition:left 0.6s ease; pointer-events:none; }
-  .link-card:hover { transform:translateY(-2px); background:rgba(255,255,255,0.10); border-color:rgba(255,255,255,0.24); box-shadow:0 12px 32px rgba(0,0,0,0.35); }
-  .link-card:hover::before { left:100%; }
-  .link-card-avatar { width:48px; height:48px; border-radius:12px; background:linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04)); border:1px solid rgba(255,255,255,0.14); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; }
-  .link-card-avatar img { width:100%; height:100%; object-fit:cover; }
-  .link-card-avatar svg { width:60%; height:60%; }
-  .link-card-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
-  .link-card-name { font-size:0.92rem; font-weight:700; line-height:1.2; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:-0.2px; }
-  .link-card-handle { font-size:0.72rem; color:rgba(255,255,255,0.55); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; }
-  .link-card-arrow { width:28px; height:28px; border-radius:9px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:rgba(255,255,255,0.55); transition:all 0.22s ease; }
-  .link-card:hover .link-card-arrow { background:rgba(255,255,255,0.16); border-color:rgba(255,255,255,0.28); color:#fff; transform:translateX(2px); }
-  .link-card-arrow svg { width:14px; height:14px; }
+
+  /* ── Link row/embed — pure inner content, no outer bg ── */
+  .link-inner { display:flex; align-items:center; gap:12px; width:100%; height:100%; padding:10px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:12px; text-decoration:none; color:#fff; font-family:inherit; transition:transform 0.2s ease, background 0.2s ease; box-sizing:border-box; cursor:pointer; }
+  .link-inner:hover { transform:translateX(3px); background:rgba(255,255,255,0.12); }
+  .link-inner-avatar { width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; }
+  .link-inner-avatar img { width:100%; height:100%; object-fit:contain; }
+  .link-inner-avatar svg { width:60%; height:60%; }
+  .link-inner-body { flex:1; min-width:0; }
+  .link-inner-name { font-size:.85rem; font-weight:700; line-height:1.2; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .link-inner-domain { font-size:.68rem; color:rgba(255,255,255,0.55); line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .link-inner-arrow { width:24px; height:24px; border-radius:7px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:rgba(255,255,255,0.5); transition:all 0.2s ease; }
+  .link-inner:hover .link-inner-arrow { background:rgba(255,255,255,0.16); color:#fff; }
+  .link-inner-arrow svg { width:12px; height:12px; }
 </style>`;
 
 function buildAuroraCSS(a) {
@@ -251,70 +269,88 @@ function renderWidgetInner(widget, s, ctx) {
 
   switch (widget.type) {
 
-    /* ═══ TEXT ═══ */
+    /* ═══════════════ TEXT ═══════════════ */
     case 'text':
-      return `<div style="overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:4px;box-sizing:border-box;">${esc(rc('content'))}</div>`;
+      return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:${s.align || 'center'};overflow:hidden;">${esc(rc('content'))}</div>`;
+
     case 'gradient-text':
-      return `<div style="background:${esc(s.gradient || 'linear-gradient(90deg,#fff,#aaa)')};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${esc(rc('content'))}</div>`;
+      return `<div style="background:${esc(s.gradient || 'linear-gradient(90deg,#fff,#aaa)')};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;">${esc(rc('content'))}</div>`;
+
     case 'neon-text':
-      return `<div style="color:${esc(s.color || '#fff')};text-shadow:0 0 10px currentColor,0 0 20px currentColor;overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;">${esc(rc('content'))}</div>`;
+      return `<div style="color:${esc(s.color || '#fff')};text-shadow:0 0 10px currentColor,0 0 20px currentColor;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;">${esc(rc('content'))}</div>`;
+
     case 'marquee-text':
-      return `<div style="overflow:hidden;width:100%;height:100%;display:flex;align-items:center;"><marquee scrollamount="${s.speed || 5}" style="color:inherit;">${esc(rc('content'))}</marquee></div>`;
+      return `<div style="width:100%;height:100%;display:flex;align-items:center;overflow:hidden;"><marquee scrollamount="${s.speed || 5}" style="color:inherit;width:100%;">${esc(rc('content'))}</marquee></div>`;
+
     case 'typewriter':
       return `<div id="tw-${widget.id}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>
         <script>(function(){const el=document.getElementById('tw-${widget.id}');if(!el)return;const t=${JSON.stringify(rc('text') || '')};let i=0;(function go(){if(i<t.length){el.textContent+=t.charAt(i++);setTimeout(go,${s.speed || 80});}})();})();<\/script>`;
-    case 'glitch-text':
-      return `<div style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><span class="w-text-glitch" style="color:${esc(s.color || '#fff')};">${esc(rc('content'))}</span></div>`;
 
-    /* ═══ MEDIA ═══ */
+    case 'glitch-text':
+      return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><span class="w-text-glitch" style="color:${esc(s.color || '#fff')};">${esc(rc('content'))}</span></div>`;
+
+    /* ═══════════════ MEDIA ═══════════════ */
     case 'image':
-      return `<img src="${esc(s.src)}" alt="${esc(s.alt || '')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.opacity='0.2'">`;
+      return `<img src="${esc(s.src)}" alt="${esc(s.alt || '')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;" onerror="this.style.opacity='0.2'">`;
+
     case 'video':
-      return `<video src="${esc(s.src)}" ${s.controls ? 'controls' : 'autoplay muted loop playsinline'} style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></video>`;
+      return `<video src="${esc(s.src)}" ${s.controls ? 'controls' : 'autoplay muted loop playsinline'} style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></video>`;
+
     case 'video-embed':
-      return `<video src="${esc(s.src)}" controls playsinline webkit-playsinline style="width:100%;height:100%;object-fit:cover;border-radius:inherit;"></video>`;
+      return `<video src="${esc(s.src)}" controls playsinline webkit-playsinline style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></video>`;
+
     case 'audio':
-      return `<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:8px;overflow:hidden;"><strong style="font-size:.8rem;color:inherit;">${esc(rc('title') || 'Track')}</strong><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
+      return `<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:6px;overflow:hidden;"><strong style="font-size:.8rem;">${esc(rc('title') || 'Track')}</strong><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
+
     case 'audio-embed':
       return `<audio src="${esc(s.src)}" controls style="width:100%;height:100%;"></audio>`;
+
     case 'audio-player': {
       const imgSrc = s.albumArt || s.fallbackImage || 'AudioImage.png';
       const wid = widget.id;
-      return `<div style="display:flex;align-items:center;gap:14px;width:100%;height:100%;padding:12px 16px;background:rgba(18,18,24,0.6);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-sizing:border-box;">
-        <div style="width:60px;height:60px;border-radius:14px;background:linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;"><img src="${esc(imgSrc)}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>
+      return `<div style="display:flex;align-items:center;gap:12px;width:100%;height:100%;box-sizing:border-box;overflow:hidden;">
+        <div style="width:56px;height:56px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+          <img src="${esc(imgSrc)}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">
+        </div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:.92rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(rc('trackName') || 'Track')}</div>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:8px;font-size:.65rem;color:rgba(255,255,255,0.55);font-variant-numeric:tabular-nums;font-weight:600;">
+          <div style="font-size:.88rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(rc('trackName') || 'Track')}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:.65rem;color:rgba(255,255,255,0.55);font-variant-numeric:tabular-nums;font-weight:600;">
             <span class="ap-cur-${wid}">0:00</span>
             <div class="ap-bar-${wid}" style="flex:1;height:4px;background:rgba(255,255,255,0.12);border-radius:3px;overflow:hidden;cursor:pointer;"><div class="ap-fill-${wid}" style="height:100%;width:0;background:linear-gradient(90deg,#fff,#b0b0b0);border-radius:3px;transition:width 0.1s linear;"></div></div>
             <span class="ap-dur-${wid}">0:00</span>
           </div>
         </div>
-        <div style="display:flex;gap:4px;flex-shrink:0;align-items:center;">
-          <button class="ap-play-${wid}" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:#fff;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;"><svg class="ap-icon-${wid}" viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;"><path d="M6 4l15 8-15 8z"/></svg></button>
-        </div>
+        <button class="ap-play-${wid}" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:50%;color:#fff;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg class="ap-icon-${wid}" viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;"><path d="M6 4l15 8-15 8z"/></svg>
+        </button>
         <audio class="ap-audio-${wid}" src="${esc(s.src)}" preload="metadata"></audio>
         <script>(function(){const a=document.querySelector('.ap-audio-${wid}'),btn=document.querySelector('.ap-play-${wid}'),icon=document.querySelector('.ap-icon-${wid}'),fill=document.querySelector('.ap-fill-${wid}'),bar=document.querySelector('.ap-bar-${wid}'),cur=document.querySelector('.ap-cur-${wid}'),dur=document.querySelector('.ap-dur-${wid}');if(!a)return;const fmt=t=>{const m=Math.floor(t/60),s=Math.floor(t%60);return m+':'+(s<10?'0':'')+s;};btn.onclick=()=>a.paused?a.play():a.pause();a.onplay=()=>icon.innerHTML='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';a.onpause=()=>icon.innerHTML='<path d="M6 4l15 8-15 8z"/>';a.onloadedmetadata=()=>dur.textContent=fmt(a.duration);a.ontimeupdate=()=>{fill.style.width=(a.currentTime/a.duration*100)+'%';cur.textContent=fmt(a.currentTime);};bar.onclick=e=>{const r=bar.getBoundingClientRect();a.currentTime=((e.clientX-r.left)/r.width)*a.duration;};})();<\/script>
       </div>`;
     }
+
     case 'audio-viz':
       return `<canvas class="audio-viz-canvas" data-src="${esc(s.src)}" data-color="${esc(s.color || '#fff')}" style="width:100%;height:100%;background:rgba(255,255,255,0.04);border-radius:inherit;cursor:pointer;"></canvas>`;
+
     case 'image-carousel': {
       const imgs = toArr(s.images);
       if (!imgs.length) return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:rgba(255,255,255,0.4);font-size:.78rem;">No images</div>`;
       const wid = widget.id;
       return `<div id="car-${wid}" style="width:100%;height:100%;overflow:hidden;border-radius:inherit;position:relative;">
-        <img src="${esc(imgs[0])}" style="width:100%;height:100%;object-fit:cover;transition:opacity 0.4s ease;">
+        <img src="${esc(imgs[0])}" style="width:100%;height:100%;object-fit:cover;transition:opacity 0.4s ease;display:block;">
         <script>(function(){const el=document.getElementById('car-${wid}');if(!el)return;const imgs=${JSON.stringify(imgs)};let i=0;const img=el.querySelector('img');setInterval(()=>{i=(i+1)%imgs.length;img.style.opacity='0';setTimeout(()=>{img.src=imgs[i];img.style.opacity='1';},200);},${s.interval||3500});})();<\/script>
       </div>`;
     }
 
-    /* ═══ PROFILE ═══ */
+    /* ═══════════════ PROFILE ═══════════════ */
     case 'profile-circle': {
       const avatar = rc('src') || ctx.user.avatar || '';
       const dot = s.showPresence !== false ? `<span style="position:absolute;bottom:6%;right:6%;width:16%;height:16%;border-radius:50%;background:#4ade80;border:2px solid #000;box-shadow:0 0 10px #4ade80;"></span>` : '';
-      return `<div style="width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;"><img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;border:3px solid ${esc(s.borderColor || '#fff')};object-fit:cover;box-shadow:0 0 24px rgba(255,255,255,0.35);">${dot}</div>`;
+      return `<div style="width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;">
+        <img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;border:3px solid ${esc(s.borderColor || '#fff')};object-fit:cover;box-shadow:0 0 24px rgba(255,255,255,0.35);display:block;">
+        ${dot}
+      </div>`;
     }
+
     case 'profile-card': {
       const preset = s.preset || 'minimal';
       const slots = toArr(s.slots || 'avatar,name,badges,tagline,location,socials,views');
@@ -325,25 +361,44 @@ function renderWidgetInner(widget, s, ctx) {
       const location = p.location || '';
       const socials = (p.socials || []).filter(x => x.url);
       const parts = [];
-      if (slots.includes('avatar')) parts.push(`<div style="position:relative;width:${preset === 'discord-focused' ? '96px' : '88px'};height:${preset === 'discord-focused' ? '96px' : '88px'};margin:0 auto 16px;"><img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.35);box-shadow:0 0 32px rgba(255,255,255,0.2);"></div>`);
+
+      if (slots.includes('avatar')) {
+        const sz = preset === 'discord-focused' ? '96px' : '88px';
+        parts.push(`<div style="position:relative;width:${sz};height:${sz};margin:0 auto 16px;">
+          <img src="${esc(avatar)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.35);box-shadow:0 0 32px rgba(255,255,255,0.2);display:block;">
+        </div>`);
+      }
       if (slots.includes('name')) {
         const eff = s.nameEffect || 'none';
-        const nameClass = eff === 'glitch' ? 'w-text-glitch' : eff === 'neon' ? 'w-text-neon' : eff === 'gradient' ? 'w-text-gradient' : '';
-        parts.push(`<div class="${nameClass}" style="font-size:1.7rem;font-weight:800;letter-spacing:-0.5px;text-align:center;margin-bottom:10px;color:#fff;">${esc(displayName)}</div>`);
+        const cls = eff === 'glitch' ? 'w-text-glitch' : eff === 'neon' ? 'w-text-neon' : eff === 'gradient' ? 'w-text-gradient' : '';
+        parts.push(`<div class="${cls}" style="font-size:1.7rem;font-weight:800;letter-spacing:-0.5px;text-align:center;margin-bottom:10px;color:#fff;">${esc(displayName)}</div>`);
       }
-      if (slots.includes('badges') && ctx.badges && ctx.badges.length) parts.push(`<div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">${renderBadges(ctx.badges)}</div>`);
-      if (slots.includes('tagline') && tagline) parts.push(`<div style="font-size:.95rem;color:rgba(255,255,255,0.72);text-align:center;line-height:1.55;margin-bottom:14px;max-width:92%;margin-left:auto;margin-right:auto;">${esc(tagline)}</div>`);
-      if (slots.includes('location') && location) parts.push(`<div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:.82rem;color:rgba(255,255,255,0.55);margin-bottom:16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${esc(location)}</div>`);
+      if (slots.includes('badges') && ctx.badges && ctx.badges.length) {
+        parts.push(`<div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">${renderBadges(ctx.badges)}</div>`);
+      }
+      if (slots.includes('tagline') && tagline) {
+        parts.push(`<div style="font-size:.95rem;color:rgba(255,255,255,0.72);text-align:center;line-height:1.55;margin-bottom:14px;max-width:92%;margin-left:auto;margin-right:auto;">${esc(tagline)}</div>`);
+      }
+      if (slots.includes('location') && location) {
+        parts.push(`<div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:.82rem;color:rgba(255,255,255,0.55);margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${esc(location)}
+        </div>`);
+      }
       if (slots.includes('socials') && socials.length) {
         parts.push(`<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;">${socials.map(so => `<a href="${esc(so.url)}" target="_blank" rel="noopener" style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;text-decoration:none;overflow:hidden;">${so.iconUrl ? `<img src="${esc(so.iconUrl)}" style="width:70%;height:70%;object-fit:contain;">` : (getFavicon(so.url) || `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:18px;height:18px;"><circle cx="12" cy="12" r="10"/></svg>`)}</a>`).join('')}</div>`);
       }
-      if (slots.includes('joined')) parts.push(`<div style="font-size:.72rem;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:8px;">joined ${timeAgoServer(ctx.user.createdAt)}</div>`);
-      if (slots.includes('views')) parts.push(`<div style="position:absolute;left:18px;bottom:14px;display:flex;align-items:center;gap:6px;font-size:.72rem;color:rgba(255,255,255,0.5);font-weight:600;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${(ctx.user.views || 0).toLocaleString()}</div>`);
-      const frameStyle = s.frameEnabled !== false
-        ? `background:rgba(18,18,24,0.55);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1.5px solid ${esc(s.frameColor || 'rgba(255,255,255,0.16)')};border-radius:26px;padding:36px 26px 52px;box-shadow:0 24px 64px rgba(0,0,0,0.5);`
-        : '';
-      return `<div style="${frameStyle}position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box;">${parts.join('')}</div>`;
+      if (slots.includes('joined')) {
+        parts.push(`<div style="font-size:.72rem;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:8px;">joined ${timeAgoServer(ctx.user.createdAt)}</div>`);
+      }
+      if (slots.includes('views')) {
+        parts.push(`<div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:.72rem;color:rgba(255,255,255,0.5);font-weight:600;margin-top:4px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${(ctx.user.views || 0).toLocaleString()}
+        </div>`);
+      }
+
+      return `<div style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;overflow:hidden;">${parts.join('')}</div>`;
     }
+
     case 'badges':
     case 'badges-row': {
       const list = toArr(s.badges);
@@ -351,12 +406,13 @@ function renderWidgetInner(widget, s, ctx) {
       return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;width:100%;height:100%;">${renderBadges(ids)}</div>`;
     }
 
-    /* ═══ LINKS ═══ */
+    /* ═══════════════ LINKS ═══════════════ */
     case 'link-list': {
       const rows = widget.children || [];
       if (!rows.length) return `<div style="padding:14px;text-align:center;color:rgba(255,255,255,0.4);font-size:.78rem;">Empty link list</div>`;
       return `<div style="display:flex;flex-direction:column;gap:10px;width:100%;height:100%;">${rows.map(r => renderWidget(r, ctx)).join('')}</div>`;
     }
+
     case 'link-row':
     case 'link-embed':
     case 'social-link': {
@@ -368,22 +424,21 @@ function renderWidgetInner(widget, s, ctx) {
       if (iconUrl) iconHTML = `<img src="${esc(iconUrl)}" alt="">`;
       else {
         const fav = getFavicon(url);
-        if (fav) iconHTML = fav;
-        else iconHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="opacity:0.7;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20 15.3 15.3 0 010-20z"/></svg>`;
+        iconHTML = fav || `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="opacity:0.7;"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20 15.3 15.3 0 010-20z"/></svg>`;
       }
-      return `<a class="link-card" href="${esc(url)}" target="_blank" rel="noopener">
-        <div class="link-card-avatar">${iconHTML}</div>
-        <div class="link-card-body">
-          <div class="link-card-name">${esc(label)}</div>
-          ${domain ? `<div class="link-card-handle">${esc(domain)}</div>` : ''}
+      return `<a class="link-inner" href="${esc(url)}" target="_blank" rel="noopener">
+        <div class="link-inner-avatar">${iconHTML}</div>
+        <div class="link-inner-body">
+          <div class="link-inner-name">${esc(label)}</div>
+          ${domain ? `<div class="link-inner-domain">${esc(domain)}</div>` : ''}
         </div>
-        <div class="link-card-arrow">
+        <div class="link-inner-arrow">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
         </div>
       </a>`;
     }
 
-    /* ═══ EMBEDS ═══ */
+    /* ═══════════════ EMBEDS ═══════════════ */
     case 'youtube':
       return `<iframe src="https://www.youtube.com/embed/${esc(s.videoId)}" style="width:100%;height:100%;border:0;border-radius:inherit;" allowfullscreen></iframe>`;
     case 'spotify':
@@ -399,26 +454,32 @@ function renderWidgetInner(widget, s, ctx) {
     case 'tiktok':
       return `<blockquote class="tiktok-embed" cite="https://www.tiktok.com/@${esc(s.username)}" style="width:100%;height:100%;"><section></section></blockquote><script async src="https://www.tiktok.com/embed.js"><\/script>`;
 
-    /* ═══ UTILITY ═══ */
+    /* ═══════════════ UTILITY ═══════════════ */
     case 'clock':
       return `<div id="clk-${widget.id}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-variant-numeric:tabular-nums;"></div>
         <script>(function(){const el=document.getElementById('clk-${widget.id}');if(!el)return;function tick(){el.textContent=new Date().toLocaleTimeString('en-US',{hour12:${s.format !== '24h'},second:${s.showSeconds !== false}});}tick();setInterval(tick,1000);})();<\/script>`;
+
     case 'countdown':
       return `<div id="cd-${widget.id}" data-target="${s.targetDate ? new Date(s.targetDate).getTime() : 0}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;">loading...</div>
         <script>(function(){const el=document.getElementById('cd-${widget.id}');if(!el)return;const t=+el.dataset.target;function tick(){const d=t-Date.now();if(d<=0){el.textContent='passed';return;}const D=Math.floor(d/86400000),H=Math.floor((d%86400000)/3600000),M=Math.floor((d%3600000)/60000),S=Math.floor((d%60000)/1000);el.textContent=D+'d '+H+'h '+M+'m '+S+'s';}tick();setInterval(tick,1000);})();<\/script>`;
+
     case 'days-counter': {
       const start = new Date(s.startDate);
       const days = s.startDate && !isNaN(start.getTime()) ? Math.floor((Date.now() - start.getTime()) / 86400000) : 0;
       return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:4px;"><span style="font-size:.7rem;opacity:0.6;">${esc(s.label || 'Since')}</span><span style="font-size:1.6rem;font-weight:800;">${days}d</span></div>`;
     }
+
     case 'visitor-counter':
       return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;">${(ctx.user.views || 0).toLocaleString()} views</div>`;
+
     case 'progress-bar': {
       const pct = Math.min(100, Math.round(((s.value || 0) / (s.max || 100)) * 100));
-      return `<div style="display:flex;align-items:center;width:100%;height:100%;padding:8px;box-sizing:border-box;"><div style="width:100%;height:14px;background:rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${esc(s.color || '#fff')};border-radius:8px;"></div></div></div>`;
+      return `<div style="display:flex;align-items:center;width:100%;height:100%;box-sizing:border-box;"><div style="width:100%;height:14px;background:rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${esc(s.color || '#fff')};border-radius:8px;"></div></div></div>`;
     }
+
     case 'qr-code':
-      return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${s.size || 200}x${s.size || 200}&data=${encodeURIComponent(rc('url'))}" style="width:100%;height:100%;object-fit:contain;">`;
+      return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${s.size || 200}x${s.size || 200}&data=${encodeURIComponent(rc('url'))}" style="width:100%;height:100%;object-fit:contain;display:block;">`;
+
     case 'weather': {
       const wid = widget.id;
       const unit = s.unit === 'F' ? 'F' : 'C';
@@ -429,18 +490,22 @@ function renderWidgetInner(widget, s, ctx) {
         <script>(async function(){const el=document.getElementById('wx-${wid}');if(!el)return;try{const c=el.dataset.city;const r=await fetch('https://wttr.in/'+encodeURIComponent(c)+'?format=j1');const d=await r.json();const t=d.current_condition[0]['temp_${unit}'];const desc=d.current_condition[0].weatherDesc[0].value;el.querySelector('.wx-temp').textContent=t+'°${unit}';el.querySelector('.wx-desc').textContent=desc;}catch(e){el.querySelector('.wx-desc').textContent='Unavailable';}})();<\/script>
       </div>`;
     }
+
     case 'quote-ticker':
-      return `<div style="overflow:hidden;width:100%;height:100%;display:flex;align-items:center;"><marquee scrollamount="${s.speed||5}" style="color:inherit;font-weight:600;">${esc(rc('text')||'')}</marquee></div>`;
+      return `<div style="width:100%;height:100%;display:flex;align-items:center;overflow:hidden;"><marquee scrollamount="${s.speed||5}" style="color:inherit;font-weight:600;width:100%;">${esc(rc('text')||'')}</marquee></div>`;
+
     case 'random-quote': {
       const wid = widget.id;
-      return `<div id="rq-${wid}" data-api="${esc(s.api||'https://api.quotable.io/random')}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;padding:12px;text-align:center;gap:6px;">
+      return `<div id="rq-${wid}" data-api="${esc(s.api||'https://api.quotable.io/random')}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;text-align:center;gap:6px;">
         <div class="rq-text" style="font-size:.82rem;line-height:1.5;font-style:italic;">Loading…</div>
         <div class="rq-author" style="font-size:.68rem;opacity:0.55;"></div>
         <script>(async function(){const el=document.getElementById('rq-${wid}');if(!el)return;try{const r=await fetch(el.dataset.api);const d=await r.json();el.querySelector('.rq-text').textContent='"'+d.content+'"';el.querySelector('.rq-author').textContent='— '+(d.author||'Unknown');}catch(e){el.querySelector('.rq-text').textContent='Quote unavailable';}})();<\/script>
       </div>`;
     }
+
     case 'news-ticker':
-      return `<div style="overflow:hidden;width:100%;height:100%;display:flex;align-items:center;"><marquee scrollamount="5" style="color:inherit;">${esc(s.source || 'News coming soon...')}</marquee></div>`;
+      return `<div style="width:100%;height:100%;display:flex;align-items:center;overflow:hidden;"><marquee scrollamount="5" style="color:inherit;width:100%;">${esc(s.source || 'News coming soon...')}</marquee></div>`;
+
     case 'click-counter': {
       const wid = widget.id;
       return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;">
@@ -448,95 +513,186 @@ function renderWidgetInner(widget, s, ctx) {
         <button onclick="(function(){const el=document.getElementById('cc-${wid}');el.textContent=+el.textContent+1;})()" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:8px 18px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.8rem;font-family:inherit;">${esc(s.buttonText || 'Click me')}</button>
       </div>`;
     }
+
     case 'streak-counter': {
       const start = new Date(s.startDate);
       const days = s.startDate && !isNaN(start.getTime()) ? Math.floor((Date.now() - start.getTime()) / 86400000) + 1 : 0;
       return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;"><span style="font-size:.7rem;opacity:0.6;">${esc(s.label || 'Streak')}</span><span style="font-size:1.6rem;font-weight:800;">${days}d</span></div>`;
     }
+
     case 'stopwatch': {
       const wid = widget.id;
       return `<div id="sw-${wid}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;font-size:1.2rem;font-variant-numeric:tabular-nums;cursor:pointer;" onclick="(function(el){if(el._t){clearInterval(el._t);el._t=null;}else{let s=parseInt(el.dataset.s||'0');el._t=setInterval(()=>{s++;el.dataset.s=s;const m=Math.floor(s/60),sec=s%60;el.textContent=m+':'+(sec<10?'0':'')+sec;},1000);}})(this)" data-s="0">0:00</div>`;
     }
-    case 'pomodoro': {
+
+    case 'pomodoro':
       return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;">
         <div style="font-size:1.4rem;font-weight:800;">${s.work||25}:00</div>
         <div style="font-size:.65rem;opacity:0.5;">Work</div>
       </div>`;
-    }
+
     case 'color-picker':
       return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;background:${esc(s.color || '#fff')};border-radius:inherit;color:#000;font-size:.82rem;">${esc(s.color || '#ffffff')}</div>`;
 
-    /* ═══ SOCIAL ═══ */
+    /* ═══════════════ SOCIAL ═══════════════ */
     case 'discord-presence': {
       const d = ctx.discord || {};
       const debugReason = ctx.discordDebug?.reason || ctx.discordDebug?.error || (!ctx.profile?.discordId ? 'no-id' : 'unknown');
+
+      const showAvatar    = s.showAvatar    !== false;
+      const showBadges    = s.showBadges    !== false;
+      const showGuildTag  = s.showGuildTag  !== false;
+      const showPlatform  = s.showPlatform  !== false;
+      const showActivity  = s.showActivity  !== false;
+      const showArt       = s.showArt       !== false;
+      const showElapsed   = s.showElapsed   !== false;
+      const showStatusDot = s.showStatusDot !== false;
+
       if (!d.userId || d.enabled === false) {
         return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;color:rgba(255,255,255,0.35);font-size:.7rem;gap:4px;">
           <div>No Discord linked</div>
           <div style="font-size:.55rem;opacity:0.55;">[${esc(debugReason)}]</div>
         </div>`;
       }
+
       const statusColors = { online:'#4ade80', idle:'#fbbf24', dnd:'#ff5566', offline:'#666' };
+      const statusLabels = { online:'Online', idle:'Idle', dnd:'Do Not Disturb', offline:'Offline' };
       const statusColor = statusColors[d.status] || '#666';
+      const statusLabel = statusLabels[d.status] || 'Offline';
+
       const avatarHTML = d.avatar
-        ? `<img src="${esc(d.avatar)}" style="width:100%;height:100%;object-fit:cover;">`
-        : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#5865F2;color:#fff;font-weight:800;font-size:1.2rem;">${esc((d.username || '?').charAt(0).toUpperCase())}</div>`;
+        ? `<img src="${esc(d.avatar)}" style="width:100%;height:100%;object-fit:cover;display:block;">`
+        : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#5865F2;color:#fff;font-weight:800;font-size:1.3rem;">${esc((d.username || '?').charAt(0).toUpperCase())}</div>`;
+
+      const BADGE_BASE = 'https://raw.githubusercontent.com/mezotv/discord-badges/main/';
+      const BADGE_FILES = {
+        Staff:                 'discord-staff.svg',
+        Partner:               'discord-partner.svg',
+        Hypesquad:             'hype-squad-events.svg',
+        BugHunterLevel1:       'discord-bug-hunter-green.svg',
+        BugHunterLevel2:       'discord-bug-hunter-gold.svg',
+        HypeSquadOnlineHouse1: 'hype-squad-bravery.svg',
+        HypeSquadOnlineHouse2: 'hype-squad-brilliance.svg',
+        HypeSquadOnlineHouse3: 'hype-squad-balance.svg',
+        PremiumEarlySupporter: 'discord-early-supporter.svg',
+        VerifiedBot:           'premium-bot.png',
+        VerifiedDeveloper:     'discord-bot-dev.svg',
+        CertifiedModerator:    'discord-mod.svg',
+        ActiveDeveloper:       'active-developer.svg',
+      };
+      const badgeList = showBadges ? (d.badges || []).filter(b => BADGE_FILES[b]) : [];
+      const badgesHTML = badgeList.length
+        ? `<span style="display:inline-flex;align-items:center;gap:3px;margin-left:5px;vertical-align:middle;">${badgeList.slice(0, 6).map(b => `<img src="${BADGE_BASE}${BADGE_FILES[b]}" alt="${esc(b)}" title="${esc(b)}" style="width:15px;height:15px;object-fit:contain;filter:drop-shadow(0 0 3px rgba(255,255,255,0.35));" onerror="this.style.display='none'">`).join('')}</span>`
+        : '';
+
+      const guildTagHTML = (showGuildTag && d.primaryGuild?.tag)
+        ? `<span style="background:rgba(88,101,242,0.25);color:#a8b1f5;font-size:.55rem;padding:2px 6px;border-radius:4px;margin-left:6px;font-weight:800;letter-spacing:.4px;vertical-align:middle;">${esc(d.primaryGuild.tag)}</span>`
+        : '';
+
+      const platforms = [];
+      if (d.platform?.desktop) platforms.push('Desktop');
+      if (d.platform?.mobile) platforms.push('Mobile');
+      if (d.platform?.web) platforms.push('Web');
+      const platformHTML = (showPlatform && platforms.length)
+        ? `<span style="opacity:0.5;font-size:.6rem;font-weight:500;">· ${platforms.join(' · ')}</span>`
+        : '';
+
       const isSpotify = d.listeningToSpotify && d.spotify;
-      const activity = (d.activities || [])[0];
-      let line1 = 'Offline', line2 = '', artHTML = '';
-      if (isSpotify) {
-        line1 = 'Listening on Spotify';
-        line2 = `${esc(d.spotify.song)} — ${esc(d.spotify.artist)}`;
-        if (d.spotify.albumArt) artHTML = `<img src="${esc(d.spotify.albumArt)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;">`;
-      } else if (activity) {
-        if (activity.type === 4) {
-  line1 = 'Custom Status';
-  line2 = esc(activity.state || '');
-} else {
-  line1 = activity.typeName || 'Playing';
-  line2 = `${esc(activity.name)}${activity.details ? ' — ' + esc(activity.details) : ''}`;
-}
-        if (activity.largeImage) {
-          const img = activity.largeImage.startsWith('http') ? activity.largeImage : 'https://cdn.discordapp.com/' + activity.largeImage;
-          artHTML = `<img src="${esc(img)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;">`;
+      const activities = d.activities || [];
+      const game      = activities.find(a => a.type === 0);
+      const stream    = activities.find(a => a.type === 1);
+      const watching  = activities.find(a => a.type === 3);
+      const competing = activities.find(a => a.type === 5);
+      const custom    = activities.find(a => a.type === 4);
+      const primary   = game || stream || watching || competing;
+
+      let statusLine = statusLabel;
+      let mainLine = '';
+      let subLine = '';
+      let timeLine = '';
+      let artHTML = '';
+
+      if (isSpotify && showActivity) {
+        statusLine = 'Listening on Spotify';
+        mainLine = d.spotify.song || 'Unknown Track';
+        subLine = d.spotify.artist ? `by ${d.spotify.artist}` : '';
+        if (d.spotify.album) subLine = subLine ? `${subLine} · ${d.spotify.album}` : d.spotify.album;
+        if (showArt && d.spotify.albumArt) artHTML = `<img src="${esc(d.spotify.albumArt)}" style="width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;display:block;">`;
+      } else if (primary && showActivity) {
+        statusLine = primary.typeName || 'Playing';
+        mainLine = primary.name || '';
+        if (primary.details) subLine = primary.details;
+        if (primary.state) subLine = subLine ? `${subLine} · ${primary.state}` : primary.state;
+
+        if (showElapsed && primary.startedAt) {
+          const elapsed = Math.floor((Date.now() - primary.startedAt) / 1000);
+          if (elapsed > 0) {
+            const h = Math.floor(elapsed / 3600);
+            const m = Math.floor((elapsed % 3600) / 60);
+            timeLine = h > 0 ? `${h}h ${m}m elapsed` : `${m}m elapsed`;
+          }
         }
-      } else if (d.status === 'online') line1 = 'Online';
-      else if (d.status === 'idle') line1 = 'Idle';
-      else if (d.status === 'dnd') line1 = 'Do Not Disturb';
-      return `<div style="display:flex;align-items:center;gap:12px;width:100%;height:100%;padding:12px 14px;background:rgba(18,18,24,0.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-sizing:border-box;">
-        <div style="position:relative;width:48px;height:48px;border-radius:12px;overflow:hidden;flex-shrink:0;">${avatarHTML}
-          ${s.showStatusDot !== false ? `<span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;background:${statusColor};border:2.5px solid #12121a;"></span>` : ''}
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:.68rem;color:rgba(255,255,255,0.55);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">${esc(line1)}</div>
-          ${line2 ? `<div style="font-size:.82rem;color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${line2}</div>` : ''}
+
+        if (showArt && primary.largeImage) {
+          const img = primary.largeImage.startsWith('http') ? primary.largeImage : 'https://cdn.discordapp.com/' + primary.largeImage;
+          artHTML = `<img src="${esc(img)}" style="width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;display:block;">`;
+        }
+      } else if (custom && custom.state && showActivity) {
+        statusLine = statusLabel;
+        mainLine = custom.state;
+      }
+
+      const displayName = d.globalName || d.username || 'Unknown';
+      const avatarBlock = showAvatar
+        ? `<div style="position:relative;width:56px;height:56px;border-radius:14px;overflow:hidden;flex-shrink:0;">${avatarHTML}
+            ${showStatusDot ? `<span style="position:absolute;bottom:0;right:0;width:16px;height:16px;border-radius:50%;background:${statusColor};border:3px solid #12121a;box-shadow:0 0 8px ${statusColor};"></span>` : ''}
+          </div>`
+        : '';
+
+      return `<div style="display:flex;align-items:center;gap:14px;width:100%;height:100%;box-sizing:border-box;font-family:Inter,sans-serif;overflow:hidden;">
+        ${avatarBlock}
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;line-height:1.2;">
+            <span style="font-size:.9rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${esc(displayName)}</span>
+            ${guildTagHTML}
+            ${badgesHTML}
+          </div>
+          <div style="font-size:.6rem;color:rgba(255,255,255,0.5);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">${esc(statusLine)} ${platformHTML}</div>
+          ${mainLine ? `<div style="font-size:.82rem;color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(mainLine)}</div>` : ''}
+          ${subLine ? `<div style="font-size:.7rem;color:rgba(255,255,255,0.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(subLine)}</div>` : ''}
+          ${timeLine ? `<div style="font-size:.6rem;color:rgba(255,255,255,0.4);font-weight:500;">${esc(timeLine)}</div>` : ''}
         </div>
         ${artHTML}
       </div>`;
     }
+
     case 'lanyard':
       return `<div id="ln-${widget.id}" data-user="${esc(s.userId || '')}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;font-size:.8rem;font-weight:600;"></div>
         <script>(async function(){const el=document.getElementById('ln-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set userId';return;}try{const r=await fetch('https://api.lanyard.rest/v1/users/'+uid);const d=await r.json();if(!d.success)throw 0;const u=d.data;const color=u.discord_status==='online'?'#4ade80':u.discord_status==='idle'?'#fbbf24':u.discord_status==='dnd'?'#ff5566':'#666';el.innerHTML='<span style="width:10px;height:10px;border-radius:50%;background:'+color+';display:inline-block;"></span><span>'+u.discord_status+'</span>';}catch(e){el.textContent='N/A';}})();<\/script>`;
+
     case 'github-stats':
       return `<div id="gh-${widget.id}" data-user="${esc(s.username)}" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;height:100%;font-size:.8rem;font-weight:600;"></div>
         <script>(async function(){const el=document.getElementById('gh-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set username';return;}try{const r=await fetch('https://api.github.com/users/'+uid);if(!r.ok)throw 0;const d=await r.json();el.innerHTML='<div><div style="font-size:1rem;">'+(d.followers||0)+'</div><div style="font-size:.62rem;opacity:0.6;">Followers</div></div><div><div style="font-size:1rem;">'+(d.public_repos||0)+'</div><div style="font-size:.62rem;opacity:0.6;">Repos</div></div>';}catch(e){el.textContent='N/A';}})();<\/script>`;
+
     case 'tech-stack': {
       const list = toArr(s.items);
       const cols = s.columns || 3;
       return `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;place-items:center;width:100%;height:100%;">${(list.length ? list : ['React','Node','TS']).map(i => `<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:5px 11px;border-radius:10px;font-size:.72rem;font-weight:600;">${esc(i)}</span>`).join('')}</div>`;
     }
+
     case 'game-library': {
       const games = toArr(s.games);
       const list = games.length ? games : ['Valorant','Minecraft'];
-      return `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;padding:6px;width:100%;height:100%;overflow:hidden;">${list.map(g => `<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:4px 10px;border-radius:20px;font-size:.7rem;color:#fff;font-weight:600;">${esc(g)}</span>`).join('')}</div>`;
+      return `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%;height:100%;overflow:hidden;">${list.map(g => `<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:4px 10px;border-radius:20px;font-size:.7rem;color:#fff;font-weight:600;">${esc(g)}</span>`).join('')}</div>`;
     }
+
     case 'friend-code':
       return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;"><span style="font-size:.65rem;opacity:0.55;">${esc(s.label || 'Friend Code')}</span><span style="font-size:1rem;font-weight:700;letter-spacing:1px;">${esc(s.code || 'YOUR-CODE')}</span></div>`;
 
-    /* ═══ INTERACTIVE ═══ */
+    /* ═══════════════ INTERACTIVE ═══════════════ */
     case 'guestbook': {
       const wid = 'gb-' + widget.id;
-      return `<div id="${wid}" style="display:flex;flex-direction:column;width:100%;height:100%;padding:14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;overflow:hidden;box-sizing:border-box;backdrop-filter:blur(16px);">
+      return `<div id="${wid}" style="display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;box-sizing:border-box;">
         <h4 style="margin:0 0 10px;font-size:.88rem;font-weight:700;">${esc(rc('title') || 'Leave a message')}</h4>
         <div id="${wid}-msgs" style="flex:1;overflow-y:auto;margin-bottom:8px;font-size:.74rem;display:flex;flex-direction:column;gap:8px;"></div>
         <input id="${wid}-name" placeholder="Name" style="width:100%;padding:7px 10px;margin-bottom:5px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:#fff;font-size:.72rem;outline:none;box-sizing:border-box;font-family:inherit;">
@@ -545,43 +701,49 @@ function renderWidgetInner(widget, s, ctx) {
         <script>(function(){const u='${esc(ctx.user.username)}';const msgs=document.getElementById('${wid}-msgs');const ni=document.getElementById('${wid}-name');const ti=document.getElementById('${wid}-text');const sb=document.getElementById('${wid}-send');const e2=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');async function load(){try{const r=await fetch('/api/guestbook?username='+u);const a=await r.json();msgs.innerHTML=(a||[]).map(m=>'<div><b style="color:#fff;">'+e2(m.author||'Anon')+'</b>: <span style="opacity:0.75;">'+e2(m.text)+'</span></div>').join('');}catch(e){}}sb.onclick=async()=>{const t=ti.value.trim();if(!t)return;try{await fetch('/api/guestbook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,text:t,author:ni.value.trim()||'Anonymous'})});ti.value='';load();}catch(e){}};load();})();<\/script>
       </div>`;
     }
+
     case 'mini-poll': {
       const opts = toArr(s.options);
       const list = opts.length ? opts : ['Yes','No'];
-      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;gap:8px;width:100%;height:100%;box-sizing:border-box;">
+      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;gap:8px;width:100%;height:100%;box-sizing:border-box;">
         <div style="font-weight:700;font-size:.85rem;text-align:center;">${esc(s.question || 'What do you think?')}</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">${list.map(o => `<button onclick="this.style.background='#fff';this.style.color='#000';" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.72rem;font-weight:600;font-family:inherit;">${esc(o)}</button>`).join('')}</div>
       </div>`;
     }
+
     case 'flip-card':
-      return `<div style="display:flex;align-items:center;justify-content:center;padding:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:12px;color:#fff;font-weight:600;font-size:.85rem;cursor:pointer;width:100%;height:100%;box-sizing:border-box;" onclick="(function(el){const f=el.dataset.front==='1';el.dataset.front=f?'0':'1';el.textContent=f?'${esc(s.front)}':'${esc(s.back)}';})(this)" data-front="1">${esc(s.front)}</div>`;
+      return `<div style="display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:.85rem;cursor:pointer;width:100%;height:100%;box-sizing:border-box;" onclick="(function(el){const f=el.dataset.front==='1';el.dataset.front=f?'0':'1';el.textContent=f?'${esc(s.front)}':'${esc(s.back)}';})(this)" data-front="1">${esc(s.front)}</div>`;
+
     case 'accordion': {
       const items = toArr(s.items);
       const list = items.length ? items : ['Item 1','Item 2','Item 3'];
-      return `<div style="display:flex;flex-direction:column;gap:4px;padding:6px;width:100%;height:100%;overflow:auto;box-sizing:border-box;">${list.map(i => `<details style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;font-size:.78rem;color:#fff;"><summary style="cursor:pointer;font-weight:600;">${esc(i)}</summary><div style="padding-top:4px;opacity:0.75;">Content</div></details>`).join('')}</div>`;
-    }
-    case 'virtual-pet':
-      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff;font-weight:600;cursor:pointer;width:100%;height:100%;" onclick="(function(el){el.style.transform=el.style.transform.includes('scale(1.2)')?'rotate(0deg)':'scale(1.2) rotate(10deg)';})(this)"><span style="font-size:2rem;">◉◡◉</span><span style="font-size:.75rem;">${esc(s.name || 'Pet')}</span></div>`;
-    case 'soundboard': {
-      const sounds = toArr(s.sounds);
-      return `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;padding:8px;width:100%;height:100%;overflow:hidden;box-sizing:border-box;">${(sounds.length ? sounds : ['🔊','🔔','🎵','🚀']).map((snd, i) => `<button onclick="try{new Audio('${esc(snd)}').play();}catch(e){}" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:700;font-family:inherit;">${i + 1}</button>`).join('')}</div>`;
-    }
-    case 'mood-tracker': {
-      const moods = { happy: '◕‿◕', sad: '◕︵◕', neutral: '◕_◕', angry: '◕皿◕', excited: '★‿★' };
-      const m = s.mood || 'happy';
-      return `<div style="display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#fff;font-weight:700;width:100%;height:100%;">${moods[m] || moods.happy}</div>`;
+      return `<div style="display:flex;flex-direction:column;gap:4px;width:100%;height:100%;overflow:auto;box-sizing:border-box;">${list.map(i => `<details style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;font-size:.78rem;color:#fff;"><summary style="cursor:pointer;font-weight:600;">${esc(i)}</summary><div style="padding-top:4px;opacity:0.75;">Content</div></details>`).join('')}</div>`;
     }
 
-    /* ═══ DECORATION ═══ */
+    case 'virtual-pet':
+      return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff;font-weight:600;cursor:pointer;width:100%;height:100%;" onclick="(function(el){el.style.transform=el.style.transform.includes('scale(1.2)')?'rotate(0deg)':'scale(1.2) rotate(10deg)';})(this)"><span style="font-size:2rem;">◉◡◉</span><span style="font-size:.75rem;">${esc(s.name || 'Pet')}</span></div>`;
+
+    case 'soundboard': {
+      const sounds = toArr(s.sounds);
+      return `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%;height:100%;overflow:hidden;box-sizing:border-box;">${(sounds.length ? sounds : ['🔊','🔔','🎵','🚀']).map((snd, i) => `<button onclick="try{new Audio('${esc(snd)}').play();}catch(e){}" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:700;font-family:inherit;">${i + 1}</button>`).join('')}</div>`;
+    }
+
+    case 'mood-tracker': {
+      const moods = { happy: '◕‿◕', sad: '◕︵◕', neutral: '◕_◕', angry: '◕皿◕', excited: '★‿★' };
+      return `<div style="display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#fff;font-weight:700;width:100%;height:100%;">${moods[s.mood] || moods.happy}</div>`;
+    }
+
+    /* ═══════════════ DECORATION ═══════════════ */
     case 'divider':
     case 'section-divider':
-      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;position:relative;"><hr style="border:none;border-top:${s.thickness || 2}px ${esc(s.style || 'solid')} ${esc(s.color || '#fff')};width:100%;margin:0;"></div>`;
+      return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><hr style="border:none;border-top:${s.thickness || 2}px ${esc(s.style || 'solid')} ${esc(s.color || '#fff')};width:100%;margin:0;"></div>`;
+
     case 'shape': {
       const r = s.shape === 'circle' ? 'border-radius:50%;' : s.shape === 'square' ? '' : 'border-radius:14px;';
       return `<div style="width:100%;height:100%;background:${esc(s.color || '#fff')};${r}"></div>`;
     }
 
-    /* ═══ ADVANCED ═══ */
+    /* ═══════════════ ADVANCED ═══════════════ */
     case 'code': {
       const html = s.html || '';
       const css  = s.css  || '';
@@ -589,35 +751,41 @@ function renderWidgetInner(widget, s, ctx) {
       if (!html && !css && !js) return `<div style="width:100%;height:100%;"></div>`;
       const safeJs = String(js).replace(/<\/script>/gi, '<\\/script>');
       const wrappedJs = safeJs ? `try { ${safeJs} } catch(e) { console.error('[code-widget]', e); }` : '';
-      return `<div class="chroma-code-widget" style="width:100%;height:100%;position:relative;">
+      return `<div style="width:100%;height:100%;position:relative;">
         ${css ? `<style>${css}</style>` : ''}
         ${html}
         ${wrappedJs ? `<script>${wrappedJs}<\/script>` : ''}
       </div>`;
     }
+
     case 'custom-cursor':
       return `<style>body{cursor:url('${esc(s.url)}'),auto;}</style>`;
+
     case 'font-selector':
       return `<style>body * { font-family: '${esc(s.font)}', sans-serif !important; }</style>`;
+
     case 'theme-switcher': {
       const themes = toArr(s.themes).length ? toArr(s.themes) : ['dark','light','purple'];
-      return `<div style="position:fixed;bottom:20px;right:20px;z-index:9999;background:rgba(10,10,16,0.92);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.14);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:6px;font-family:Inter,sans-serif;">
+      return `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%;height:100%;">
         ${themes.map(t => `<button onclick="document.documentElement.setAttribute('data-theme','${esc(t)}')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.72rem;font-weight:600;text-transform:capitalize;font-family:inherit;">${esc(t)}</button>`).join('')}
       </div>`;
     }
+
     case 'page-indicator': {
       const total = s.total || 3, current = s.current || 1;
       return `<div style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;">${Array.from({length: total}, (_, i) => `<span style="width:8px;height:8px;border-radius:50%;background:${i === current - 1 ? '#fff' : 'rgba(255,255,255,0.25)'};"></span>`).join('')}</div>`;
     }
 
-    /* ═══ FUN ═══ */
+    /* ═══════════════ FUN ═══════════════ */
     case 'sparkle-button':
       return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><button onclick="(function(el){for(let i=0;i<20;i++){const s=document.createElement('span');s.textContent='✦';s.style.cssText='position:fixed;left:'+el.getBoundingClientRect().left+'px;top:'+el.getBoundingClientRect().top+'px;font-size:'+(10+Math.random()*20)+'px;pointer-events:none;transition:all 1s ease;color:#fff;';document.body.appendChild(s);const a=Math.random()*Math.PI*2,r=60+Math.random()*100;setTimeout(()=>{s.style.transform='translate('+Math.cos(a)*r+'px,'+Math.sin(a)*r+'px)';s.style.opacity='0';},10);setTimeout(()=>s.remove(),1100);}})(this)" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:10px 22px;border-radius:12px;cursor:pointer;font-weight:800;font-size:.82rem;font-family:inherit;">${esc(s.label || 'Sparkle!')}</button></div>`;
+
     case 'confetti-button':
       return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><button onclick="(function(el){const colors=['#fff','#fbbf24','#7dd3fc','#c084fc','#ff5566'];for(let i=0;i<40;i++){const c=document.createElement('div');c.style.cssText='position:fixed;left:'+el.getBoundingClientRect().left+'px;top:'+el.getBoundingClientRect().top+'px;width:8px;height:8px;background:'+colors[i%colors.length]+';pointer-events:none;transition:all 1.5s ease;';document.body.appendChild(c);const a=Math.random()*Math.PI*2,r=80+Math.random()*180;setTimeout(()=>{c.style.transform='translate('+Math.cos(a)*r+'px,'+(Math.sin(a)*r+120)+'px) rotate('+(Math.random()*720)+'deg)';c.style.opacity='0';},10);setTimeout(()=>c.remove(),1600);}})(this)" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:10px 22px;border-radius:12px;cursor:pointer;font-weight:800;font-size:.82rem;font-family:inherit;">${esc(s.label || 'Confetti!')}</button></div>`;
+
     case 'matrix-rain': {
       const wid = widget.id;
-      return `<canvas id="mr-${wid}" style="width:100%;height:100%;background:#000;border-radius:inherit;"></canvas>
+      return `<canvas id="mr-${wid}" style="width:100%;height:100%;background:#000;border-radius:inherit;display:block;"></canvas>
         <script>(function(){const c=document.getElementById('mr-${wid}');if(!c)return;const ctx=c.getContext('2d');const chars='01';const fs=14;function resize(){c.width=c.offsetWidth;c.height=c.offsetHeight;}resize();window.addEventListener('resize',resize);const cols=Math.floor(c.width/fs);const drops=Array(cols).fill(0);function draw(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='${esc(s.color || '#4ade80')}';ctx.font=fs+'px monospace';for(let i=0;i<drops.length;i++){ctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*fs,drops[i]*fs);if(drops[i]*fs>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++;}}setInterval(draw,50);})();<\/script>`;
     }
 
@@ -643,9 +811,7 @@ export default async function handler(req, res) {
       const r = await pool.query(
         `SELECT id, username, alias, created_at, banned_until, banned_permanent,
                 ban_reason, ban_keep_profile, terminated, profile_data
-         FROM users
-         WHERE LOWER(username) = $1 OR LOWER(alias) = $1
-         LIMIT 1`,
+         FROM users WHERE LOWER(username) = $1 OR LOWER(alias) = $1 LIMIT 1`,
         [slug]
       );
       userRow = r.rows[0];
@@ -703,66 +869,42 @@ export default async function handler(req, res) {
     const avatar = profileData.avatar
       || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(userRow.username)}&backgroundColor=1a1a1a&textColor=ffffff`;
 
-    /* ═══════════════════════════════════════════════════
-       DISCORD PRESENCE FETCH
-       ═══════════════════════════════════════════════════ */
+    /* ═══ Discord fetch ═══ */
     let discordPresence = null;
     const discordDebug = { skipped: false, reason: null, status: null, error: null, url: null };
 
     const BOT_URL = (process.env.CHROMATICC_BOT_URL || 'https://chronic-bot.onrender.com').replace(/\/+$/, '');
     const discordId = profileData.discordId;
 
-    console.log('[discord] ==== START for', slug, '====');
-    console.log('[discord] discordId:', JSON.stringify(discordId));
-    console.log('[discord] BOT_URL:', BOT_URL, '(from env:', process.env.CHROMATICC_BOT_URL ? 'yes' : 'fallback', ')');
-
     if (!discordId) {
       discordDebug.skipped = true;
       discordDebug.reason = 'no-discord-id';
-      console.log('[discord] SKIP: no discordId in profile_data');
     } else {
       const fetchUrl = `${BOT_URL}/presence/${discordId}?_=${Date.now()}`;
       discordDebug.url = fetchUrl;
-      console.log('[discord] fetching:', fetchUrl);
-
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 8000);
-
       try {
         const r = await fetch(fetchUrl, { signal: controller.signal });
         discordDebug.status = r.status;
-        console.log('[discord] response status:', r.status);
-
         if (r.ok) {
           discordPresence = await r.json();
-          console.log('[discord] payload:', JSON.stringify({
-            userId: discordPresence.userId,
-            username: discordPresence.username,
-            status: discordPresence.status,
-            hasActivities: Array.isArray(discordPresence.activities) && discordPresence.activities.length > 0,
-            spotify: discordPresence.listeningToSpotify,
-          }));
           if (!discordPresence.userId) {
             discordDebug.reason = 'response-missing-userId';
-            console.warn('[discord] response missing userId — widget will show fallback');
           } else {
             discordDebug.reason = 'ok';
           }
         } else {
-          const errBody = await r.text();
           discordDebug.error = `HTTP ${r.status}`;
           discordDebug.reason = `http-${r.status}`;
-          console.log('[discord] non-200 body:', errBody.slice(0, 200));
         }
       } catch (e) {
         discordDebug.error = e.name + ': ' + e.message;
         discordDebug.reason = e.name === 'AbortError' ? 'timeout-8s' : 'fetch-error';
-        console.error('[discord] FETCH FAILED:', e.name, e.message);
       } finally {
         clearTimeout(timeout);
       }
     }
-    console.log('[discord] ==== END — result:', discordPresence ? 'GOT DATA' : 'NULL', '====');
 
     const ctx = {
       host: req.headers.host || 'localhost',
@@ -894,7 +1036,7 @@ ${auroraCSS}
   html,body{overflow:hidden;height:100%;font-family:'Inter',system-ui,sans-serif;color:#fff;}
   .profile-canvas{position:relative;width:100vw;height:100vh;overflow:hidden;}
   a{color:inherit;-webkit-tap-highlight-color:transparent;}
-  img{max-width:100%;height:auto;}
+  img{max-width:100%;}
   @media(max-width:768px){ .profile-canvas{font-size:90%;} }
 </style>
 </head>
