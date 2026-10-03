@@ -123,8 +123,25 @@
       transition:transform 0.3s, box-shadow 0.3s;
     }
     .btn:hover { transform:scale(1.03); box-shadow:0 15px 35px rgba(0,0,0,0.5); }
+    .btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
 
     .error-msg { color:#b00020; font-size:0.85rem; min-height:20px; margin-top:8px; }
+    .info-msg { color:#0a6b2c; font-size:0.85rem; min-height:20px; margin-top:8px; }
+
+    .reset-link {
+      font-size:0.75rem; text-align:center; margin-top:12px;
+      color:rgba(0,0,0,0.5);
+    }
+    .reset-link a { color:#000; font-weight:700; text-decoration:underline; }
+
+    .session-banner {
+      display:none;
+      padding:10px 14px; border-radius:10px;
+      background:rgba(176,0,32,0.1); border:1px solid rgba(176,0,32,0.3);
+      color:#b00020; font-size:0.8rem; line-height:1.4;
+      margin-bottom:16px;
+    }
+    .session-banner.show { display:block; }
 
     .footer {
       text-align:center; padding:40px; border-top:1px solid rgba(0,0,0,0.2);
@@ -158,26 +175,34 @@
     <div class="card">
       <h2>Chromaticc</h2>
       <p class="subtitle">Goofy, yet powerful – your profile awaits.</p>
+
+      <div class="session-banner" id="sessionBanner"></div>
+
       <div class="tab-row">
         <button class="tab active" id="tabLogin">Log in</button>
         <button class="tab" id="tabSignup">Sign up</button>
       </div>
 
       <form id="loginForm" class="form">
-        <input type="text" id="loginUsername" placeholder="Username or email" required>
-        <input type="password" id="loginPassword" placeholder="Password" required>
-        <button type="submit" class="btn">Enter the chaos</button>
+        <input type="text" id="loginUsername" placeholder="Username or email" required autocomplete="username">
+        <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password">
+        <button type="submit" class="btn" id="loginBtn">Enter the chaos</button>
         <div class="error-msg" id="loginError"></div>
+        <div class="info-msg" id="loginInfo"></div>
       </form>
 
       <form id="signupForm" class="form" style="display:none;">
-        <input type="text" id="signupUsername" placeholder="Username" required>
-        <input type="email" id="signupEmail" placeholder="Email" required>
-        <input type="password" id="signupPassword" placeholder="Password" required>
-        <input type="password" id="signupConfirm" placeholder="Confirm password" required>
-        <button type="submit" class="btn">Join the goof troop</button>
+        <input type="text" id="signupUsername" placeholder="Username" required autocomplete="username">
+        <input type="email" id="signupEmail" placeholder="Email" required autocomplete="email">
+        <input type="password" id="signupPassword" placeholder="Password" required autocomplete="new-password">
+        <input type="password" id="signupConfirm" placeholder="Confirm password" required autocomplete="new-password">
+        <button type="submit" class="btn" id="signupBtn">Join the goof troop</button>
         <div class="error-msg" id="signupError"></div>
       </form>
+
+      <p class="reset-link">
+        Session stuck? <a href="?force=1" id="forceResetLink">Force reset →</a>
+      </p>
     </div>
   </div>
 
@@ -229,43 +254,92 @@
     signupForm.style.display='flex'; loginForm.style.display='none';
   });
 
-  // ---- Check if already logged in (via localStorage token) ----
-  const token = localStorage.getItem('chromaticc_token');
-  if (token) {
-    window.location.href = '/dashboard.html';
-  }
-
   const LOGIN_URL = '/api/login';
   const SIGNUP_URL = '/api/signup';
+  const VERIFY_URL = '/api/verify';
 
-  // ---- Login handler (cookies saved automatically) ----
+  const sessionBanner = document.getElementById('sessionBanner');
+  function showBanner(msg) {
+    sessionBanner.textContent = msg;
+    sessionBanner.classList.add('show');
+  }
+  function clearToken() {
+    localStorage.removeItem('chromaticc_token');
+    localStorage.removeItem('chromaticc_user');
+  }
+
+  // ---- Existing-session check ----
+  (async function checkExistingSession(){
+    const params = new URLSearchParams(location.search);
+    const force = params.has('force');
+
+    if (force) {
+      clearToken();
+      showBanner('Session cleared. Log in again.');
+      history.replaceState(null, '', location.pathname);
+      return;
+    }
+
+    const token = localStorage.getItem('chromaticc_token');
+    if (!token) return;
+
+    try {
+      const r = await fetch(VERIFY_URL, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (r.ok) {
+        window.location.href = '/dashboard.html';
+        return;
+      }
+
+      // Token is broken — clear it so the user can log in again
+      clearToken();
+      showBanner('Your old session expired. Log in again to continue.');
+    } catch (e) {
+      // Verify endpoint unreachable — leave localStorage alone
+      // so we don't nuke a possibly-good token on a network blip
+    }
+  })();
+
+  // ---- Login ----
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
     const errorEl = document.getElementById('loginError');
+    const infoEl = document.getElementById('loginInfo');
+    const btn = document.getElementById('loginBtn');
     errorEl.textContent = '';
+    infoEl.textContent = '';
+
+    btn.disabled = true;
+    btn.textContent = 'Entering…';
 
     try {
       const res = await fetch(LOGIN_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
-        credentials: 'include'   // ← automatically saves the HttpOnly cookie
+        credentials: 'include'
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
 
+      clearToken();
       localStorage.setItem('chromaticc_token', data.token);
       localStorage.setItem('chromaticc_user', JSON.stringify(data.user));
 
-      window.location.href = '/' + data.user.username;
+      infoEl.textContent = 'Logged in. Redirecting…';
+      window.location.href = '/dashboard.html';
     } catch (err) {
       errorEl.textContent = err.message;
+      btn.disabled = false;
+      btn.textContent = 'Enter the chaos';
     }
   });
 
-  // ---- Signup handler (cookies saved automatically) ----
+  // ---- Signup ----
   signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('signupUsername').value.trim();
@@ -273,6 +347,7 @@
     const password = document.getElementById('signupPassword').value;
     const confirm = document.getElementById('signupConfirm').value;
     const errorEl = document.getElementById('signupError');
+    const btn = document.getElementById('signupBtn');
     errorEl.textContent = '';
 
     if (password !== confirm) {
@@ -280,22 +355,28 @@
       return;
     }
 
+    btn.disabled = true;
+    btn.textContent = 'Creating…';
+
     try {
       const res = await fetch(SIGNUP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password }),
-        credentials: 'include'   // ← automatically saves the HttpOnly cookie
+        credentials: 'include'
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Signup failed');
 
+      clearToken();
       localStorage.setItem('chromaticc_token', data.token);
       localStorage.setItem('chromaticc_user', JSON.stringify(data.user));
 
-      window.location.href = '/' + data.user.username;
+      window.location.href = '/dashboard.html';
     } catch (err) {
       errorEl.textContent = err.message;
+      btn.disabled = false;
+      btn.textContent = 'Join the goof troop';
     }
   });
 </script>
