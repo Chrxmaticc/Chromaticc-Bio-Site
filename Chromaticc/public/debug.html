@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debug</title>
+<style>
+  body{font-family:monospace;background:#0a0a12;color:#eee;padding:20px;font-size:14px;line-height:1.6;}
+  h2{color:#4ade80;margin:20px 0 10px;font-size:16px;}
+  .row{padding:8px 12px;background:#1a1a22;border-radius:8px;margin-bottom:6px;word-break:break-all;}
+  .ok{color:#4ade80;} .bad{color:#ff5566;} .warn{color:#fbbf24;}
+  pre{background:#1a1a22;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;}
+</style>
+</head>
+<body>
+<h2>LocalStorage</h2>
+<div id="ls"></div>
+
+<h2>API Test: /api/get-layout</h2>
+<div id="api"></div>
+
+<h2>Raw Response</h2>
+<pre id="raw">Loading…</pre>
+
+<script>
+const ls = document.getElementById('ls');
+const api = document.getElementById('api');
+const raw = document.getElementById('raw');
+
+const token = localStorage.getItem('chromaticc_token');
+const user = localStorage.getItem('chromaticc_user');
+
+ls.innerHTML = `
+  <div class="row">token: <span class="${token ? 'ok' : 'bad'}">${token ? token.slice(0, 30) + '… (' + token.length + ' chars)' : 'MISSING'}</span></div>
+  <div class="row">user: <span class="${user ? 'ok' : 'bad'}">${user || 'MISSING'}</span></div>
+  <div class="row">origin: <span class="ok">${location.origin}</span></div>
+`;
+
+if (!token) {
+  api.innerHTML = '<div class="row bad">No token — cannot test API. Log in first.</div>';
+  raw.textContent = 'Skipped.';
+} else {
+  fetch('/api/get-layout', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => {
+      api.innerHTML = `<div class="row">Status: <span class="${r.ok ? 'ok' : 'bad'}">${r.status} ${r.statusText}</span></div>`;
+      return r.text();
+    })
+    .then(t => { raw.textContent = t.slice(0, 2000) || '(empty body)'; })
+    .catch(e => { raw.textContent = 'Fetch error: ' + e.message; });
+}
+</script>
+</body>
+</html>
