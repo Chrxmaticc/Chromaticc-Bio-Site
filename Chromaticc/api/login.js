@@ -1,30 +1,22 @@
-import { Pool } from 'pg';
 import crypto from 'crypto';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false }
-});
+import { pool } from './_auth.js';
 
 function verifyPassword(password, stored) {
   return new Promise((resolve, reject) => {
     const [salt, key] = stored.split(':');
     crypto.scrypt(password, salt, 64, (err, derivedKey) => {
       if (err) reject(err);
-      resolve(key === derivedKey.toString('hex'));
+      else resolve(key === derivedKey.toString('hex'));
     });
   });
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
+  res.setHeader('Cache-Control', 'no-store');
+  if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
 
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Missing fields' });
-  }
+  const { username, password } = req.body || {};
+  if (!username || !password) return res.status(400).json({ message: 'Missing fields' });
 
   try {
     const result = await pool.query(
@@ -32,28 +24,32 @@ export default async function handler(req, res) {
       [username]
     );
     const user = result.rows[0];
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
     const valid = await verifyPassword(password, user.password_hash);
-    if (!valid) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    if (!valid) return res.status(401).json({ message: 'Invalid credentials' });
 
-    // Generate new token
     const token = crypto.randomBytes(32).toString('hex');
-    await pool.query('UPDATE users SET token = $1 WHERE id = $2', [token, user.id]);
+    const userAgent = (req.headers['user-agent'] || '').slice(0, 200);
+    const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim().slice(0, 60);
 
-    // Set the cookie — this is the line you need
-    res.setHeader('Set-Cookie', `token=${token}; Path=/; SameSite=Lax; Max-Age=604800`);
+    // multi-device: insert new session, don't clobber existing ones
+    await pool.query(
+      'INSERT INTO sessions (token, user_id, user_agent, ip) VALUES ($1, $2, $3, $4)',
+      [token, user.id, userAgent, ip]
+    );
+
+    // clean expired sessions for this user, fire-and-forget
+    pool.query('DELETE FROM sessions WHERE user_id = $1 AND expires_at < NOW()', [user.id]).catch(()=>{});
+
+    res.setHeader('Set-Cookie', `token=${token}; Path=/; SameSite=Lax; Max-Age=2592000`);
 
     return res.status(200).json({
       token,
       user: { id: user.id, username: user.username }
     });
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('[login] error:', err.message);
     return res.status(500).json({ message: 'Internal server error' });
   }
 }
