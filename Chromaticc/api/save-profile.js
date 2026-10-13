@@ -27,7 +27,7 @@ async function audit(action, targetUserId, details) {
       'INSERT INTO admin_audit (action, target_user_id, details, created_at) VALUES ($1,$2,$3,NOW())',
       [action, targetUserId || null, JSON.stringify(details || {})]
     );
-  } catch(e) { /* table might not exist, ignore */ }
+  } catch (e) { /* audit table might not exist, ignore */ }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -111,33 +111,32 @@ async function handleAdmin(req, res) {
         const userR = await pool.query(
           `SELECT id, username, email, alias, discord_id, created_at,
                   banned_until, banned_permanent, ban_reason, ban_keep_profile,
-                  terminated, terminated_reason, terminated_at
+                  terminated, terminated_reason, terminated_at, profile_data
            FROM users WHERE id = $1`, [id]
         );
         if (!userR.rows.length) return res.status(404).json({ error: 'user not found' });
 
         const profileR = await pool.query(
-          `SELECT view_count, updated_at, layout_data FROM profiles WHERE user_id = $1`, [id]
+          `SELECT view_count, layout_data FROM profiles WHERE user_id = $1`, [id]
         );
         const badgesR = await pool.query(
           `SELECT badge_id FROM user_badges WHERE user_id = $1`, [id]
         );
         const sessionsR = await pool.query(
           `SELECT created_at, expires_at, user_agent, ip FROM sessions WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20`, [id]
-        );
+        ).catch(() => ({ rows: [] }));
 
         const profile = profileR.rows[0] || {};
         let widgetCount = 0;
         try {
           const ld = typeof profile.layout_data === 'string' ? JSON.parse(profile.layout_data) : profile.layout_data;
           widgetCount = (ld?.layout || []).length;
-        } catch(e) {}
+        } catch (e) {}
 
         return res.status(200).json({
           user: userR.rows[0],
           profile: {
             viewCount: profile.view_count || 0,
-            updatedAt: profile.updated_at,
             widgetCount
           },
           badges: badgesR.rows.map(r => r.badge_id),
@@ -172,9 +171,9 @@ async function handleAdmin(req, res) {
         await pool.query(
           `INSERT INTO user_badges (user_id, badge_id) VALUES ($1, 'banned') ON CONFLICT DO NOTHING`,
           [id]
-        ).catch(()=>{});
+        ).catch(() => {});
 
-        await pool.query('DELETE FROM sessions WHERE user_id = $1', [id]).catch(()=>{});
+        await pool.query('DELETE FROM sessions WHERE user_id = $1', [id]).catch(() => {});
 
         await audit('ban', id, { duration, reason, keepProfile });
         return res.status(200).json({ ok: true });
@@ -188,7 +187,7 @@ async function handleAdmin(req, res) {
           `UPDATE users SET banned_permanent = FALSE, banned_until = NULL, ban_reason = NULL WHERE id = $1`,
           [id]
         );
-        await pool.query(`DELETE FROM user_badges WHERE user_id = $1 AND badge_id = 'banned'`, [id]).catch(()=>{});
+        await pool.query(`DELETE FROM user_badges WHERE user_id = $1 AND badge_id = 'banned'`, [id]).catch(() => {});
         await audit('unban', id, {});
         return res.status(200).json({ ok: true });
       }
@@ -205,8 +204,8 @@ async function handleAdmin(req, res) {
         await pool.query(
           `INSERT INTO user_badges (user_id, badge_id) VALUES ($1, 'terminated') ON CONFLICT DO NOTHING`,
           [id]
-        ).catch(()=>{});
-        await pool.query('DELETE FROM sessions WHERE user_id = $1', [id]).catch(()=>{});
+        ).catch(() => {});
+        await pool.query('DELETE FROM sessions WHERE user_id = $1', [id]).catch(() => {});
         await audit('terminate', id, { reason });
         return res.status(200).json({ ok: true });
       }
@@ -219,7 +218,7 @@ async function handleAdmin(req, res) {
           `UPDATE users SET terminated = FALSE, terminated_reason = NULL, terminated_at = NULL WHERE id = $1`,
           [id]
         );
-        await pool.query(`DELETE FROM user_badges WHERE user_id = $1 AND badge_id = 'terminated'`, [id]).catch(()=>{});
+        await pool.query(`DELETE FROM user_badges WHERE user_id = $1 AND badge_id = 'terminated'`, [id]).catch(() => {});
         await audit('unterminate', id, {});
         return res.status(200).json({ ok: true });
       }
@@ -254,12 +253,12 @@ async function handleAdmin(req, res) {
         const tempPass = crypto.randomBytes(6).toString('base64url').slice(0, 10);
         const hash = await hashPassword(tempPass);
         await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, id]);
-        await pool.query('DELETE FROM sessions WHERE user_id = $1', [id]).catch(()=>{});
+        await pool.query('DELETE FROM sessions WHERE user_id = $1', [id]).catch(() => {});
         await audit('reset-password', id, {});
         return res.status(200).json({ ok: true, tempPassword: tempPass });
       }
 
-      /* ─── LOGOUT USER ─── */
+      /* ─── LOGOUT USER (kill all sessions) ─── */
       case 'logout-user': {
         const id = parseInt(body.id);
         if (!id) return res.status(400).json({ error: 'missing id' });
@@ -278,14 +277,36 @@ async function handleAdmin(req, res) {
         return res.status(200).json({ ok: true });
       }
 
+      /* ─── SET DISCORD ID ─── */
+      case 'set-discord-id': {
+        const id = parseInt(body.id);
+        if (!id) return res.status(400).json({ error: 'missing id' });
+        const discordId = String(body.discordId || '').trim();
+        if (discordId && !/^\d{17,20}$/.test(discordId)) return res.status(400).json({ error: 'invalid discord id' });
+        await pool.query('UPDATE users SET discord_id = $1 WHERE id = $2', [discordId || null, id]);
+        await audit('set-discord-id', id, { discordId });
+        return res.status(200).json({ ok: true });
+      }
+
+      /* ─── EDIT PROFILE DATA ─── */
+      case 'edit-profile-data': {
+        const id = parseInt(body.id);
+        if (!id) return res.status(400).json({ error: 'missing id' });
+        const profile = body.profile;
+        if (!profile || typeof profile !== 'object') return res.status(400).json({ error: 'profile object required' });
+        await pool.query('UPDATE users SET profile_data = $1 WHERE id = $2', [JSON.stringify(profile), id]);
+        await audit('edit-profile-data', id, {});
+        return res.status(200).json({ ok: true });
+      }
+
       /* ─── DELETE USER ─── */
       case 'delete-user': {
         const id = parseInt(body.id);
         if (!id) return res.status(400).json({ error: 'missing id' });
         if (body.confirm !== 'DELETE') return res.status(400).json({ error: 'confirmation required' });
-        await pool.query('DELETE FROM sessions WHERE user_id = $1', [id]).catch(()=>{});
-        await pool.query('DELETE FROM user_badges WHERE user_id = $1', [id]).catch(()=>{});
-        await pool.query('DELETE FROM profiles WHERE user_id = $1', [id]).catch(()=>{});
+        await pool.query('DELETE FROM sessions WHERE user_id = $1', [id]).catch(() => {});
+        await pool.query('DELETE FROM user_badges WHERE user_id = $1', [id]).catch(() => {});
+        await pool.query('DELETE FROM profiles WHERE user_id = $1', [id]).catch(() => {});
         await pool.query('DELETE FROM users WHERE id = $1', [id]);
         await audit('delete-user', id, {});
         return res.status(200).json({ ok: true });
@@ -317,6 +338,31 @@ async function handleAdmin(req, res) {
            ORDER BY a.created_at DESC LIMIT $1`, [limit]
         ).catch(() => ({ rows: [] }));
         return res.status(200).json({ log: r.rows });
+      }
+
+      /* ─── KILL ALL SESSIONS ─── */
+      case 'kill-all-sessions': {
+        const r = await pool.query('DELETE FROM sessions');
+        await audit('kill-all-sessions', null, { killed: r.rowCount });
+        return res.status(200).json({ ok: true, killed: r.rowCount });
+      }
+
+      /* ─── WIPE GUESTBOOK ─── */
+      case 'wipe-guestbook': {
+        let deleted = 0;
+        try {
+          const r = await pool.query('DELETE FROM guestbook');
+          deleted = r.rowCount;
+        } catch (e) {
+          try {
+            const r = await pool.query('DELETE FROM guestbook_entries');
+            deleted = r.rowCount;
+          } catch (e2) {
+            return res.status(400).json({ error: 'guestbook table not found' });
+          }
+        }
+        await audit('wipe-guestbook', null, { deleted });
+        return res.status(200).json({ ok: true, deleted });
       }
 
       default:
