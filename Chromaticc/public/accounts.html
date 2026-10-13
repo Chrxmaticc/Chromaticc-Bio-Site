@@ -1,384 +1,424 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chromaticc – Account</title>
-  <link rel="icon" type="image/png" href="Chromaticc.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Orbitron:wght@600&display=swap" rel="stylesheet">
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chromaticc — Sign in</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="Chromaticc.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+(function(){
+  var s=localStorage.getItem('chromaticc_theme');
+  var t=s||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+  document.documentElement.setAttribute('data-theme',t);
+})();
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --text:#ffffff;
+  --muted:#8a8a9a;
+  --muted-2:#4a4a58;
+  --border:rgba(255,255,255,0.1);
+  --border-strong:rgba(255,255,255,0.28);
+  --glass:rgba(0,0,0,0.4);
+  --glass-2:rgba(0,0,0,0.6);
+  --icon:url('Chromaticc.png');
+  --icon-blend:screen;
+  --icon-filter:none;
+}
+html{scroll-behavior:smooth;}
+body{
+  min-height:100vh;
+  background:#000;
+  color:var(--text);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  position:relative;
+}
+.bg-gif{position:fixed;inset:0;z-index:-5;pointer-events:none;background:url('background.gif') center/cover no-repeat;filter:brightness(0.55) saturate(0.7) contrast(1.05);}
+.bg-vignette{position:fixed;inset:0;z-index:-4;pointer-events:none;background:radial-gradient(ellipse 100% 80% at 50% 40%,transparent 20%,rgba(0,0,0,0.5) 60%,rgba(0,0,0,0.85) 100%);}
+.bg-scanlines{position:fixed;inset:0;z-index:-3;pointer-events:none;opacity:0.08;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.4) 0px,rgba(255,255,255,0.4) 1px,transparent 1px,transparent 3px);animation:scanDrift 12s linear infinite;mix-blend-mode:overlay;}
+@keyframes scanDrift{to{background-position:0 3px;}}
+.bg-grain{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:0.07;background-image:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20200%20200%22%3E%3Cfilter%20id=%22n%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.9%22%20numOctaves=%223%22/%3E%3C/filter%3E%3Crect%20width=%22200%22%20height=%22200%22%20filter=%22url(%23n)%22/%3E%3C/svg%3E");mix-blend-mode:overlay;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+img{max-width:100%;display:block;}
 
-    body::before {
-      content: '';
-      position: fixed; top:0; left:0; width:100%; height:100%; z-index:-1;
-      background: url('background.jpeg') center/cover no-repeat fixed;
-      opacity:0.35; filter: brightness(0.6) saturate(0.6);
-      animation: slowPan 50s linear infinite alternate;
-    }
-    @keyframes slowPan {
-      0% { transform: scale(1) translate(0, 0); }
-      100% { transform: scale(1.15) translate(-3%, -2%); }
-    }
+.nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;gap:16px;
+  padding:14px 32px;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(24px) saturate(1.6);
+  -webkit-backdrop-filter:blur(24px) saturate(1.6);
+  border-bottom:1px solid var(--border);
+}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.3px;font-size:1.05rem;}
+.nav-brand-icon{width:32px;height:32px;background-image:var(--icon);background-size:contain;background-repeat:no-repeat;background-position:center;mix-blend-mode:var(--icon-blend);filter:var(--icon-filter) drop-shadow(0 0 12px rgba(255,255,255,0.5));}
+.nav-spacer{flex:1;}
+.nav-link{padding:8px 12px;border-radius:8px;font-size:14px;font-weight:500;color:var(--muted);transition:color .15s,background .15s;font-family:'JetBrains Mono',monospace;}
+.nav-link:hover{color:var(--text);background:rgba(255,255,255,0.05);}
 
-    body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: linear-gradient(180deg,
-        rgba(255,255,255,0.92) 0%,
-        rgba(224,224,224,0.9) 30%,
-        rgba(128,128,128,0.85) 60%,
-        rgba(26,26,26,0.9) 85%,
-        rgba(0,0,0,0.95) 100%);
-      background-attachment: fixed;
-      color: #000; min-height:100vh; overflow-x:hidden; position:relative;
-    }
+.main{
+  display:flex;justify-content:center;align-items:center;
+  min-height:calc(100vh - 60px);padding:80px 20px;
+  position:relative;z-index:2;
+}
+.card{
+  width:100%;max-width:440px;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(28px) saturate(1.4);
+  -webkit-backdrop-filter:blur(28px) saturate(1.4);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:44px 38px;
+  box-shadow:0 40px 100px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.05);
+  position:relative;
+  overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
+}
+.card h1{
+  font-size:1.9rem;font-weight:900;letter-spacing:-.8px;
+  margin-bottom:6px;
+  display:flex;align-items:center;gap:12px;
+}
+.card h1 .card-icon{width:36px;height:36px;background-image:var(--icon);background-size:contain;background-repeat:no-repeat;background-position:center;mix-blend-mode:var(--icon-blend);filter:var(--icon-filter) drop-shadow(0 0 16px rgba(255,255,255,0.6));flex-shrink:0;}
+.card p.sub{font-size:0.88rem;color:var(--muted);margin-bottom:28px;font-family:'JetBrains Mono',monospace;}
 
-    .particles {
-      position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none;
-    }
-    .particle {
-      position:absolute; background:rgba(192,192,192,0.7); border-radius:50%;
-      width:2px; height:2px; animation: rise linear infinite;
-    }
-    @keyframes rise {
-      0% { transform: translateY(100vh) scale(0); opacity:0; }
-      10% { opacity:1; } 90% { opacity:1; }
-      100% { transform: translateY(-10vh) scale(2); opacity:0; }
-    }
+.banner{
+  display:none;
+  padding:12px 16px;border-radius:12px;
+  font-size:0.82rem;line-height:1.5;margin-bottom:20px;
+  font-family:'JetBrains Mono',monospace;
+  border:1px solid;
+}
+.banner.show{display:block;}
+.banner.err{background:rgba(176,0,32,0.15);border-color:rgba(255,80,110,0.4);color:#ff8899;}
+.banner.ok{background:rgba(74,222,128,0.1);border-color:rgba(74,222,128,0.35);color:#4ade80;}
 
-    .splatter-container {
-      position:fixed; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none;
-    }
-    .splatter-img {
-      position:absolute; opacity:0; transition: opacity 0.8s ease; user-select:none;
-      filter: drop-shadow(0 0 15px rgba(0,0,0,0.3));
-      animation: float 7s ease-in-out infinite;
-      animation-delay: calc(var(--delay) * 1s); will-change:transform;
-    }
-    @keyframes float {
-      0%,100%{ transform: translateY(0px) rotate(var(--rot)); }
-      50%{ transform: translateY(-16px) rotate(var(--rot)); }
-    }
+.tab-row{display:flex;gap:0;margin-bottom:26px;border-bottom:1px solid var(--border);}
+.tab{
+  flex:1;text-align:center;padding:12px;
+  color:var(--muted);font-weight:600;font-size:0.95rem;
+  border-bottom:2px solid transparent;
+  transition:all .2s;
+  font-family:'JetBrains Mono',monospace;
+}
+.tab:hover{color:var(--text);}
+.tab.active{color:#fff;border-bottom-color:#fff;}
 
-    .topbar {
-      position:fixed; top:0; left:0; width:100%; padding:16px 40px;
-      display:flex; justify-content:space-between; align-items:center;
-      background:transparent; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-      border-bottom:1px solid rgba(255,255,255,0.08); z-index:1000; color:#fff;
-    }
-    .topbar .logo { display:flex; align-items:center; gap:12px; font-size:1.3rem; font-weight:900; }
-    .topbar .logo img { width:36px; height:36px; border-radius:8px; }
-    .topbar .logo span {
-      background:linear-gradient(135deg,#fff,#aaa);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-    }
-    .topbar nav { display:flex; align-items:center; gap:28px; }
-    .topbar nav a { color:#ccc; text-decoration:none; font-size:0.95rem; font-weight:500; transition:color 0.2s; }
-    .topbar nav a:hover { color:#fff; }
+.form{display:flex;flex-direction:column;gap:14px;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{
+  font-size:0.68rem;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.14em;
+  font-family:'JetBrains Mono',monospace;
+}
+.field input{
+  padding:14px 16px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,0.03);
+  color:#fff;
+  font-size:0.95rem;
+  font-family:inherit;
+  outline:none;
+  transition:all .2s;
+}
+.field input::placeholder{color:var(--muted-2);}
+.field input:focus{
+  border-color:var(--border-strong);
+  background:rgba(255,255,255,0.06);
+  box-shadow:0 0 0 3px rgba(255,255,255,0.06);
+}
 
-    .main {
-      display:flex; justify-content:center; align-items:center; min-height:100vh; padding:120px 20px 40px;
-      position:relative; z-index:2;
-    }
-    .card {
-      background: rgba(255,255,255,0.2); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-      border:1px solid rgba(255,255,255,0.2); border-radius:28px;
-      padding:40px 36px; width:100%; max-width:420px;
-      color:#000; box-shadow:0 25px 50px rgba(0,0,0,0.4);
-    }
-    .card h2 {
-      font-size:2rem; font-weight:800; margin-bottom:8px;
-      background:linear-gradient(135deg,#000,#fff,#444); background-size:200% auto;
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-      animation: gradientShift 4s ease infinite;
-    }
-    @keyframes gradientShift {
-      0%,100%{ background-position:0% 50%; }
-      50%{ background-position:100% 50%; }
-    }
-    .subtitle { font-size:0.9rem; color:#000; margin-bottom:24px; }
+.btn-submit{
+  margin-top:6px;
+  padding:15px;
+  border-radius:12px;
+  background:#ffffff;
+  color:#000;
+  font-weight:800;
+  font-size:0.95rem;
+  font-family:inherit;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+  overflow:hidden;
+}
+.btn-submit::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(0,0,0,0.15),transparent);transform:translateX(-100%);transition:transform .6s;}
+.btn-submit:hover:not(:disabled)::before{transform:translateX(100%);}
+.btn-submit:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 14px 40px rgba(255,255,255,0.3);}
+.btn-submit:disabled{opacity:0.5;cursor:not-allowed;}
 
-    .tab-row { display:flex; gap:0; margin-bottom:24px; }
-    .tab {
-      flex:1; text-align:center; padding:12px; border:none; background:transparent;
-      color:#000; font-weight:600; font-size:1rem; cursor:pointer;
-      border-bottom:2px solid transparent; transition:0.2s;
-    }
-    .tab.active { border-bottom-color:#000; }
+.err{color:#ff8899;font-size:0.82rem;min-height:18px;font-family:'JetBrains Mono',monospace;}
 
-    .form { display:flex; flex-direction:column; gap:16px; }
-    .form input {
-      padding:14px 16px; border-radius:14px; border:1px solid rgba(0,0,0,0.2);
-      background:rgba(255,255,255,0.3); backdrop-filter:blur(8px);
-      color:#000; font-size:0.95rem; outline:none; transition:0.2s;
-    }
-    .form input::placeholder { color:rgba(0,0,0,0.5); }
-    .form input:focus { border-color:#000; box-shadow:0 0 0 3px rgba(0,0,0,0.1); }
+.reset-link{
+  text-align:center;margin-top:20px;
+  font-size:0.72rem;color:var(--muted-2);
+  font-family:'JetBrains Mono',monospace;
+}
+.reset-link a{color:var(--muted);font-weight:600;text-decoration:underline;}
+.reset-link a:hover{color:#fff;}
 
-    .btn {
-      padding:0.9rem; border-radius:14px; font-weight:600; font-size:1rem;
-      background:linear-gradient(135deg,#e0e0e0,#808080); border:none; cursor:pointer;
-      color:#0a0a0a; box-shadow:0 10px 25px rgba(0,0,0,0.3);
-      transition:transform 0.3s, box-shadow 0.3s;
-    }
-    .btn:hover { transform:scale(1.03); box-shadow:0 15px 35px rgba(0,0,0,0.5); }
-    .btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+.footer-note{
+  text-align:center;
+  margin-top:26px;padding-top:22px;
+  border-top:1px solid var(--border);
+  font-size:0.72rem;color:var(--muted-2);
+  font-family:'JetBrains Mono',monospace;
+  line-height:1.6;
+}
+.footer-note a{color:var(--muted);text-decoration:underline;}
+.footer-note a:hover{color:#fff;}
 
-    .error-msg { color:#b00020; font-size:0.85rem; min-height:20px; margin-top:8px; }
-    .info-msg { color:#0a6b2c; font-size:0.85rem; min-height:20px; margin-top:8px; }
-
-    .reset-link {
-      font-size:0.75rem; text-align:center; margin-top:12px;
-      color:rgba(0,0,0,0.5);
-    }
-    .reset-link a { color:#000; font-weight:700; text-decoration:underline; }
-
-    .session-banner {
-      display:none;
-      padding:10px 14px; border-radius:10px;
-      background:rgba(176,0,32,0.1); border:1px solid rgba(176,0,32,0.3);
-      color:#b00020; font-size:0.8rem; line-height:1.4;
-      margin-bottom:16px;
-    }
-    .session-banner.show { display:block; }
-
-    .footer {
-      text-align:center; padding:40px; border-top:1px solid rgba(0,0,0,0.2);
-      color:#000; font-size:0.85rem; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px);
-      position:relative; z-index:2;
-    }
-    .footer a { color:#000; text-decoration:underline; margin:0 8px; font-weight:600; }
-
-    @media(max-width:520px){ .topbar{padding:12px 20px;} .card{padding:28px 20px;} }
-  </style>
+@media (max-width:520px){
+  .nav{padding:12px 18px;}
+  .main{padding:60px 16px;}
+  .card{padding:32px 24px;border-radius:20px;}
+  .card h1{font-size:1.5rem;}
+}
+</style>
 </head>
 <body>
-<div class="particles" id="particlesContainer"></div>
-<div class="splatter-container" id="splatterContainer"></div>
 
-<div style="position:relative; z-index:2;">
-  <header class="topbar">
-    <div class="logo">
-      <img src="Chromaticc.png" alt="Chromaticc Logo">
-      <span>Chromaticc</span>
+<div class="bg-gif"></div>
+<div class="bg-vignette"></div>
+<div class="bg-scanlines"></div>
+<div class="bg-grain"></div>
+
+<nav class="nav">
+  <a href="/" class="nav-brand">
+    <div class="nav-brand-icon"></div>
+    <span>Chromaticc</span>
+  </a>
+  <div class="nav-spacer"></div>
+  <a href="/" class="nav-link">← back home</a>
+</nav>
+
+<main class="main">
+  <div class="card">
+    <h1><span class="card-icon"></span>Chromaticc</h1>
+    <p class="sub">// sign in or create your page</p>
+
+    <div class="banner" id="banner"></div>
+
+    <div class="tab-row">
+      <button class="tab active" id="tabLogin" type="button">log in</button>
+      <button class="tab" id="tabSignup" type="button">sign up</button>
     </div>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="#">Features</a>
-      <a href="#">Dashboard</a>
-      <a href="#">Docs</a>
-    </nav>
-  </header>
 
-  <div class="main">
-    <div class="card">
-      <h2>Chromaticc</h2>
-      <p class="subtitle">Goofy, yet powerful – your profile awaits.</p>
-
-      <div class="session-banner" id="sessionBanner"></div>
-
-      <div class="tab-row">
-        <button class="tab active" id="tabLogin">Log in</button>
-        <button class="tab" id="tabSignup">Sign up</button>
+    <form class="form" id="loginForm" autocomplete="on">
+      <div class="field">
+        <label for="loginUsername">username or email</label>
+        <input type="text" id="loginUsername" name="username" required autocomplete="username" spellcheck="false" autocapitalize="none">
       </div>
+      <div class="field">
+        <label for="loginPassword">password</label>
+        <input type="password" id="loginPassword" name="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-submit" id="loginBtn">enter the chaos →</button>
+      <div class="err" id="loginErr"></div>
+    </form>
 
-      <form id="loginForm" class="form">
-        <input type="text" id="loginUsername" placeholder="Username or email" required autocomplete="username">
-        <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password">
-        <button type="submit" class="btn" id="loginBtn">Enter the chaos</button>
-        <div class="error-msg" id="loginError"></div>
-        <div class="info-msg" id="loginInfo"></div>
-      </form>
+    <form class="form" id="signupForm" style="display:none;" autocomplete="on">
+      <div class="field">
+        <label for="signupUsername">username</label>
+        <input type="text" id="signupUsername" name="username" required autocomplete="username" spellcheck="false" autocapitalize="none" placeholder="2-32 chars, letters/numbers/._-">
+      </div>
+      <div class="field">
+        <label for="signupEmail">email</label>
+        <input type="email" id="signupEmail" name="email" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="signupPassword">password</label>
+        <input type="password" id="signupPassword" name="password" required autocomplete="new-password" minlength="6">
+      </div>
+      <div class="field">
+        <label for="signupConfirm">confirm password</label>
+        <input type="password" id="signupConfirm" name="confirm" required autocomplete="new-password" minlength="6">
+      </div>
+      <button type="submit" class="btn-submit" id="signupBtn">join the goof troop →</button>
+      <div class="err" id="signupErr"></div>
+    </form>
 
-      <form id="signupForm" class="form" style="display:none;">
-        <input type="text" id="signupUsername" placeholder="Username" required autocomplete="username">
-        <input type="email" id="signupEmail" placeholder="Email" required autocomplete="email">
-        <input type="password" id="signupPassword" placeholder="Password" required autocomplete="new-password">
-        <input type="password" id="signupConfirm" placeholder="Confirm password" required autocomplete="new-password">
-        <button type="submit" class="btn" id="signupBtn">Join the goof troop</button>
-        <div class="error-msg" id="signupError"></div>
-      </form>
+    <div class="reset-link">
+      session stuck? <a href="?force=1" id="forceResetLink">force reset →</a>
+    </div>
 
-      <p class="reset-link">
-        Session stuck? <a href="?force=1" id="forceResetLink">Force reset →</a>
-      </p>
+    <div class="footer-note">
+      <a href="https://discord.gg/chrxmaticc" target="_blank" rel="noopener">discord</a> ·
+      <a href="/">home</a> ·
+      <a href="#">terms</a>
     </div>
   </div>
-
-  <footer class="footer">
-    <p>Chromaticc &copy; 2026 — <a href="#">GitHub</a> · <a href="https://discord.gg/chrxmaticc" target="_blank">Discord</a></p>
-  </footer>
-</div>
+</main>
 
 <script>
-  // ---- particles & splatter ----
-  (function(){
-    const pc = document.getElementById('particlesContainer');
-    for(let i=0;i<40;i++){
-      const p = document.createElement('div'); p.className='particle';
-      p.style.left=Math.random()*100+'%'; p.style.top=Math.random()*100+'%';
-      p.style.animationDuration=(Math.random()*8+6)+'s';
-      p.style.animationDelay=Math.random()*5+'s';
-      pc.appendChild(p);
-    }
-    const sources = ['Chromaticc.png','Chromaticc-Happy.png','Chromaticc-Speaker.png','Chromaticc-Doctor.png'];
-    const sc = document.getElementById('splatterContainer');
-    for(let i=0;i<24;i++){
-      const img = document.createElement('img'); img.src=sources[i%sources.length];
-      img.className='splatter-img';
-      img.style.left=Math.random()*100+'%'; img.style.top=Math.random()*100+'%';
-      img.style.width=(50+Math.random()*200)+'px';
-      img.style.setProperty('--rot',((Math.random()*40)-20)+'deg');
-      img.style.setProperty('--delay',Math.random()*6);
-      img.style.opacity=0.08+Math.random()*0.3;
-      sc.appendChild(img);
-    }
-    window.addEventListener('load',()=>{
-      document.querySelectorAll('.splatter-img').forEach(i=>i.style.opacity=i.style.opacity);
+(function(){
+'use strict';
+const $ = (s,c) => (c||document).querySelector(s);
+const root = document.documentElement;
+
+const LOGIN_URL = '/api/login';
+const SIGNUP_URL = '/api/signup';
+const VERIFY_URL = '/api/verify';
+
+const banner = $('#banner');
+function showBanner(msg, type) {
+  banner.textContent = msg;
+  banner.className = 'banner show ' + (type === 'ok' ? 'ok' : 'err');
+}
+function clearToken() {
+  localStorage.removeItem('chromaticc_token');
+  localStorage.removeItem('chromaticc_user');
+}
+function saveSession(token, user) {
+  clearToken();
+  localStorage.setItem('chromaticc_token', token);
+  localStorage.setItem('chromaticc_user', JSON.stringify(user));
+}
+
+/* Tab switching */
+const tabLogin = $('#tabLogin'), tabSignup = $('#tabSignup');
+const loginForm = $('#loginForm'), signupForm = $('#signupForm');
+tabLogin.addEventListener('click', () => {
+  tabLogin.classList.add('active'); tabSignup.classList.remove('active');
+  loginForm.style.display = 'flex'; signupForm.style.display = 'none';
+  banner.classList.remove('show');
+});
+tabSignup.addEventListener('click', () => {
+  tabSignup.classList.add('active'); tabLogin.classList.remove('active');
+  signupForm.style.display = 'flex'; loginForm.style.display = 'none';
+  banner.classList.remove('show');
+});
+
+/* Existing-session check — verify against server, don't trust localStorage */
+(async function checkExistingSession(){
+  const params = new URLSearchParams(location.search);
+  const force = params.has('force');
+
+  if (force) {
+    clearToken();
+    // also clear cookie via server
+    try { await fetch('/api/logout', { method: 'POST', credentials: 'include' }); } catch(e){}
+    showBanner('// session cleared. log in again.', 'err');
+    history.replaceState(null, '', location.pathname);
+    return;
+  }
+
+  const token = localStorage.getItem('chromaticc_token');
+  if (!token) return;
+
+  try {
+    const r = await fetch(VERIFY_URL, {
+      headers: { 'Authorization': 'Bearer ' + token },
+      credentials: 'include'
     });
-  })();
 
-  // ---- Tab switching ----
-  const tabLogin = document.getElementById('tabLogin');
-  const tabSignup = document.getElementById('tabSignup');
-  const loginForm = document.getElementById('loginForm');
-  const signupForm = document.getElementById('signupForm');
-
-  tabLogin.addEventListener('click', ()=>{
-    tabLogin.classList.add('active'); tabSignup.classList.remove('active');
-    loginForm.style.display='flex'; signupForm.style.display='none';
-  });
-  tabSignup.addEventListener('click', ()=>{
-    tabSignup.classList.add('active'); tabLogin.classList.remove('active');
-    signupForm.style.display='flex'; loginForm.style.display='none';
-  });
-
-  const LOGIN_URL = '/api/login';
-  const SIGNUP_URL = '/api/signup';
-  const VERIFY_URL = '/api/verify';
-
-  const sessionBanner = document.getElementById('sessionBanner');
-  function showBanner(msg) {
-    sessionBanner.textContent = msg;
-    sessionBanner.classList.add('show');
-  }
-  function clearToken() {
-    localStorage.removeItem('chromaticc_token');
-    localStorage.removeItem('chromaticc_user');
-  }
-
-  // ---- Existing-session check ----
-  (async function checkExistingSession(){
-    const params = new URLSearchParams(location.search);
-    const force = params.has('force');
-
-    if (force) {
-      clearToken();
-      showBanner('Session cleared. Log in again.');
-      history.replaceState(null, '', location.pathname);
-      return;
-    }
-
-    const token = localStorage.getItem('chromaticc_token');
-    if (!token) return;
-
-    try {
-      const r = await fetch(VERIFY_URL, {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-
-      if (r.ok) {
-        window.location.href = '/dashboard.html';
-        return;
+    if (r.ok) {
+      const data = await r.json();
+      // refresh stored user in case it changed
+      if (data.user) {
+        localStorage.setItem('chromaticc_user', JSON.stringify(data.user));
       }
-
-      // Token is broken — clear it so the user can log in again
-      clearToken();
-      showBanner('Your old session expired. Log in again to continue.');
-    } catch (e) {
-      // Verify endpoint unreachable — leave localStorage alone
-      // so we don't nuke a possibly-good token on a network blip
-    }
-  })();
-
-  // ---- Login ----
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('loginUsername').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const errorEl = document.getElementById('loginError');
-    const infoEl = document.getElementById('loginInfo');
-    const btn = document.getElementById('loginBtn');
-    errorEl.textContent = '';
-    infoEl.textContent = '';
-
-    btn.disabled = true;
-    btn.textContent = 'Entering…';
-
-    try {
-      const res = await fetch(LOGIN_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include'
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Login failed');
-
-      clearToken();
-      localStorage.setItem('chromaticc_token', data.token);
-      localStorage.setItem('chromaticc_user', JSON.stringify(data.user));
-
-      infoEl.textContent = 'Logged in. Redirecting…';
       window.location.href = '/dashboard.html';
-    } catch (err) {
-      errorEl.textContent = err.message;
-      btn.disabled = false;
-      btn.textContent = 'Enter the chaos';
-    }
-  });
-
-  // ---- Signup ----
-  signupForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('signupUsername').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const password = document.getElementById('signupPassword').value;
-    const confirm = document.getElementById('signupConfirm').value;
-    const errorEl = document.getElementById('signupError');
-    const btn = document.getElementById('signupBtn');
-    errorEl.textContent = '';
-
-    if (password !== confirm) {
-      errorEl.textContent = 'Passwords do not match';
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = 'Creating…';
+    // token is broken — clear it so user can log in
+    clearToken();
+    showBanner('// your old session expired. log in again.', 'err');
+  } catch (e) {
+    // network error — leave localStorage alone
+  }
+})();
 
-    try {
-      const res = await fetch(SIGNUP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
-        credentials: 'include'
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Signup failed');
+/* Login */
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = $('#loginUsername').value.trim();
+  const password = $('#loginPassword').value;
+  const errEl = $('#loginErr');
+  const btn = $('#loginBtn');
+  errEl.textContent = '';
 
-      clearToken();
-      localStorage.setItem('chromaticc_token', data.token);
-      localStorage.setItem('chromaticc_user', JSON.stringify(data.user));
+  if (!username || !password) { errEl.textContent = '// enter username and password'; return; }
 
-      window.location.href = '/dashboard.html';
-    } catch (err) {
-      errorEl.textContent = err.message;
-      btn.disabled = false;
-      btn.textContent = 'Join the goof troop';
-    }
-  });
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'signing in…';
+
+  try {
+    const res = await fetch(LOGIN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Login failed');
+
+    saveSession(data.token, data.user);
+    showBanner('// welcome back. redirecting…', 'ok');
+    setTimeout(() => { window.location.href = '/dashboard.html'; }, 300);
+  } catch (err) {
+    errEl.textContent = '// ' + err.message;
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+});
+
+/* Signup */
+signupForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = $('#signupUsername').value.trim();
+  const email = $('#signupEmail').value.trim();
+  const password = $('#signupPassword').value;
+  const confirm = $('#signupConfirm').value;
+  const errEl = $('#signupErr');
+  const btn = $('#signupBtn');
+  errEl.textContent = '';
+
+  if (password !== confirm) { errEl.textContent = '// passwords do not match'; return; }
+  if (password.length < 6) { errEl.textContent = '// password must be 6+ characters'; return; }
+  if (!/^[a-zA-Z0-9_.-]{2,32}$/.test(username)) {
+    errEl.textContent = '// username: 2-32 chars, letters/numbers/._- only';
+    return;
+  }
+
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'creating page…';
+
+  try {
+    const res = await fetch(SIGNUP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password }),
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Signup failed');
+
+    saveSession(data.token, data.user);
+    showBanner('// page created. redirecting…', 'ok');
+    setTimeout(() => { window.location.href = '/dashboard.html'; }, 300);
+  } catch (err) {
+    errEl.textContent = '// ' + err.message;
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+});
+
+})();
 </script>
 </body>
 </html>
