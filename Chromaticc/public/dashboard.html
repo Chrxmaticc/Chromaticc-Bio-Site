@@ -1872,14 +1872,22 @@ function renderBadges(){
   const earned = BADGES.filter(b => userBadges.includes(b.id));
   const earnedEl = $('#earnedBadges');
   if (!earned.length) earnedEl.innerHTML = '<div class="empty" style="grid-column:1/-1;">// no badges yet</div>';
-  else earnedEl.innerHTML = earned.map(b => {
-    const c = RARITY_COLORS[b.rarity];
-    return `<div class="badge-card"><span class="rarity-dot rarity-${b.rarity}"></span><div class="badge-visual" style="background:${c}22;color:${c};">${b.visual}</div><b>${esc(b.name)}</b><small>${b.rarity}</small></div>`;
-  }).join('');
+  else earnedEl.innerHTML = earned.map(b => `
+    <div class="badge-card">
+      <span class="rarity-dot rarity-${b.rarity}"></span>
+      <img src="${b.file}" alt="${esc(b.name)}" class="badge-img">
+      <b>${esc(b.name)}</b>
+      <small>${b.rarity}</small>
+    </div>`).join('');
   $('#allBadges').innerHTML = BADGES.map(b => {
     const has = userBadges.includes(b.id);
-    const c = RARITY_COLORS[b.rarity];
-    return `<div class="badge-card ${has?'':'locked'}"><span class="rarity-dot rarity-${b.rarity}"></span><div class="badge-visual" style="background:${c}22;color:${c};">${b.visual}</div><b>${esc(b.name)}</b><small>${has?'earned':b.rarity}</small></div>`;
+    return `
+      <div class="badge-card ${has?'':'locked'}">
+        <span class="rarity-dot rarity-${b.rarity}"></span>
+        <img src="${b.file}" alt="${esc(b.name)}" class="badge-img">
+        <b>${esc(b.name)}</b>
+        <small>${has?'earned':b.rarity}</small>
+      </div>`;
   }).join('');
 }
 
