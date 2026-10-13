@@ -1,18 +1,26 @@
-import { Pool } from 'pg';
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false }
-});
+import { getSession } from './_auth.js';
 
 export default async function handler(req, res) {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ valid: false });
-  try {
-    const r = await pool.query('SELECT id, username FROM users WHERE token = $1', [token]);
-    if (!r.rows.length) return res.status(401).json({ valid: false });
-    return res.status(200).json({ valid: true, user: r.rows[0] });
-  } catch (e) {
-    return res.status(500).json({ valid: false });
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    return res.status(204).end();
   }
+
+  const session = await getSession(req);
+  if (!session) return res.status(401).json({ valid: false });
+
+  return res.status(200).json({
+    valid: true,
+    user: {
+      id: session.user.id,
+      username: session.user.username,
+      email: session.user.email,
+      createdAt: session.user.created_at
+    }
+  });
 }
