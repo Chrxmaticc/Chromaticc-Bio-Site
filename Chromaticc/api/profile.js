@@ -1,13 +1,12 @@
+// api/profile.js
 import { Pool } from 'pg';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false },
+  ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false }
 });
 
-/* ═══════════════════════════════════════════════════════
-   HELPERS
-   ═══════════════════════════════════════════════════════ */
+/* ═════════ HELPERS ═════════ */
 function esc(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -22,10 +21,19 @@ function domainOf(url) {
   try { return new URL(url).hostname.replace(/^www\./, ''); }
   catch { return url || ''; }
 }
+function timeAgoServer(date) {
+  if (!date) return 'recently';
+  const diff = (Date.now() - new Date(date).getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+  if (diff < 2592000) return Math.floor(diff / 604800) + 'w ago';
+  if (diff < 31536000) return Math.floor(diff / 2592000) + 'mo ago';
+  return Math.floor(diff / 31536000) + 'y ago';
+}
 
-/* ═══════════════════════════════════════════════════════
-   BADGE CATALOG
-   ═══════════════════════════════════════════════════════ */
+/* ═════════ BADGES CATALOG ═════════ */
 const BADGES = {
   'bot':            { name: 'Bot',            file: 'Bot.png',                rarity: 'special' },
   'verified':       { name: 'Verified',       file: 'Verified.png',           rarity: 'uncommon' },
@@ -60,9 +68,18 @@ function renderBadges(badgeIds, size) {
     .join('');
 }
 
-/* ═══════════════════════════════════════════════════════
-   TIER 1 INTERPOLATION
-   ═══════════════════════════════════════════════════════ */
+/* ═════════ AUTO BADGES ═════════ */
+function computeAutoBadges(userRow, profileData, layout) {
+  const auto = new Set(['bot']);
+  if (userRow.discord_id || profileData.discordId) auto.add('discord-member');
+  if (JSON.stringify(layout).includes('"type":"code"')) auto.add('coder');
+  const socials = Array.isArray(profileData.socials) ? profileData.socials : [];
+  if (socials.some(s => /github\.com/i.test(s.url || ''))) auto.add('developer');
+  if (profileData.hidden && profileData.hidden.enabled) auto.add('hidden');
+  return Array.from(auto);
+}
+
+/* ═════════ INTERPOLATION ═════════ */
 function interpolate(str, ctx) {
   if (typeof str !== 'string') return str;
   return str.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, p) => {
@@ -75,12 +92,9 @@ function interpolate(str, ctx) {
   });
 }
 
-/* ═══════════════════════════════════════════════════════
-   FAVICON MAP
-   ═══════════════════════════════════════════════════════ */
+/* ═════════ FAVICON MAP ═════════ */
 const FAVICON_MAP = {
   'discord.com': '<svg viewBox="0 0 24 24" fill="#5865F2" style="width:100%;height:100%"><path d="M20.317 4.37a19.79 19.79 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.3 12.3 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.84 19.84 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>',
-  'discord.gg': '<svg viewBox="0 0 24 24" fill="#5865F2" style="width:100%;height:100%"><path d="M20.317 4.37a19.79 19.79 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.3 12.3 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.84 19.84 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>',
   'github.com': '<svg viewBox="0 0 24 24" fill="#e8e8f0" style="width:100%;height:100%"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>',
   'youtube.com': '<svg viewBox="0 0 24 24" fill="#ff0000" style="width:100%;height:100%"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.4 31.4 0 000 12a31.4 31.4 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1A31.4 31.4 0 0024 12a31.4 31.4 0 00-.5-5.8zM9.6 15.6V8.4l6.3 3.6z"/></svg>',
   'twitter.com': '<svg viewBox="0 0 24 24" fill="#1DA1F2" style="width:100%;height:100%"><path d="M23.95 4.57a10 10 0 01-2.82.77 4.96 4.96 0 002.16-2.72c-.95.56-2 .96-3.13 1.18a4.92 4.92 0 00-8.38 4.48A13.94 13.94 0 011.64 3.16a4.92 4.92 0 001.52 6.57 4.9 4.9 0 01-2.23-.61v.06a4.92 4.92 0 003.95 4.83 4.93 4.93 0 01-2.21.08 4.93 4.93 0 004.6 3.42A9.87 9.87 0 010 19.54a13.94 13.94 0 007.55 2.21c9.06 0 14.01-7.5 14.01-14.01 0-.21 0-.42-.02-.63A10 10 0 0024 4.59z"/></svg>',
@@ -101,11 +115,7 @@ function getFavicon(url) {
   } catch { return null; }
 }
 
-/* ═══════════════════════════════════════════════════════
-   WIDGET STYLE ENGINE
-   The wrapper is the ONLY source of bg/border/padding.
-   Every inner widget body is content-only.
-   ═══════════════════════════════════════════════════════ */
+/* ═════════ WIDGET STYLE ENGINE ═════════ */
 function buildWidgetClasses(st) {
   const cls = [];
   if (st.animation && st.animation !== 'none') cls.push('w-anim-' + st.animation);
@@ -123,8 +133,6 @@ function buildWidgetStyleString(w) {
   const st = w.style || {};
   const bg = st.bg || {}, b = st.border || {}, sh = st.shadow || {}, ty = st.typography || {};
   const css = [];
-
-  // ── Background — glass is the DEFAULT ──
   if (bg.type === 'color' && bg.value) css.push(`background:${bg.value}`);
   else if (bg.type === 'gradient' && bg.value) css.push(`background:${bg.value}`);
   else if (bg.type === 'image' && bg.value) css.push(`background:url('${bg.value}') center/cover`);
@@ -134,28 +142,19 @@ function buildWidgetStyleString(w) {
   } else if (bg.type === 'none') {
     css.push(`background:transparent`);
   } else {
-    // default = glass
     css.push(`background:rgba(255,255,255,0.08)`);
     css.push(`backdrop-filter:blur(${bg.blur || 12}px)`);
     css.push(`-webkit-backdrop-filter:blur(${bg.blur || 12}px)`);
   }
   css.push(`opacity:${bg.opacity ?? 1}`);
-
-  // ── Border ──
   css.push(`border-radius:${b.radius ?? 14}px`);
   if (b.style && b.style !== 'none' && b.width > 0) css.push(`border:${b.width}px ${b.style} ${b.color}`);
-
-  // ── Padding ──
   css.push(`padding:${st.padding ?? 0}px`);
   css.push(`z-index:${st.zIndex ?? 1}`);
-
-  // ── Shadow ──
   if (sh.type === 'soft') css.push(`box-shadow:0 8px 24px rgba(0,0,0,0.35)`);
   else if (sh.type === 'hard') css.push(`box-shadow:4px 4px 0 rgba(0,0,0,0.6)`);
   else if (sh.type === 'glow') css.push(`box-shadow:0 0 ${sh.blur}px ${sh.color}`);
   else if (sh.type === 'custom') css.push(`box-shadow:${sh.x}px ${sh.y}px ${sh.blur}px ${sh.color}`);
-
-  // ── Typography ──
   if (ty.family && ty.family !== 'inherit') css.push(`font-family:'${ty.family}',sans-serif`);
   if (ty.size) css.push(`font-size:${ty.size}px`);
   if (ty.weight) css.push(`font-weight:${ty.weight}`);
@@ -163,7 +162,6 @@ function buildWidgetStyleString(w) {
   if (ty.lineHeight) css.push(`line-height:${ty.lineHeight}`);
   if (ty.align) css.push(`text-align:${ty.align}`);
   if (ty.color && ty.color !== 'inherit') css.push(`color:${ty.color}`);
-
   return css.join(';');
 }
 
@@ -179,21 +177,7 @@ function wrapStyled(widget, inner, ctx) {
   return `${customCSS}<div class="${classes}" style="${base}${styleStr}">${inner}${childrenHTML}</div>`;
 }
 
-function timeAgoServer(date) {
-  if (!date) return 'recently';
-  const diff = (Date.now() - new Date(date).getTime()) / 1000;
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-  if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
-  if (diff < 2592000) return Math.floor(diff / 604800) + 'w ago';
-  if (diff < 31536000) return Math.floor(diff / 2592000) + 'mo ago';
-  return Math.floor(diff / 31536000) + 'y ago';
-}
-
-/* ═══════════════════════════════════════════════════════
-   GLOBAL CSS
-   ═══════════════════════════════════════════════════════ */
+/* ═════════ GLOBAL CSS ═════════ */
 const GLOBAL_WIDGET_CSS = `<style>
   .chroma-widget { position: absolute; overflow: hidden; }
   .w-anim-float { animation: wFloat 4s ease-in-out infinite; }
@@ -216,7 +200,6 @@ const GLOBAL_WIDGET_CSS = `<style>
   .w-text-shimmer { background:linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent); background-size:200% auto; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; animation:wShimmer 3s linear infinite; }
   @media (max-width:640px) { .w-hide-mobile { display:none !important; } }
 
-  /* ── Link row/embed — pure inner content, no outer bg ── */
   .link-inner { display:flex; align-items:center; gap:12px; width:100%; height:100%; padding:10px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:12px; text-decoration:none; color:#fff; font-family:inherit; transition:transform 0.2s ease, background 0.2s ease; box-sizing:border-box; cursor:pointer; }
   .link-inner:hover { transform:translateX(3px); background:rgba(255,255,255,0.12); }
   .link-inner-avatar { width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; }
@@ -228,9 +211,41 @@ const GLOBAL_WIDGET_CSS = `<style>
   .link-inner-arrow { width:24px; height:24px; border-radius:7px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:rgba(255,255,255,0.5); transition:all 0.2s ease; }
   .link-inner:hover .link-inner-arrow { background:rgba(255,255,255,0.16); color:#fff; }
   .link-inner-arrow svg { width:12px; height:12px; }
+
+  /* audio-lyric widget */
+  .al-wrap { display:flex; flex-direction:column; width:100%; height:100%; box-sizing:border-box; gap:10px; padding:2px; }
+  .al-top { display:flex; align-items:center; gap:12px; }
+  .al-art { width:52px; height:52px; border-radius:12px; object-fit:cover; flex-shrink:0; background:rgba(255,255,255,0.06); }
+  .al-art-fallback { display:flex; align-items:center; justify-content:center; font-size:1.4rem; }
+  .al-info { flex:1; min-width:0; }
+  .al-track { font-size:.88rem; font-weight:700; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .al-artist { font-size:.72rem; color:rgba(255,255,255,0.55); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .al-play { width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); color:#fff; cursor:pointer; font-size:0.9rem; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .al-play:hover { background:#fff; color:#000; }
+  .al-progress { height:3px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden; }
+  .al-fill { height:100%; width:0; background:#fff; border-radius:2px; transition:width 0.1s linear; }
+  .al-lyrics { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding:4px 0; font-size:.85rem; line-height:1.4; text-align:center; }
+  .al-lyric-line { color:rgba(255,255,255,0.4); transition:all 0.2s ease; padding:2px 0; }
+  .al-lyric-line.active { color:#fff; font-weight:700; font-size:.95rem; text-shadow:0 0 12px rgba(255,255,255,0.5); }
+  .al-loading { color:rgba(255,255,255,0.3); font-style:italic; }
+
+  /* badge showcase */
+  .bs-wrap { display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:center; width:100%; height:100%; padding:8px; }
+  .bs-badge { position:relative; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .bs-badge img { object-fit:contain; transition:transform 0.2s ease; }
+  .bs-badge:hover img { transform:scale(1.12); }
+  .bs-badge span { font-size:0.58rem; color:rgba(255,255,255,0.55); text-transform:uppercase; letter-spacing:0.08em; }
+
+  /* level widget */
+  .lv-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; gap:8px; padding:6px; }
+  .lv-num { font-family:'JetBrains Mono',monospace; font-size:2rem; font-weight:800; color:#fff; text-shadow:0 0 20px rgba(255,255,255,0.3); line-height:1; }
+  .lv-label { font-size:0.68rem; color:rgba(255,255,255,0.55); text-transform:uppercase; letter-spacing:0.15em; font-family:'JetBrains Mono',monospace; }
+  .lv-bar { width:100%; height:6px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; }
+  .lv-fill { height:100%; background:linear-gradient(90deg,#fff,#8a8a92); border-radius:3px; transition:width 0.6s ease; }
+  .lv-xp { font-size:0.62rem; color:rgba(255,255,255,0.4); font-family:'JetBrains Mono',monospace; }
 </style>`;
 
-function buildAuroraCSS(a) {
+function buildChromaticcCSS(a) {
   const accent = a.accent || '#ffffff';
   const glowMap = { low: '16px', medium: '32px', high: '55px', extreme: '80px' };
   const glow = glowMap[a.glow] || '32px';
@@ -243,7 +258,7 @@ function buildAuroraCSS(a) {
   ` : '';
   return `<style>
     .chroma-widget { border:1.5px solid transparent !important; background-clip:padding-box,border-box !important; background-origin:border-box !important;
-      background-image: linear-gradient(rgba(0,0,1,0.35),rgba(0,0,1,0.35)), linear-gradient(135deg, ${accent}, #ffffff, ${accent}, #ffffff, ${accent}) !important;
+      background-image: linear-gradient(rgba(0,0,1,0.4),rgba(0,0,1,0.4)), linear-gradient(135deg, ${accent}, #ffffff, ${accent}, #ffffff, ${accent}) !important;
       background-size:100% 100%, 300% 300% !important;
       ${glass} box-shadow:0 0 ${glow} rgba(255,255,255,0.3), 0 8px 24px rgba(0,0,0,0.4) !important;
       animation: auroraBorder ${dur} ease infinite, auroraPulse ${dur} ease infinite !important; }
@@ -254,9 +269,7 @@ function buildAuroraCSS(a) {
   </style>`;
 }
 
-/* ═══════════════════════════════════════════════════════
-   WIDGET RENDERER
-   ═══════════════════════════════════════════════════════ */
+/* ═════════ RENDER WIDGET ═════════ */
 function renderWidget(widget, ctx) {
   if (!widget) return '';
   const s = widget.settings || {};
@@ -269,42 +282,32 @@ function renderWidgetInner(widget, s, ctx) {
 
   switch (widget.type) {
 
-    /* ═══════════════ TEXT ═══════════════ */
+    /* ═══ TEXT ═══ */
     case 'text':
       return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:${s.align || 'center'};overflow:hidden;">${esc(rc('content'))}</div>`;
-
     case 'gradient-text':
       return `<div style="background:${esc(s.gradient || 'linear-gradient(90deg,#fff,#aaa)')};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;">${esc(rc('content'))}</div>`;
-
     case 'neon-text':
       return `<div style="color:${esc(s.color || '#fff')};text-shadow:0 0 10px currentColor,0 0 20px currentColor;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;">${esc(rc('content'))}</div>`;
-
     case 'marquee-text':
       return `<div style="width:100%;height:100%;display:flex;align-items:center;overflow:hidden;"><marquee scrollamount="${s.speed || 5}" style="color:inherit;width:100%;">${esc(rc('content'))}</marquee></div>`;
-
     case 'typewriter':
       return `<div id="tw-${widget.id}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"></div>
         <script>(function(){const el=document.getElementById('tw-${widget.id}');if(!el)return;const t=${JSON.stringify(rc('text') || '')};let i=0;(function go(){if(i<t.length){el.textContent+=t.charAt(i++);setTimeout(go,${s.speed || 80});}})();})();<\/script>`;
-
     case 'glitch-text':
       return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><span class="w-text-glitch" style="color:${esc(s.color || '#fff')};">${esc(rc('content'))}</span></div>`;
 
-    /* ═══════════════ MEDIA ═══════════════ */
+    /* ═══ MEDIA ═══ */
     case 'image':
       return `<img src="${esc(s.src)}" alt="${esc(s.alt || '')}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;" onerror="this.style.opacity='0.2'">`;
-
     case 'video':
       return `<video src="${esc(s.src)}" ${s.controls ? 'controls' : 'autoplay muted loop playsinline'} style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></video>`;
-
     case 'video-embed':
       return `<video src="${esc(s.src)}" controls playsinline webkit-playsinline style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;"></video>`;
-
     case 'audio':
       return `<div style="width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:6px;overflow:hidden;"><strong style="font-size:.8rem;">${esc(rc('title') || 'Track')}</strong><audio controls src="${esc(s.src)}" style="width:100%;"></audio></div>`;
-
     case 'audio-embed':
       return `<audio src="${esc(s.src)}" controls style="width:100%;height:100%;"></audio>`;
-
     case 'audio-player': {
       const imgSrc = s.albumArt || s.fallbackImage || 'AudioImage.png';
       const wid = widget.id;
@@ -327,9 +330,66 @@ function renderWidgetInner(widget, s, ctx) {
         <script>(function(){const a=document.querySelector('.ap-audio-${wid}'),btn=document.querySelector('.ap-play-${wid}'),icon=document.querySelector('.ap-icon-${wid}'),fill=document.querySelector('.ap-fill-${wid}'),bar=document.querySelector('.ap-bar-${wid}'),cur=document.querySelector('.ap-cur-${wid}'),dur=document.querySelector('.ap-dur-${wid}');if(!a)return;const fmt=t=>{const m=Math.floor(t/60),s=Math.floor(t%60);return m+':'+(s<10?'0':'')+s;};btn.onclick=()=>a.paused?a.play():a.pause();a.onplay=()=>icon.innerHTML='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';a.onpause=()=>icon.innerHTML='<path d="M6 4l15 8-15 8z"/>';a.onloadedmetadata=()=>dur.textContent=fmt(a.duration);a.ontimeupdate=()=>{fill.style.width=(a.currentTime/a.duration*100)+'%';cur.textContent=fmt(a.currentTime);};bar.onclick=e=>{const r=bar.getBoundingClientRect();a.currentTime=((e.clientX-r.left)/r.width)*a.duration;};})();<\/script>
       </div>`;
     }
-
     case 'audio-viz':
       return `<canvas class="audio-viz-canvas" data-src="${esc(s.src)}" data-color="${esc(s.color || '#fff')}" style="width:100%;height:100%;background:rgba(255,255,255,0.04);border-radius:inherit;cursor:pointer;"></canvas>`;
+
+    case 'audio-lyric': {
+      const wid = widget.id;
+      const audioSrc = s.src || '';
+      const trackName = rc('trackName') || 'Track';
+      const artistName = rc('artistName') || 'Artist';
+      const albumArt = s.albumArt || '';
+      const trackJSON = JSON.stringify(trackName);
+      const artistJSON = JSON.stringify(artistName);
+      return `<div class="al-wrap" data-wid="${wid}">
+        <div class="al-top">
+          ${albumArt ? `<img src="${esc(albumArt)}" class="al-art" alt="" onerror="this.style.display='none'">` : `<div class="al-art al-art-fallback">♪</div>`}
+          <div class="al-info">
+            <div class="al-track">${esc(trackName)}</div>
+            <div class="al-artist">${esc(artistName)}</div>
+          </div>
+          <button class="al-play" data-play="${wid}" type="button">▶</button>
+        </div>
+        <div class="al-progress"><div class="al-fill" id="alf-${wid}"></div></div>
+        <div class="al-lyrics" id="all-${wid}"><div class="al-lyric-line al-loading">loading lyrics…</div></div>
+        <audio id="ala-${wid}" src="${esc(audioSrc)}" preload="metadata"></audio>
+        <script>
+        (function(){
+          var wid='${wid}';
+          var audio=document.getElementById('ala-'+wid);
+          var box=document.getElementById('all-'+wid);
+          var fill=document.getElementById('alf-'+wid);
+          var btn=document.querySelector('[data-play="'+wid+'"]');
+          if(!audio||!box)return;
+          var lines=[],cur=-1;
+          var track=${trackJSON},artist=${artistJSON};
+          fetch('https://lrclib.net/api/get?artist_name='+encodeURIComponent(artist)+'&track_name='+encodeURIComponent(track))
+            .then(function(r){if(!r.ok)throw 0;return r.json();})
+            .then(function(d){
+              var src=d.syncedLyrics||d.plainLyrics;
+              if(!src)throw 0;
+              if(d.syncedLyrics){
+                lines=src.split('\\n').map(function(l){var m=l.match(/\\[(\\d+):(\\d+\\.\\d+)\\](.*)/);if(!m)return null;return {t:parseInt(m[1])*60+parseFloat(m[2]),x:m[3].trim()};}).filter(Boolean);
+              } else {
+                lines=src.split('\\n').map(function(l){return {t:null,x:l.trim()};});
+              }
+              box.innerHTML=lines.map(function(l,i){return '<div class="al-lyric-line" data-i="'+i+'">'+l.x.replace(/</g,'&lt;')+'</div>';}).join('');
+              if(lines.length&&lines[0].t!==null)setInterval(sync,200);
+            })
+            .catch(function(){box.innerHTML='<div class="al-lyric-line al-loading">no lyrics found</div>';});
+          function sync(){
+            var t=audio.currentTime;
+            var idx=-1;
+            for(var i=0;i<lines.length;i++){if(lines[i].t!==null&&lines[i].t<=t)idx=i;else if(lines[i].t!==null)break;}
+            if(idx!==cur){cur=idx;var els=box.querySelectorAll('.al-lyric-line');els.forEach(function(e,i){e.classList.toggle('active',i===idx);});if(els[idx])els[idx].scrollIntoView({block:'center',behavior:'smooth'});}
+          }
+          btn.onclick=function(){audio.paused?audio.play():audio.pause();btn.textContent=audio.paused?'▶':'❚❚';};
+          audio.ontimeupdate=function(){if(audio.duration)fill.style.width=(audio.currentTime/audio.duration*100)+'%';};
+          audio.onended=function(){btn.textContent='▶';};
+        })();
+        <\/script>
+      </div>`;
+    }
 
     case 'image-carousel': {
       const imgs = toArr(s.images);
@@ -341,7 +401,7 @@ function renderWidgetInner(widget, s, ctx) {
       </div>`;
     }
 
-    /* ═══════════════ PROFILE ═══════════════ */
+    /* ═══ PROFILE ═══ */
     case 'profile-circle': {
       const avatar = rc('src') || ctx.user.avatar || '';
       const dot = s.showPresence !== false ? `<span style="position:absolute;bottom:6%;right:6%;width:16%;height:16%;border-radius:50%;background:#4ade80;border:2px solid #000;box-shadow:0 0 10px #4ade80;"></span>` : '';
@@ -369,9 +429,7 @@ function renderWidgetInner(widget, s, ctx) {
         </div>`);
       }
       if (slots.includes('name')) {
-        const eff = s.nameEffect || 'none';
-        const cls = eff === 'glitch' ? 'w-text-glitch' : eff === 'neon' ? 'w-text-neon' : eff === 'gradient' ? 'w-text-gradient' : '';
-        parts.push(`<div class="${cls}" style="font-size:1.7rem;font-weight:800;letter-spacing:-0.5px;text-align:center;margin-bottom:10px;color:#fff;">${esc(displayName)}</div>`);
+        parts.push(`<div style="font-size:1.7rem;font-weight:800;letter-spacing:-0.5px;text-align:center;margin-bottom:10px;color:#fff;">${esc(displayName)}</div>`);
       }
       if (slots.includes('badges') && ctx.badges && ctx.badges.length) {
         parts.push(`<div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">${renderBadges(ctx.badges)}</div>`);
@@ -386,9 +444,6 @@ function renderWidgetInner(widget, s, ctx) {
       }
       if (slots.includes('socials') && socials.length) {
         parts.push(`<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;">${socials.map(so => `<a href="${esc(so.url)}" target="_blank" rel="noopener" style="width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;text-decoration:none;overflow:hidden;">${so.iconUrl ? `<img src="${esc(so.iconUrl)}" style="width:70%;height:70%;object-fit:contain;">` : (getFavicon(so.url) || `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:18px;height:18px;"><circle cx="12" cy="12" r="10"/></svg>`)}</a>`).join('')}</div>`);
-      }
-      if (slots.includes('joined')) {
-        parts.push(`<div style="font-size:.72rem;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:8px;">joined ${timeAgoServer(ctx.user.createdAt)}</div>`);
       }
       if (slots.includes('views')) {
         parts.push(`<div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:.72rem;color:rgba(255,255,255,0.5);font-weight:600;margin-top:4px;">
@@ -406,13 +461,50 @@ function renderWidgetInner(widget, s, ctx) {
       return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;width:100%;height:100%;">${renderBadges(ids)}</div>`;
     }
 
-    /* ═══════════════ LINKS ═══════════════ */
+    case 'badges-showcase': {
+      const ids = ctx.badges || [];
+      const showLocked = s.showLocked === true;
+      const size = parseInt(s.size) || 44;
+      if (!ids.length && !showLocked) {
+        return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);font-size:.8rem;font-family:'JetBrains Mono',monospace;">no badges yet</div>`;
+      }
+      const all = showLocked ? Object.keys(BADGES) : ids;
+      const wrap = all.map(id => {
+        const b = BADGES[id];
+        if (!b) return '';
+        const owned = ids.includes(id);
+        return `<div class="bs-badge" title="${esc(b.name)}">
+          <img src="${b.file}" alt="${esc(b.name)}" style="width:${size}px;height:${size}px;opacity:${owned ? 1 : 0.25};filter:drop-shadow(${RARITY_GLOW[b.rarity]});">
+          <span>${esc(b.name)}</span>
+        </div>`;
+      }).join('');
+      return `<div class="bs-wrap">${wrap}</div>`;
+    }
+
+    case 'level': {
+      // simple XP: views + badges*50 + widgets*25
+      const views = ctx.user.views || 0;
+      const badgeCount = (ctx.badges || []).length;
+      const widgetCount = ctx.stats?.widgets || 0;
+      const xp = views + badgeCount * 50 + widgetCount * 25;
+      const level = Math.max(1, Math.floor(Math.sqrt(xp / 10)) + 1);
+      const xpForNext = Math.pow(level, 2) * 10;
+      const xpForCurr = Math.pow(level - 1, 2) * 10;
+      const pct = Math.min(100, Math.round(((xp - xpForCurr) / Math.max(1, xpForNext - xpForCurr)) * 100));
+      return `<div class="lv-wrap">
+        <div class="lv-num">${level}</div>
+        <div class="lv-label">level</div>
+        <div class="lv-bar"><div class="lv-fill" style="width:${pct}%"></div></div>
+        <div class="lv-xp">${xp} xp · ${pct}% to next</div>
+      </div>`;
+    }
+
+    /* ═══ LINKS ═══ */
     case 'link-list': {
       const rows = widget.children || [];
       if (!rows.length) return `<div style="padding:14px;text-align:center;color:rgba(255,255,255,0.4);font-size:.78rem;">Empty link list</div>`;
       return `<div style="display:flex;flex-direction:column;gap:10px;width:100%;height:100%;">${rows.map(r => renderWidget(r, ctx)).join('')}</div>`;
     }
-
     case 'link-row':
     case 'link-embed':
     case 'social-link': {
@@ -438,7 +530,7 @@ function renderWidgetInner(widget, s, ctx) {
       </a>`;
     }
 
-    /* ═══════════════ EMBEDS ═══════════════ */
+    /* ═══ EMBEDS ═══ */
     case 'youtube':
       return `<iframe src="https://www.youtube.com/embed/${esc(s.videoId)}" style="width:100%;height:100%;border:0;border-radius:inherit;" allowfullscreen></iframe>`;
     case 'spotify':
@@ -454,32 +546,26 @@ function renderWidgetInner(widget, s, ctx) {
     case 'tiktok':
       return `<blockquote class="tiktok-embed" cite="https://www.tiktok.com/@${esc(s.username)}" style="width:100%;height:100%;"><section></section></blockquote><script async src="https://www.tiktok.com/embed.js"><\/script>`;
 
-    /* ═══════════════ UTILITY ═══════════════ */
+    /* ═══ UTILITY ═══ */
     case 'clock':
       return `<div id="clk-${widget.id}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-variant-numeric:tabular-nums;"></div>
         <script>(function(){const el=document.getElementById('clk-${widget.id}');if(!el)return;function tick(){el.textContent=new Date().toLocaleTimeString('en-US',{hour12:${s.format !== '24h'},second:${s.showSeconds !== false}});}tick();setInterval(tick,1000);})();<\/script>`;
-
     case 'countdown':
       return `<div id="cd-${widget.id}" data-target="${s.targetDate ? new Date(s.targetDate).getTime() : 0}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;">loading...</div>
         <script>(function(){const el=document.getElementById('cd-${widget.id}');if(!el)return;const t=+el.dataset.target;function tick(){const d=t-Date.now();if(d<=0){el.textContent='passed';return;}const D=Math.floor(d/86400000),H=Math.floor((d%86400000)/3600000),M=Math.floor((d%3600000)/60000),S=Math.floor((d%60000)/1000);el.textContent=D+'d '+H+'h '+M+'m '+S+'s';}tick();setInterval(tick,1000);})();<\/script>`;
-
     case 'days-counter': {
       const start = new Date(s.startDate);
       const days = s.startDate && !isNaN(start.getTime()) ? Math.floor((Date.now() - start.getTime()) / 86400000) : 0;
       return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:4px;"><span style="font-size:.7rem;opacity:0.6;">${esc(s.label || 'Since')}</span><span style="font-size:1.6rem;font-weight:800;">${days}d</span></div>`;
     }
-
     case 'visitor-counter':
       return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;">${(ctx.user.views || 0).toLocaleString()} views</div>`;
-
     case 'progress-bar': {
       const pct = Math.min(100, Math.round(((s.value || 0) / (s.max || 100)) * 100));
       return `<div style="display:flex;align-items:center;width:100%;height:100%;box-sizing:border-box;"><div style="width:100%;height:14px;background:rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${esc(s.color || '#fff')};border-radius:8px;"></div></div></div>`;
     }
-
     case 'qr-code':
       return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${s.size || 200}x${s.size || 200}&data=${encodeURIComponent(rc('url'))}" style="width:100%;height:100%;object-fit:contain;display:block;">`;
-
     case 'weather': {
       const wid = widget.id;
       const unit = s.unit === 'F' ? 'F' : 'C';
@@ -490,10 +576,8 @@ function renderWidgetInner(widget, s, ctx) {
         <script>(async function(){const el=document.getElementById('wx-${wid}');if(!el)return;try{const c=el.dataset.city;const r=await fetch('https://wttr.in/'+encodeURIComponent(c)+'?format=j1');const d=await r.json();const t=d.current_condition[0]['temp_${unit}'];const desc=d.current_condition[0].weatherDesc[0].value;el.querySelector('.wx-temp').textContent=t+'°${unit}';el.querySelector('.wx-desc').textContent=desc;}catch(e){el.querySelector('.wx-desc').textContent='Unavailable';}})();<\/script>
       </div>`;
     }
-
     case 'quote-ticker':
       return `<div style="width:100%;height:100%;display:flex;align-items:center;overflow:hidden;"><marquee scrollamount="${s.speed||5}" style="color:inherit;font-weight:600;width:100%;">${esc(rc('text')||'')}</marquee></div>`;
-
     case 'random-quote': {
       const wid = widget.id;
       return `<div id="rq-${wid}" data-api="${esc(s.api||'https://api.quotable.io/random')}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;text-align:center;gap:6px;">
@@ -502,10 +586,8 @@ function renderWidgetInner(widget, s, ctx) {
         <script>(async function(){const el=document.getElementById('rq-${wid}');if(!el)return;try{const r=await fetch(el.dataset.api);const d=await r.json();el.querySelector('.rq-text').textContent='"'+d.content+'"';el.querySelector('.rq-author').textContent='— '+(d.author||'Unknown');}catch(e){el.querySelector('.rq-text').textContent='Quote unavailable';}})();<\/script>
       </div>`;
     }
-
     case 'news-ticker':
       return `<div style="width:100%;height:100%;display:flex;align-items:center;overflow:hidden;"><marquee scrollamount="5" style="color:inherit;width:100%;">${esc(s.source || 'News coming soon...')}</marquee></div>`;
-
     case 'click-counter': {
       const wid = widget.id;
       return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;">
@@ -513,46 +595,35 @@ function renderWidgetInner(widget, s, ctx) {
         <button onclick="(function(){const el=document.getElementById('cc-${wid}');el.textContent=+el.textContent+1;})()" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:8px 18px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.8rem;font-family:inherit;">${esc(s.buttonText || 'Click me')}</button>
       </div>`;
     }
-
     case 'streak-counter': {
       const start = new Date(s.startDate);
       const days = s.startDate && !isNaN(start.getTime()) ? Math.floor((Date.now() - start.getTime()) / 86400000) + 1 : 0;
       return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;"><span style="font-size:.7rem;opacity:0.6;">${esc(s.label || 'Streak')}</span><span style="font-size:1.6rem;font-weight:800;">${days}d</span></div>`;
     }
-
     case 'stopwatch': {
       const wid = widget.id;
       return `<div id="sw-${wid}" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;font-size:1.2rem;font-variant-numeric:tabular-nums;cursor:pointer;" onclick="(function(el){if(el._t){clearInterval(el._t);el._t=null;}else{let s=parseInt(el.dataset.s||'0');el._t=setInterval(()=>{s++;el.dataset.s=s;const m=Math.floor(s/60),sec=s%60;el.textContent=m+':'+(sec<10?'0':'')+sec;},1000);}})(this)" data-s="0">0:00</div>`;
     }
-
     case 'pomodoro':
       return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;">
         <div style="font-size:1.4rem;font-weight:800;">${s.work||25}:00</div>
         <div style="font-size:.65rem;opacity:0.5;">Work</div>
       </div>`;
-
     case 'color-picker':
       return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:700;background:${esc(s.color || '#fff')};border-radius:inherit;color:#000;font-size:.82rem;">${esc(s.color || '#ffffff')}</div>`;
 
-    /* ═══════════════ SOCIAL ═══════════════ */
+    /* ═══ SOCIAL ═══ */
     case 'discord-presence': {
       const d = ctx.discord || {};
-      const debugReason = ctx.discordDebug?.reason || ctx.discordDebug?.error || (!ctx.profile?.discordId ? 'no-id' : 'unknown');
-
-      const showAvatar    = s.showAvatar    !== false;
-      const showBadges    = s.showBadges    !== false;
-      const showGuildTag  = s.showGuildTag  !== false;
-      const showPlatform  = s.showPlatform  !== false;
-      const showActivity  = s.showActivity  !== false;
-      const showArt       = s.showArt       !== false;
-      const showElapsed   = s.showElapsed   !== false;
+      const showAvatar = s.showAvatar !== false;
+      const showBadges = s.showBadges !== false;
+      const showActivity = s.showActivity !== false;
+      const showArt = s.showArt !== false;
+      const showElapsed = s.showElapsed !== false;
       const showStatusDot = s.showStatusDot !== false;
 
       if (!d.userId || d.enabled === false) {
-        return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;color:rgba(255,255,255,0.35);font-size:.7rem;gap:4px;">
-          <div>No Discord linked</div>
-          <div style="font-size:.55rem;opacity:0.55;">[${esc(debugReason)}]</div>
-        </div>`;
+        return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:rgba(255,255,255,0.35);font-size:.7rem;">No Discord linked</div>`;
       }
 
       const statusColors = { online:'#4ade80', idle:'#fbbf24', dnd:'#ff5566', offline:'#666' };
@@ -564,47 +635,12 @@ function renderWidgetInner(widget, s, ctx) {
         ? `<img src="${esc(d.avatar)}" style="width:100%;height:100%;object-fit:cover;display:block;">`
         : `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#5865F2;color:#fff;font-weight:800;font-size:1.3rem;">${esc((d.username || '?').charAt(0).toUpperCase())}</div>`;
 
-      const BADGE_BASE = 'https://raw.githubusercontent.com/mezotv/discord-badges/main/';
-      const BADGE_FILES = {
-        Staff:                 'discord-staff.svg',
-        Partner:               'discord-partner.svg',
-        Hypesquad:             'hype-squad-events.svg',
-        BugHunterLevel1:       'discord-bug-hunter-green.svg',
-        BugHunterLevel2:       'discord-bug-hunter-gold.svg',
-        HypeSquadOnlineHouse1: 'hype-squad-bravery.svg',
-        HypeSquadOnlineHouse2: 'hype-squad-brilliance.svg',
-        HypeSquadOnlineHouse3: 'hype-squad-balance.svg',
-        PremiumEarlySupporter: 'discord-early-supporter.svg',
-        VerifiedBot:           'premium-bot.png',
-        VerifiedDeveloper:     'discord-bot-dev.svg',
-        CertifiedModerator:    'discord-mod.svg',
-        ActiveDeveloper:       'active-developer.svg',
-      };
-      const badgeList = showBadges ? (d.badges || []).filter(b => BADGE_FILES[b]) : [];
-      const badgesHTML = badgeList.length
-        ? `<span style="display:inline-flex;align-items:center;gap:3px;margin-left:5px;vertical-align:middle;">${badgeList.slice(0, 6).map(b => `<img src="${BADGE_BASE}${BADGE_FILES[b]}" alt="${esc(b)}" title="${esc(b)}" style="width:15px;height:15px;object-fit:contain;filter:drop-shadow(0 0 3px rgba(255,255,255,0.35));" onerror="this.style.display='none'">`).join('')}</span>`
-        : '';
-
-      const guildTagHTML = (showGuildTag && d.primaryGuild?.tag)
-        ? `<span style="background:rgba(88,101,242,0.25);color:#a8b1f5;font-size:.55rem;padding:2px 6px;border-radius:4px;margin-left:6px;font-weight:800;letter-spacing:.4px;vertical-align:middle;">${esc(d.primaryGuild.tag)}</span>`
-        : '';
-
-      const platforms = [];
-      if (d.platform?.desktop) platforms.push('Desktop');
-      if (d.platform?.mobile) platforms.push('Mobile');
-      if (d.platform?.web) platforms.push('Web');
-      const platformHTML = (showPlatform && platforms.length)
-        ? `<span style="opacity:0.5;font-size:.6rem;font-weight:500;">· ${platforms.join(' · ')}</span>`
-        : '';
-
       const isSpotify = d.listeningToSpotify && d.spotify;
       const activities = d.activities || [];
-      const game      = activities.find(a => a.type === 0);
-      const stream    = activities.find(a => a.type === 1);
-      const watching  = activities.find(a => a.type === 3);
-      const competing = activities.find(a => a.type === 5);
-      const custom    = activities.find(a => a.type === 4);
-      const primary   = game || stream || watching || competing;
+      const game = activities.find(a => a.type === 0);
+      const stream = activities.find(a => a.type === 1);
+      const custom = activities.find(a => a.type === 4);
+      const primary = game || stream;
 
       let statusLine = statusLabel;
       let mainLine = '';
@@ -614,16 +650,14 @@ function renderWidgetInner(widget, s, ctx) {
 
       if (isSpotify && showActivity) {
         statusLine = 'Listening on Spotify';
-        mainLine = d.spotify.song || 'Unknown Track';
+        mainLine = d.spotify.song || 'Unknown';
         subLine = d.spotify.artist ? `by ${d.spotify.artist}` : '';
-        if (d.spotify.album) subLine = subLine ? `${subLine} · ${d.spotify.album}` : d.spotify.album;
-        if (showArt && d.spotify.albumArt) artHTML = `<img src="${esc(d.spotify.albumArt)}" style="width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;display:block;">`;
+        if (showArt && d.spotify.albumArt) artHTML = `<img src="${esc(d.spotify.albumArt)}" style="width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;">`;
       } else if (primary && showActivity) {
         statusLine = primary.typeName || 'Playing';
         mainLine = primary.name || '';
         if (primary.details) subLine = primary.details;
         if (primary.state) subLine = subLine ? `${subLine} · ${primary.state}` : primary.state;
-
         if (showElapsed && primary.startedAt) {
           const elapsed = Math.floor((Date.now() - primary.startedAt) / 1000);
           if (elapsed > 0) {
@@ -632,10 +666,9 @@ function renderWidgetInner(widget, s, ctx) {
             timeLine = h > 0 ? `${h}h ${m}m elapsed` : `${m}m elapsed`;
           }
         }
-
         if (showArt && primary.largeImage) {
           const img = primary.largeImage.startsWith('http') ? primary.largeImage : 'https://cdn.discordapp.com/' + primary.largeImage;
-          artHTML = `<img src="${esc(img)}" style="width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;display:block;">`;
+          artHTML = `<img src="${esc(img)}" style="width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;">`;
         }
       } else if (custom && custom.state && showActivity) {
         statusLine = statusLabel;
@@ -654,13 +687,11 @@ function renderWidgetInner(widget, s, ctx) {
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
           <div style="display:flex;align-items:center;flex-wrap:wrap;line-height:1.2;">
             <span style="font-size:.9rem;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">${esc(displayName)}</span>
-            ${guildTagHTML}
-            ${badgesHTML}
           </div>
-          <div style="font-size:.6rem;color:rgba(255,255,255,0.5);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">${esc(statusLine)} ${platformHTML}</div>
+          <div style="font-size:.6rem;color:rgba(255,255,255,0.5);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">${esc(statusLine)}</div>
           ${mainLine ? `<div style="font-size:.82rem;color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(mainLine)}</div>` : ''}
           ${subLine ? `<div style="font-size:.7rem;color:rgba(255,255,255,0.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(subLine)}</div>` : ''}
-          ${timeLine ? `<div style="font-size:.6rem;color:rgba(255,255,255,0.4);font-weight:500;">${esc(timeLine)}</div>` : ''}
+          ${timeLine ? `<div style="font-size:.6rem;color:rgba(255,255,255,0.4);">${esc(timeLine)}</div>` : ''}
         </div>
         ${artHTML}
       </div>`;
@@ -669,27 +700,23 @@ function renderWidgetInner(widget, s, ctx) {
     case 'lanyard':
       return `<div id="ln-${widget.id}" data-user="${esc(s.userId || '')}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;font-size:.8rem;font-weight:600;"></div>
         <script>(async function(){const el=document.getElementById('ln-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set userId';return;}try{const r=await fetch('https://api.lanyard.rest/v1/users/'+uid);const d=await r.json();if(!d.success)throw 0;const u=d.data;const color=u.discord_status==='online'?'#4ade80':u.discord_status==='idle'?'#fbbf24':u.discord_status==='dnd'?'#ff5566':'#666';el.innerHTML='<span style="width:10px;height:10px;border-radius:50%;background:'+color+';display:inline-block;"></span><span>'+u.discord_status+'</span>';}catch(e){el.textContent='N/A';}})();<\/script>`;
-
     case 'github-stats':
       return `<div id="gh-${widget.id}" data-user="${esc(s.username)}" style="display:flex;align-items:center;justify-content:center;gap:14px;width:100%;height:100%;font-size:.8rem;font-weight:600;"></div>
         <script>(async function(){const el=document.getElementById('gh-${widget.id}');if(!el)return;const uid=el.dataset.user;if(!uid){el.textContent='Set username';return;}try{const r=await fetch('https://api.github.com/users/'+uid);if(!r.ok)throw 0;const d=await r.json();el.innerHTML='<div><div style="font-size:1rem;">'+(d.followers||0)+'</div><div style="font-size:.62rem;opacity:0.6;">Followers</div></div><div><div style="font-size:1rem;">'+(d.public_repos||0)+'</div><div style="font-size:.62rem;opacity:0.6;">Repos</div></div>';}catch(e){el.textContent='N/A';}})();<\/script>`;
-
     case 'tech-stack': {
       const list = toArr(s.items);
       const cols = s.columns || 3;
       return `<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;place-items:center;width:100%;height:100%;">${(list.length ? list : ['React','Node','TS']).map(i => `<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:5px 11px;border-radius:10px;font-size:.72rem;font-weight:600;">${esc(i)}</span>`).join('')}</div>`;
     }
-
     case 'game-library': {
       const games = toArr(s.games);
       const list = games.length ? games : ['Valorant','Minecraft'];
       return `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%;height:100%;overflow:hidden;">${list.map(g => `<span style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);padding:4px 10px;border-radius:20px;font-size:.7rem;color:#fff;font-weight:600;">${esc(g)}</span>`).join('')}</div>`;
     }
-
     case 'friend-code':
       return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;height:100%;"><span style="font-size:.65rem;opacity:0.55;">${esc(s.label || 'Friend Code')}</span><span style="font-size:1rem;font-weight:700;letter-spacing:1px;">${esc(s.code || 'YOUR-CODE')}</span></div>`;
 
-    /* ═══════════════ INTERACTIVE ═══════════════ */
+    /* ═══ INTERACTIVE ═══ */
     case 'guestbook': {
       const wid = 'gb-' + widget.id;
       return `<div id="${wid}" style="display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;box-sizing:border-box;">
@@ -701,7 +728,6 @@ function renderWidgetInner(widget, s, ctx) {
         <script>(function(){const u='${esc(ctx.user.username)}';const msgs=document.getElementById('${wid}-msgs');const ni=document.getElementById('${wid}-name');const ti=document.getElementById('${wid}-text');const sb=document.getElementById('${wid}-send');const e2=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');async function load(){try{const r=await fetch('/api/guestbook?username='+u);const a=await r.json();msgs.innerHTML=(a||[]).map(m=>'<div><b style="color:#fff;">'+e2(m.author||'Anon')+'</b>: <span style="opacity:0.75;">'+e2(m.text)+'</span></div>').join('');}catch(e){}}sb.onclick=async()=>{const t=ti.value.trim();if(!t)return;try{await fetch('/api/guestbook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,text:t,author:ni.value.trim()||'Anonymous'})});ti.value='';load();}catch(e){}};load();})();<\/script>
       </div>`;
     }
-
     case 'mini-poll': {
       const opts = toArr(s.options);
       const list = opts.length ? opts : ['Yes','No'];
@@ -710,44 +736,38 @@ function renderWidgetInner(widget, s, ctx) {
         <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;">${list.map(o => `<button onclick="this.style.background='#fff';this.style.color='#000';" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.72rem;font-weight:600;font-family:inherit;">${esc(o)}</button>`).join('')}</div>
       </div>`;
     }
-
     case 'flip-card':
       return `<div style="display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:.85rem;cursor:pointer;width:100%;height:100%;box-sizing:border-box;" onclick="(function(el){const f=el.dataset.front==='1';el.dataset.front=f?'0':'1';el.textContent=f?'${esc(s.front)}':'${esc(s.back)}';})(this)" data-front="1">${esc(s.front)}</div>`;
-
     case 'accordion': {
       const items = toArr(s.items);
       const list = items.length ? items : ['Item 1','Item 2','Item 3'];
       return `<div style="display:flex;flex-direction:column;gap:4px;width:100%;height:100%;overflow:auto;box-sizing:border-box;">${list.map(i => `<details style="background:rgba(255,255,255,0.06);border-radius:8px;padding:6px 10px;font-size:.78rem;color:#fff;"><summary style="cursor:pointer;font-weight:600;">${esc(i)}</summary><div style="padding-top:4px;opacity:0.75;">Content</div></details>`).join('')}</div>`;
     }
-
     case 'virtual-pet':
       return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff;font-weight:600;cursor:pointer;width:100%;height:100%;" onclick="(function(el){el.style.transform=el.style.transform.includes('scale(1.2)')?'rotate(0deg)':'scale(1.2) rotate(10deg)';})(this)"><span style="font-size:2rem;">◉◡◉</span><span style="font-size:.75rem;">${esc(s.name || 'Pet')}</span></div>`;
-
     case 'soundboard': {
       const sounds = toArr(s.sounds);
       return `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%;height:100%;overflow:hidden;box-sizing:border-box;">${(sounds.length ? sounds : ['🔊','🔔','🎵','🚀']).map((snd, i) => `<button onclick="try{new Audio('${esc(snd)}').play();}catch(e){}" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:700;font-family:inherit;">${i + 1}</button>`).join('')}</div>`;
     }
-
     case 'mood-tracker': {
       const moods = { happy: '◕‿◕', sad: '◕︵◕', neutral: '◕_◕', angry: '◕皿◕', excited: '★‿★' };
       return `<div style="display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#fff;font-weight:700;width:100%;height:100%;">${moods[s.mood] || moods.happy}</div>`;
     }
 
-    /* ═══════════════ DECORATION ═══════════════ */
+    /* ═══ DECORATION ═══ */
     case 'divider':
     case 'section-divider':
       return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><hr style="border:none;border-top:${s.thickness || 2}px ${esc(s.style || 'solid')} ${esc(s.color || '#fff')};width:100%;margin:0;"></div>`;
-
     case 'shape': {
       const r = s.shape === 'circle' ? 'border-radius:50%;' : s.shape === 'square' ? '' : 'border-radius:14px;';
       return `<div style="width:100%;height:100%;background:${esc(s.color || '#fff')};${r}"></div>`;
     }
 
-    /* ═══════════════ ADVANCED ═══════════════ */
+    /* ═══ ADVANCED ═══ */
     case 'code': {
       const html = s.html || '';
-      const css  = s.css  || '';
-      const js   = s.js   || '';
+      const css = s.css || '';
+      const js = s.js || '';
       if (!html && !css && !js) return `<div style="width:100%;height:100%;"></div>`;
       const safeJs = String(js).replace(/<\/script>/gi, '<\\/script>');
       const wrappedJs = safeJs ? `try { ${safeJs} } catch(e) { console.error('[code-widget]', e); }` : '';
@@ -757,36 +777,30 @@ function renderWidgetInner(widget, s, ctx) {
         ${wrappedJs ? `<script>${wrappedJs}<\/script>` : ''}
       </div>`;
     }
-
     case 'custom-cursor':
       return `<style>body{cursor:url('${esc(s.url)}'),auto;}</style>`;
-
     case 'font-selector':
       return `<style>body * { font-family: '${esc(s.font)}', sans-serif !important; }</style>`;
-
     case 'theme-switcher': {
       const themes = toArr(s.themes).length ? toArr(s.themes) : ['dark','light','purple'];
       return `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;width:100%;height:100%;">
         ${themes.map(t => `<button onclick="document.documentElement.setAttribute('data-theme','${esc(t)}')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#fff;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.72rem;font-weight:600;text-transform:capitalize;font-family:inherit;">${esc(t)}</button>`).join('')}
       </div>`;
     }
-
     case 'page-indicator': {
       const total = s.total || 3, current = s.current || 1;
       return `<div style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:100%;">${Array.from({length: total}, (_, i) => `<span style="width:8px;height:8px;border-radius:50%;background:${i === current - 1 ? '#fff' : 'rgba(255,255,255,0.25)'};"></span>`).join('')}</div>`;
     }
 
-    /* ═══════════════ FUN ═══════════════ */
+    /* ═══ FUN ═══ */
     case 'sparkle-button':
       return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><button onclick="(function(el){for(let i=0;i<20;i++){const s=document.createElement('span');s.textContent='✦';s.style.cssText='position:fixed;left:'+el.getBoundingClientRect().left+'px;top:'+el.getBoundingClientRect().top+'px;font-size:'+(10+Math.random()*20)+'px;pointer-events:none;transition:all 1s ease;color:#fff;';document.body.appendChild(s);const a=Math.random()*Math.PI*2,r=60+Math.random()*100;setTimeout(()=>{s.style.transform='translate('+Math.cos(a)*r+'px,'+Math.sin(a)*r+'px)';s.style.opacity='0';},10);setTimeout(()=>s.remove(),1100);}})(this)" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:10px 22px;border-radius:12px;cursor:pointer;font-weight:800;font-size:.82rem;font-family:inherit;">${esc(s.label || 'Sparkle!')}</button></div>`;
-
     case 'confetti-button':
       return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"><button onclick="(function(el){const colors=['#fff','#fbbf24','#7dd3fc','#c084fc','#ff5566'];for(let i=0;i<40;i++){const c=document.createElement('div');c.style.cssText='position:fixed;left:'+el.getBoundingClientRect().left+'px;top:'+el.getBoundingClientRect().top+'px;width:8px;height:8px;background:'+colors[i%colors.length]+';pointer-events:none;transition:all 1.5s ease;';document.body.appendChild(c);const a=Math.random()*Math.PI*2,r=80+Math.random()*180;setTimeout(()=>{c.style.transform='translate('+Math.cos(a)*r+'px,'+(Math.sin(a)*r+120)+'px) rotate('+(Math.random()*720)+'deg)';c.style.opacity='0';},10);setTimeout(()=>c.remove(),1600);}})(this)" style="background:linear-gradient(135deg,#fff,#b0b0b0);color:#000;border:none;padding:10px 22px;border-radius:12px;cursor:pointer;font-weight:800;font-size:.82rem;font-family:inherit;">${esc(s.label || 'Confetti!')}</button></div>`;
-
     case 'matrix-rain': {
       const wid = widget.id;
       return `<canvas id="mr-${wid}" style="width:100%;height:100%;background:#000;border-radius:inherit;display:block;"></canvas>
-        <script>(function(){const c=document.getElementById('mr-${wid}');if(!c)return;const ctx=c.getContext('2d');const chars='01';const fs=14;function resize(){c.width=c.offsetWidth;c.height=c.offsetHeight;}resize();window.addEventListener('resize',resize);const cols=Math.floor(c.width/fs);const drops=Array(cols).fill(0);function draw(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='${esc(s.color || '#4ade80')}';ctx.font=fs+'px monospace';for(let i=0;i<drops.length;i++){ctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*fs,drops[i]*fs);if(drops[i]*fs>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++;}}setInterval(draw,50);})();<\/script>`;
+        <script>(function(){const c=document.getElementById('mr-${wid}');if(!c)return;const ctx=c.getContext('2d');const chars='01';const fs=14;function resize(){c.width=c.offsetWidth;c.height=c.offsetHeight;}resize();window.addEventListener('resize',resize);const cols=Math.floor(c.width/fs);const drops=Array(cols).fill(0);function draw(){ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='${esc(s.color || '#c8c8d2')}';ctx.font=fs+'px monospace';for(let i=0;i<drops.length;i++){ctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*fs,drops[i]*fs);if(drops[i]*fs>c.height&&Math.random()>0.975)drops[i]=0;drops[i]++;}}setInterval(draw,50);})();<\/script>`;
     }
 
     default:
@@ -794,9 +808,7 @@ function renderWidgetInner(widget, s, ctx) {
   }
 }
 
-/* ═══════════════════════════════════════════════════════
-   MAIN HANDLER
-   ═══════════════════════════════════════════════════════ */
+/* ═════════ MAIN HANDLER ═════════ */
 export default async function handler(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const segments = url.pathname.split('/').filter(Boolean);
@@ -810,17 +822,15 @@ export default async function handler(req, res) {
     try {
       const r = await pool.query(
         `SELECT id, username, alias, created_at, banned_until, banned_permanent,
-                ban_reason, ban_keep_profile, terminated, profile_data
+                ban_reason, ban_keep_profile, terminated, profile_data, discord_id
          FROM users WHERE LOWER(username) = $1 OR LOWER(alias) = $1 LIMIT 1`,
         [slug]
       );
       userRow = r.rows[0];
     } catch (e) {
       console.warn('[profile] full user query failed:', e.message);
-      try {
-        const r = await pool.query(`SELECT id, username, created_at FROM users WHERE LOWER(username) = $1 LIMIT 1`, [slug]);
-        userRow = r.rows[0];
-      } catch (e2) { console.error('[profile] fallback failed:', e2.message); }
+      const r = await pool.query(`SELECT id, username, created_at FROM users WHERE LOWER(username) = $1 LIMIT 1`, [slug]);
+      userRow = r.rows[0];
     }
 
     if (!userRow) { res.statusCode = 404; return res.end(); }
@@ -857,50 +867,49 @@ export default async function handler(req, res) {
     settings.background = settings.background || {};
     settings.aurora = settings.aurora || { enabled: false };
 
-    let badges = [];
+    // Manual badges from DB
+    let manualBadges = [];
     try {
       const br = await pool.query(`SELECT badge_id FROM user_badges WHERE user_id = $1`, [userRow.id]);
-      badges = br.rows.map(r => r.badge_id);
+      manualBadges = br.rows.map(r => r.badge_id);
     } catch (e) {}
+
+    // Auto badges
+    const autoBadges = computeAutoBadges(userRow, profileData, widgets);
+
+    // Union
+    let badges = Array.from(new Set([...manualBadges, ...autoBadges]));
+
+    // Banned always adds banned badge
     if (isBanned && !badges.includes('banned')) badges.push('banned');
 
     pool.query(`UPDATE profiles SET view_count = COALESCE(view_count, 0) + 1 WHERE user_id = $1`, [userRow.id]).catch(() => {});
+    // Fetch updated view count for widget rendering
+    let currentViews = 0;
+    try {
+      const vr = await pool.query(`SELECT view_count FROM profiles WHERE user_id = $1`, [userRow.id]);
+      currentViews = vr.rows[0]?.view_count || 0;
+    } catch (e) {}
 
     const avatar = profileData.avatar
       || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(userRow.username)}&backgroundColor=1a1a1a&textColor=ffffff`;
 
-    /* ═══ Discord fetch ═══ */
+    /* ── Discord presence fetch ── */
     let discordPresence = null;
-    const discordDebug = { skipped: false, reason: null, status: null, error: null, url: null };
-
     const BOT_URL = (process.env.CHROMATICC_BOT_URL || 'https://chronic-bot.onrender.com').replace(/\/+$/, '');
-    const discordId = profileData.discordId;
+    const discordId = profileData.discordId || userRow.discord_id;
 
-    if (!discordId) {
-      discordDebug.skipped = true;
-      discordDebug.reason = 'no-discord-id';
-    } else {
-      const fetchUrl = `${BOT_URL}/presence/${discordId}?_=${Date.now()}`;
-      discordDebug.url = fetchUrl;
+    if (discordId) {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
+      const timeout = setTimeout(() => controller.abort(), 6000);
       try {
-        const r = await fetch(fetchUrl, { signal: controller.signal });
-        discordDebug.status = r.status;
+        const r = await fetch(`${BOT_URL}/presence/${discordId}?_=${Date.now()}`, { signal: controller.signal });
         if (r.ok) {
           discordPresence = await r.json();
-          if (!discordPresence.userId) {
-            discordDebug.reason = 'response-missing-userId';
-          } else {
-            discordDebug.reason = 'ok';
-          }
-        } else {
-          discordDebug.error = `HTTP ${r.status}`;
-          discordDebug.reason = `http-${r.status}`;
+          if (!discordPresence.userId) discordPresence = null;
         }
       } catch (e) {
-        discordDebug.error = e.name + ': ' + e.message;
-        discordDebug.reason = e.name === 'AbortError' ? 'timeout-8s' : 'fetch-error';
+        // silent
       } finally {
         clearTimeout(timeout);
       }
@@ -912,7 +921,7 @@ export default async function handler(req, res) {
         username: userRow.username,
         displayName: profileData.displayName || userRow.username,
         avatar,
-        views: 0,
+        views: currentViews,
         createdAt: userRow.created_at,
       },
       profile: {
@@ -923,22 +932,23 @@ export default async function handler(req, res) {
         pronouns: profileData.pronouns || '',
         avatar,
         socials: profileData.socials || [],
-        discordId: profileData.discordId || null,
+        discordId: discordId || null,
       },
       discord: discordPresence || {},
-      discordDebug,
-      stats: { views: 0, guestbook: 0, widgets: widgets.length },
+      stats: { views: currentViews, widgets: widgets.length },
       badges,
     };
 
     const widgetsHTML = widgets.map(w => renderWidget(w, ctx)).join('\n');
 
+    /* ── Global styles ── */
     let globalStyles = '';
     if (settings.cursor) globalStyles += `<style>body{cursor:url('${settings.cursor}'),auto;}</style>`;
     if (settings.favicon) globalStyles += `<link rel="icon" href="${settings.favicon}">`;
     else globalStyles += `<link rel="icon" type="image/png" href="Chromaticc.png">`;
 
-    let bodyStyle = 'background:#000001;';
+    /* ── Background ── */
+    let bodyStyle = 'background:#000;';
     if (settings.background && settings.background.value) {
       const bg = settings.background;
       const raw = String(bg.value).trim();
@@ -949,14 +959,22 @@ export default async function handler(req, res) {
       bodyStyle = `background:${rule} !important;`;
     }
 
-    const auroraCSS = settings.aurora.enabled ? buildAuroraCSS(settings.aurora) : '';
+    /* ── Darken overlay ── */
+    const darkenAmt = Math.max(0, Math.min(100, parseInt(settings.backgroundDarken) || 0));
+    const darkenOverlay = darkenAmt > 0
+      ? `<div style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:rgba(0,0,0,${(darkenAmt/100).toFixed(2)});"></div>`
+      : '';
 
+    const auroraCSS = settings.aurora.enabled ? buildChromaticcCSS(settings.aurora) : '';
+
+    /* ── Ban banner ── */
     let banBanner = '';
     if (isBanned) {
       const until = userRow.banned_permanent ? 'permanently' : 'until ' + new Date(userRow.banned_until).toLocaleString();
-      banBanner = `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,rgba(176,0,32,0.9),rgba(255,68,68,0.9));color:#fff;padding:10px 20px;text-align:center;font-family:Inter,sans-serif;font-size:0.82rem;font-weight:600;">This account is banned ${until}.</div>`;
+      banBanner = `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,rgba(176,0,32,0.95),rgba(255,68,68,0.95));color:#fff;padding:10px 20px;text-align:center;font-family:Inter,sans-serif;font-size:0.82rem;font-weight:600;">This account is banned ${until}.</div>`;
     }
 
+    /* ── Click to enter ── */
     let clickEnterHTML = '';
     const hasClickEnterWidget = widgets.some(w => w.type === 'click-enter');
     if (settings.clickToEnter && !hasClickEnterWidget) {
@@ -964,16 +982,15 @@ export default async function handler(req, res) {
       const shouldPlayAudio = audioUrl && (settings.autoplay !== false);
       clickEnterHTML = `
         ${shouldPlayAudio ? `<audio id="clickEnterAudio" src="${esc(audioUrl)}" preload="auto" loop playsinline webkit-playsinline crossorigin="anonymous" style="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.001;pointer-events:none;"></audio>` : ''}
-        <div id="globalClickEnter" style="position:fixed;inset:0;background:rgba(0,0,1,0.94);display:flex;align-items:center;justify-content:center;z-index:9998;cursor:pointer;flex-direction:column;gap:16px;font-family:Inter,sans-serif;-webkit-tap-highlight-color:transparent;">
+        <div id="globalClickEnter" style="position:fixed;inset:0;background:rgba(0,0,0,0.96);display:flex;align-items:center;justify-content:center;z-index:9998;cursor:pointer;flex-direction:column;gap:16px;font-family:Inter,sans-serif;-webkit-tap-highlight-color:transparent;">
           <div style="font-size:1.4rem;font-weight:800;color:#fff;text-align:center;padding:0 20px;">${esc(settings.clickEnterMessage || 'Click anywhere to enter')}</div>
-          <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">Tap to continue</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">tap to continue</div>
         </div>
         <script>
           (function(){
             var overlay = document.getElementById('globalClickEnter');
             var audio = document.getElementById('clickEnterAudio');
             var dismissed = false;
-            if (audio && 'audioSession' in navigator) { try { navigator.audioSession.type = 'playback'; } catch(e) {} }
             function dismiss() {
               if (dismissed) return;
               dismissed = true;
@@ -993,15 +1010,17 @@ export default async function handler(req, res) {
         <\/script>`;
     }
 
+    /* ── Promo footer (opt-in) ── */
     let promoHTML = '';
-    if (settings.promo?.enabled !== false) {
-      promoHTML = `<div id="chromaPromo" style="position:fixed;bottom:16px;right:16px;z-index:9997;background:rgba(10,10,16,0.92);border:1px solid rgba(255,255,255,0.14);border-radius:16px;padding:12px 16px;font-family:Inter,sans-serif;font-size:0.75rem;color:#fff;max-width:280px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+    if (settings.promo && settings.promo.enabled === true) {
+      promoHTML = `<div id="chromaPromo" style="position:fixed;bottom:16px;right:16px;z-index:9997;background:rgba(0,0,0,0.94);border:1px solid rgba(255,255,255,0.14);border-radius:16px;padding:12px 16px;font-family:Inter,sans-serif;font-size:0.75rem;color:#fff;max-width:280px;backdrop-filter:blur(20px);display:flex;align-items:center;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,0.6);">
         <div style="flex:1;line-height:1.4;">Made with <b>Chromaticc</b>! Join users today and make your own link in bio page!</div>
         <button onclick="this.parentElement.remove();try{localStorage.setItem('chromaPromoDismissed_${esc(userRow.username)}','1')}catch(e){}" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:1.1rem;padding:0 4px;flex-shrink:0;">×</button>
       </div>
       <script>try{if(localStorage.getItem('chromaPromoDismissed_${esc(userRow.username)}')){document.getElementById('chromaPromo').remove();}}catch(e){}<\/script>`;
     }
 
+    /* ── SEO ── */
     const seo = profileData.seo || {};
     const pageTitle = seo.title || (profileData.displayName
       ? `${profileData.displayName} — Chromaticc`
@@ -1041,6 +1060,7 @@ ${auroraCSS}
 </style>
 </head>
 <body style="${bodyStyle}">
+  ${darkenOverlay}
   ${banBanner}
   ${clickEnterHTML}
   <div class="profile-canvas">${widgetsHTML}</div>
