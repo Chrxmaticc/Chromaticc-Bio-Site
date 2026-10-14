@@ -1463,13 +1463,13 @@ $('#editorClearBtn').onclick = () => {
 };
 
 $('#editorWokeBtn').onclick = () => {
-  if (!confirm('replace current layout with woke preset?')) return;
+  if (!confirm('replace current layout with link preset?')) return;
   layout = [
     { id:'w1', type:'profile-card', x:22, y:8, w:56, h:20, rotation:0, style:deepClone(WIDGET_STYLE_DEFAULTS), settings:{preset:'minimal', slots:'avatar,name,badges,tagline'}, children:[] },
-    { id:'w2', type:'text', x:18, y:30, w:64, h:6, rotation:0, style:{ ...deepClone(WIDGET_STYLE_DEFAULTS), bg:{type:'none',value:'',blur:0,opacity:1}, border:{width:0,color:'#000',style:'none',radius:0}, padding:0, typography:{family:'inherit',size:14,weight:500,spacing:0,lineHeight:1.5,align:'center',color:'#8a8a9a'} }, settings:{content:'don\'t cry, you\'re pretty :)'} },
+    { id:'w2', type:'text', x:18, y:30, w:64, h:6, rotation:0, style:{ ...deepClone(WIDGET_STYLE_DEFAULTS), bg:{type:'none',value:'',blur:0,opacity:1}, border:{width:0,color:'#000',style:'none',radius:0}, padding:0, typography:{family:'inherit',size:14,weight:500,spacing:0,lineHeight:1.5,align:'center',color:'#8a8a9a'} }, settings:{content:'hi :)'} },
     { id:'w3', type:'link-list', x:18, y:40, w:64, h:30, rotation:0, style:deepClone(WIDGET_STYLE_DEFAULTS), settings:{}, children:[
-      { id:'w3a', type:'link-embed', x:0, y:0, w:100, h:30, rotation:0, style:deepClone(WIDGET_STYLE_DEFAULTS), settings:{url:'https://example.com', label:'01  WEBSITE', description:''}, children:[] },
-      { id:'w3b', type:'link-embed', x:0, y:35, w:100, h:30, rotation:0, style:deepClone(WIDGET_STYLE_DEFAULTS), settings:{url:'https://t.me/example', label:'02  TELEGRAM', description:''}, children:[] }
+      { id:'w3a', type:'link-embed', x:0, y:0, w:100, h:30, rotation:0, style:deepClone(WIDGET_STYLE_DEFAULTS), settings:{url:'https://example.com', label:'01  EXAMPLE', description:''}, children:[] },
+      { id:'w3b', type:'link-embed', x:0, y:35, w:100, h:30, rotation:0, style:deepClone(WIDGET_STYLE_DEFAULTS), settings:{url:'https://example.com', label:'02  EXAMPLE', description:''}, children:[] }
     ] },
     { id:'w4', type:'discord-presence', x:18, y:74, w:64, h:12, rotation:0, style:deepClone(WIDGET_STYLE_DEFAULTS), settings:{showStatusDot:true, showSpotify:true, showActivity:true} },
     { id:'w5', type:'visitor-counter', x:18, y:88, w:64, h:8, rotation:0, style:deepClone(WIDGET_STYLE_DEFAULTS), settings:{} }
@@ -1477,7 +1477,7 @@ $('#editorWokeBtn').onclick = () => {
   pushHistory();
   renderCanvas();
   markDirty();
-  showToast('woke preset applied');
+  showToast('link preset applied');
 };
 
 $('#wireToggle').onclick = () => {
