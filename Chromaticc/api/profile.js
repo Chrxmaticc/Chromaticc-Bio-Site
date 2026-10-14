@@ -334,63 +334,112 @@ function renderWidgetInner(widget, s, ctx) {
       return `<canvas class="audio-viz-canvas" data-src="${esc(s.src)}" data-color="${esc(s.color || '#fff')}" style="width:100%;height:100%;background:rgba(255,255,255,0.04);border-radius:inherit;cursor:pointer;"></canvas>`;
 
     case 'audio-lyric': {
-      const wid = widget.id;
-      const audioSrc = s.src || '';
-      const trackName = rc('trackName') || 'Track';
-      const artistName = rc('artistName') || 'Artist';
-      const albumArt = s.albumArt || '';
-      const trackJSON = JSON.stringify(trackName);
-      const artistJSON = JSON.stringify(artistName);
-      return `<div class="al-wrap" data-wid="${wid}">
-        <div class="al-top">
-          ${albumArt ? `<img src="${esc(albumArt)}" class="al-art" alt="" onerror="this.style.display='none'">` : `<div class="al-art al-art-fallback">♪</div>`}
-          <div class="al-info">
-            <div class="al-track">${esc(trackName)}</div>
-            <div class="al-artist">${esc(artistName)}</div>
-          </div>
-          <button class="al-play" data-play="${wid}" type="button">▶</button>
-        </div>
-        <div class="al-progress"><div class="al-fill" id="alf-${wid}"></div></div>
-        <div class="al-lyrics" id="all-${wid}"><div class="al-lyric-line al-loading">loading lyrics…</div></div>
-        <audio id="ala-${wid}" src="${esc(audioSrc)}" preload="metadata"></audio>
-        <script>
-        (function(){
-          var wid='${wid}';
-          var audio=document.getElementById('ala-'+wid);
-          var box=document.getElementById('all-'+wid);
-          var fill=document.getElementById('alf-'+wid);
-          var btn=document.querySelector('[data-play="'+wid+'"]');
-          if(!audio||!box)return;
-          var lines=[],cur=-1;
-          var track=${trackJSON},artist=${artistJSON};
-          fetch('https://lrclib.net/api/get?artist_name='+encodeURIComponent(artist)+'&track_name='+encodeURIComponent(track))
-            .then(function(r){if(!r.ok)throw 0;return r.json();})
-            .then(function(d){
-              var src=d.syncedLyrics||d.plainLyrics;
-              if(!src)throw 0;
-              if(d.syncedLyrics){
-                lines=src.split('\\n').map(function(l){var m=l.match(/\\[(\\d+):(\\d+\\.\\d+)\\](.*)/);if(!m)return null;return {t:parseInt(m[1])*60+parseFloat(m[2]),x:m[3].trim()};}).filter(Boolean);
-              } else {
-                lines=src.split('\\n').map(function(l){return {t:null,x:l.trim()};});
-              }
-              box.innerHTML=lines.map(function(l,i){return '<div class="al-lyric-line" data-i="'+i+'">'+l.x.replace(/</g,'&lt;')+'</div>';}).join('');
-              if(lines.length&&lines[0].t!==null)setInterval(sync,200);
-            })
-            .catch(function(){box.innerHTML='<div class="al-lyric-line al-loading">no lyrics found</div>';});
-          function sync(){
-            var t=audio.currentTime;
-            var idx=-1;
-            for(var i=0;i<lines.length;i++){if(lines[i].t!==null&&lines[i].t<=t)idx=i;else if(lines[i].t!==null)break;}
-            if(idx!==cur){cur=idx;var els=box.querySelectorAll('.al-lyric-line');els.forEach(function(e,i){e.classList.toggle('active',i===idx);});if(els[idx])els[idx].scrollIntoView({block:'center',behavior:'smooth'});}
-          }
-          btn.onclick=function(){audio.paused?audio.play():audio.pause();btn.textContent=audio.paused?'▶':'❚❚';};
-          audio.ontimeupdate=function(){if(audio.duration)fill.style.width=(audio.currentTime/audio.duration*100)+'%';};
-          audio.onended=function(){btn.textContent='▶';};
-        })();
-        <\/script>
-      </div>`;
-    }
+  const wid = widget.id;
+  const audioSrc = s.src || '';
+  const trackName = rc('trackName') || 'Track';
+  const artistName = rc('artistName') || 'Artist';
+  const albumArt = s.albumArt || '';
+  const loopAttr = s.loop ? 'loop' : '';
+  const autoplayAttr = s.autoplay ? 'data-autoplay="1"' : '';
+  const trackJSON = JSON.stringify(trackName);
+  const artistJSON = JSON.stringify(artistName);
+  return `<div class="al-wrap" data-wid="${wid}">
+    <div class="al-top">
+      ${albumArt ? `<img src="${esc(albumArt)}" class="al-art" alt="" onerror="this.style.display='none'">` : `<div class="al-art al-art-fallback">♪</div>`}
+      <div class="al-info">
+        <div class="al-track">${esc(trackName)}</div>
+        <div class="al-artist">${esc(artistName)}</div>
+      </div>
+      <button class="al-play" data-play="${wid}" type="button">▶</button>
+    </div>
+    <div class="al-progress"><div class="al-fill" id="alf-${wid}"></div></div>
+    <div class="al-lyrics" id="all-${wid}"><div class="al-lyric-line al-loading">loading lyrics…</div></div>
+    <audio id="ala-${wid}" src="${esc(audioSrc)}" preload="metadata" ${loopAttr} ${autoplayAttr}></audio>
+    <script>
+    (function(){
+      var wid='${wid}';
+      var audio=document.getElementById('ala-'+wid);
+      var box=document.getElementById('all-'+wid);
+      var fill=document.getElementById('alf-'+wid);
+      var btn=document.querySelector('[data-play="'+wid+'"]');
+      if(!audio||!box)return;
+      var lines=[],cur=-1;
+      var track=${trackJSON},artist=${artistJSON};
 
+      /* ── Button sync ── */
+      function setBtn(playing){ btn.textContent = playing ? '❚❚' : '▶'; }
+      audio.onplay = function(){ setBtn(true); };
+      audio.onpause = function(){ setBtn(false); };
+      audio.onended = function(){ setBtn(false); if(audio.loop)setBtn(true); };
+
+      /* ── Lyrics fetch ── */
+      if(track && artist && track !== 'Track' && artist !== 'Artist'){
+        fetch('https://lrclib.net/api/get?artist_name='+encodeURIComponent(artist)+'&track_name='+encodeURIComponent(track))
+          .then(function(r){if(!r.ok)throw 0;return r.json();})
+          .then(function(d){
+            var src=d.syncedLyrics||d.plainLyrics;
+            if(!src)throw 0;
+            if(d.syncedLyrics){
+              lines=src.split('\\n').map(function(l){var m=l.match(/\\[(\\d+):(\\d+\\.\\d+)\\](.*)/);if(!m)return null;return {t:parseInt(m[1])*60+parseFloat(m[2]),x:m[3].trim()};}).filter(Boolean);
+            } else {
+              lines=src.split('\\n').map(function(l){return {t:null,x:l.trim()};});
+            }
+            box.innerHTML=lines.map(function(l,i){return '<div class="al-lyric-line" data-i="'+i+'">'+l.x.replace(/</g,'&lt;')+'</div>';}).join('');
+            if(lines.length&&lines[0].t!==null)setInterval(sync,200);
+          })
+          .catch(function(){box.innerHTML='<div class="al-lyric-line al-loading">no lyrics found</div>';});
+      } else {
+        box.innerHTML='<div class="al-lyric-line al-loading">set track + artist for lyrics</div>';
+      }
+
+      function sync(){
+        if(audio.paused)return;
+        var t=audio.currentTime;
+        var idx=-1;
+        for(var i=0;i<lines.length;i++){if(lines[i].t!==null&&lines[i].t<=t)idx=i;else if(lines[i].t!==null)break;}
+        if(idx!==cur){cur=idx;var els=box.querySelectorAll('.al-lyric-line');els.forEach(function(e,i){e.classList.toggle('active',i===idx);});if(els[idx])els[idx].scrollIntoView({block:'center',behavior:'smooth'});}
+      }
+
+      /* ── Play / pause ── */
+      btn.onclick=function(){
+        if(audio.paused){audio.play().catch(function(){});}
+        else{audio.pause();}
+      };
+      audio.ontimeupdate=function(){if(audio.duration)fill.style.width=(audio.currentTime/audio.duration*100)+'%';};
+
+      /* ── Autoplay ── */
+      if(audio.dataset.autoplay === '1'){
+        var started = false;
+        var tryPlay = function(){
+          if(started) return;
+          audio.play().then(function(){ started = true; }).catch(function(){});
+        };
+
+        var overlay = document.getElementById('globalClickEnter');
+        if(overlay && overlay.style.display !== 'none'){
+          /* Wait for click-to-enter to dismiss */
+          document.addEventListener('chroma-entered', function(){
+            setTimeout(tryPlay, 150);
+          }, { once: true });
+        } else {
+          /* Try immediately (might work on some browsers) */
+          setTimeout(tryPlay, 300);
+          /* Fall back to first user interaction */
+          var unlock = function(){
+            tryPlay();
+            document.removeEventListener('click', unlock, true);
+            document.removeEventListener('touchstart', unlock, true);
+            document.removeEventListener('keydown', unlock, true);
+          };
+          document.addEventListener('click', unlock, true);
+          document.addEventListener('touchstart', unlock, true);
+          document.addEventListener('keydown', unlock, true);
+        }
+      }
+    })();
+    <\/script>
+  </div>`;
+}
     case 'image-carousel': {
       const imgs = toArr(s.images);
       if (!imgs.length) return `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:rgba(255,255,255,0.4);font-size:.78rem;">No images</div>`;
@@ -976,39 +1025,40 @@ export default async function handler(req, res) {
 
     /* ── Click to enter ── */
     let clickEnterHTML = '';
-    const hasClickEnterWidget = widgets.some(w => w.type === 'click-enter');
-    if (settings.clickToEnter && !hasClickEnterWidget) {
-      const audioUrl = settings.clickAudioUrl || settings.audioUrl || '';
-      const shouldPlayAudio = audioUrl && (settings.autoplay !== false);
-      clickEnterHTML = `
-        ${shouldPlayAudio ? `<audio id="clickEnterAudio" src="${esc(audioUrl)}" preload="auto" loop playsinline webkit-playsinline crossorigin="anonymous" style="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.001;pointer-events:none;"></audio>` : ''}
-        <div id="globalClickEnter" style="position:fixed;inset:0;background:rgba(0,0,0,0.96);display:flex;align-items:center;justify-content:center;z-index:9998;cursor:pointer;flex-direction:column;gap:16px;font-family:Inter,sans-serif;-webkit-tap-highlight-color:transparent;">
-          <div style="font-size:1.4rem;font-weight:800;color:#fff;text-align:center;padding:0 20px;">${esc(settings.clickEnterMessage || 'Click anywhere to enter')}</div>
-          <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">tap to continue</div>
-        </div>
-        <script>
-          (function(){
-            var overlay = document.getElementById('globalClickEnter');
-            var audio = document.getElementById('clickEnterAudio');
-            var dismissed = false;
-            function dismiss() {
-              if (dismissed) return;
-              dismissed = true;
-              if (audio) {
-                audio.volume = 1; audio.muted = false;
-                try { var p = audio.play(); if (p && p.then) p.catch(function(){ setTimeout(function(){ audio.play().catch(function(){}); },100); }); } catch(e){}
-              }
-              overlay.style.transition = 'opacity 0.3s';
-              overlay.style.opacity = '0';
-              overlay.style.pointerEvents = 'none';
-              setTimeout(function(){ overlay.style.display = 'none'; }, 300);
-            }
-            overlay.addEventListener('touchend', dismiss, { once: true });
-            overlay.addEventListener('click', dismiss, { once: true });
-            overlay.addEventListener('pointerup', dismiss, { once: true });
-          })();
-        <\/script>`;
-    }
+const hasClickEnterWidget = widgets.some(w => w.type === 'click-enter');
+if (settings.clickToEnter && !hasClickEnterWidget) {
+  const audioUrl = settings.clickAudioUrl || settings.audioUrl || '';
+  const shouldPlayAudio = audioUrl && (settings.autoplay !== false);
+  clickEnterHTML = `
+    ${shouldPlayAudio ? `<audio id="clickEnterAudio" src="${esc(audioUrl)}" preload="auto" loop playsinline webkit-playsinline crossorigin="anonymous" style="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.001;pointer-events:none;"></audio>` : ''}
+    <div id="globalClickEnter" style="position:fixed;inset:0;background:rgba(0,0,0,0.96);display:flex;align-items:center;justify-content:center;z-index:9998;cursor:pointer;flex-direction:column;gap:16px;font-family:Inter,sans-serif;-webkit-tap-highlight-color:transparent;">
+      <div style="font-size:1.4rem;font-weight:800;color:#fff;text-align:center;padding:0 20px;">${esc(settings.clickEnterMessage || 'Click anywhere to enter')}</div>
+      <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">tap to continue</div>
+    </div>
+    <script>
+      (function(){
+        var overlay = document.getElementById('globalClickEnter');
+        var audio = document.getElementById('clickEnterAudio');
+        var dismissed = false;
+        function dismiss() {
+          if (dismissed) return;
+          dismissed = true;
+          try { document.dispatchEvent(new CustomEvent('chroma-entered')); } catch(e) {}
+          if (audio) {
+            audio.volume = 1; audio.muted = false;
+            try { var p = audio.play(); if (p && p.then) p.catch(function(){ setTimeout(function(){ audio.play().catch(function(){}); },100); }); } catch(e){}
+          }
+          overlay.style.transition = 'opacity 0.3s';
+          overlay.style.opacity = '0';
+          overlay.style.pointerEvents = 'none';
+          setTimeout(function(){ overlay.style.display = 'none'; }, 300);
+        }
+        overlay.addEventListener('touchend', dismiss, { once: true });
+        overlay.addEventListener('click', dismiss, { once: true });
+        overlay.addEventListener('pointerup', dismiss, { once: true });
+      })();
+    <\/script>`;
+}
 
     /* ── Promo footer (opt-in) ── */
     let promoHTML = '';
