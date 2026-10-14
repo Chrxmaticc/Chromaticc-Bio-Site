@@ -1,3 +1,4 @@
+// api/login.js
 import crypto from 'crypto';
 import { pool } from './_auth.js';
 
@@ -13,6 +14,11 @@ function verifyPassword(password, stored) {
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+
+  if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
 
   const { username, password } = req.body || {};
@@ -29,20 +35,29 @@ export default async function handler(req, res) {
     const valid = await verifyPassword(password, user.password_hash);
     if (!valid) return res.status(401).json({ message: 'Invalid credentials' });
 
+    // Generate fresh token
     const token = crypto.randomBytes(32).toString('hex');
     const userAgent = (req.headers['user-agent'] || '').slice(0, 200);
-    const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim().slice(0, 60);
+    const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim().slice(0, 60) || null;
 
-    // multi-device: insert new session, don't clobber existing ones
+    // Insert into sessions — this is the critical part
     await pool.query(
-      'INSERT INTO sessions (token, user_id, user_agent, ip) VALUES ($1, $2, $3, $4)',
+      `INSERT INTO sessions (token, user_id, user_agent, ip)
+       VALUES ($1, $2, $3, $4)`,
       [token, user.id, userAgent, ip]
     );
 
-    // clean expired sessions for this user, fire-and-forget
-    pool.query('DELETE FROM sessions WHERE user_id = $1 AND expires_at < NOW()', [user.id]).catch(()=>{});
+    // Opportunistic cleanup of this user's expired sessions (fire and forget)
+    pool.query(
+      'DELETE FROM sessions WHERE user_id = $1 AND expires_at < NOW()',
+      [user.id]
+    ).catch(() => {});
 
-    res.setHeader('Set-Cookie', `token=${token}; Path=/; SameSite=Lax; Max-Age=2592000`);
+    // Set cookie too so either auth path works
+    res.setHeader(
+      'Set-Cookie',
+      `token=${token}; Path=/; SameSite=Lax; Max-Age=2592000${req.headers.host && !req.headers.host.includes('localhost') ? '; Secure' : ''}`
+    );
 
     return res.status(200).json({
       token,
