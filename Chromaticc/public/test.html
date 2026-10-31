@@ -49,11 +49,11 @@ body {
 #bgCanvas {
   position: fixed;
   inset: 0;
-  z-index: 0; /* Sits above the body background, below the UI */
+  z-index: 0; 
   pointer-events: none; 
-  /* Make it fade out at the edges */
-  -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 90%);
-  mask-image: radial-gradient(circle at center, black 30%, transparent 90%);
+  /* Fade out the edges so it looks like it goes on forever */
+  -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
+  mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
 }
 
 /* ── 4. NAVIGATION ── */
@@ -190,9 +190,9 @@ h1.hero-title {
 </main>
 
 <script>
-/* ── 1. INITIAL SETUP & THEME ── */
-// Declare canvas colors FIRST so the theme function doesn't crash
-let canvasColors = { line: 'rgba(255,255,255,0.06)', node: 'rgba(255,255,255,0.3)', glow: 'rgba(255,255,255,0.08)' };
+/* ── 1. THEME SETUP ── */
+// Brighter colors so they actually show up
+let canvasColors = { line: 'rgba(255,255,255,0.2)', node: 'rgba(255,255,255,0.7)', glow: 'rgba(255,255,255,0.08)' };
 
 const root = document.documentElement;
 const toggleBtn = document.getElementById('themeToggle');
@@ -215,26 +215,26 @@ function updateThemeUI(theme) {
   if (theme === 'light') {
     themeText.textContent = 'Light';
     themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>';
-    canvasColors = { line: 'rgba(0,0,0,0.06)', node: 'rgba(0,0,0,0.2)', glow: 'rgba(0,0,0,0.03)' };
+    canvasColors = { line: 'rgba(0,0,0,0.15)', node: 'rgba(0,0,0,0.5)', glow: 'rgba(0,0,0,0.04)' };
   } else {
     themeText.textContent = 'Dark';
     themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
-    canvasColors = { line: 'rgba(255,255,255,0.06)', node: 'rgba(255,255,255,0.3)', glow: 'rgba(255,255,255,0.08)' };
+    canvasColors = { line: 'rgba(255,255,255,0.2)', node: 'rgba(255,255,255,0.7)', glow: 'rgba(255,255,255,0.08)' };
   }
 }
 
-/* ── 2. 3D INTERACTIVE MESH BACKGROUND ── */
+/* ── 2. 3D INFINITE TUNNEL BACKGROUND ── */
 const canvas = document.getElementById('bgCanvas');
 const ctx = canvas.getContext('2d');
 let width, height;
 let mouse = { targetX: -1000, targetY: -1000, active: false };
 
-// 3D Math Config
+// Tunnel Config
 const FOV = 800;
-const SPACING = 80;
-const SPEED = 1.5;
-const cols = 25; 
-const rows = 25; 
+const SPEED = 3;
+const RINGS = 8;
+const POINTS_PER_RING = 50;
+const RADIUS = 600;
 
 let points = [];
 
@@ -243,15 +243,20 @@ function initCanvas() {
   height = canvas.height = window.innerHeight;
   
   points = [];
-  for (let x = 0; x < cols; x++) {
-    for (let z = 0; z < rows; z++) {
+  for (let r = 0; r < RINGS; r++) {
+    for (let i = 0; i < POINTS_PER_RING; i++) {
+      const angle = (i / POINTS_PER_RING) * Math.PI * 2;
+      // Add a slight wave to the radius so it's not a perfect circle
+      const rRadius = RADIUS + Math.sin(angle * 3) * 100 + Math.cos(angle * 5) * 50;
+      
       points.push({
-        x: (x - cols / 2) * SPACING,
-        y: 150, // Lower it so it looks like a floor
-        z: z * SPACING,
-        ox: (x - cols / 2) * SPACING,
-        oy: 150,
-        oz: z * SPACING
+        x: Math.cos(angle) * rRadius,
+        y: Math.sin(angle) * rRadius,
+        z: r * 400,
+        ox: Math.cos(angle) * rRadius,
+        oy: Math.sin(angle) * rRadius,
+        ring: r,
+        idx: i
       });
     }
   }
@@ -270,12 +275,10 @@ window.addEventListener('mouseleave', () => {
 });
 
 function project(p) {
-  const zOffset = p.z + 800; 
-  const scale = FOV / Math.max(1, zOffset); 
-  
-  // Parallax shift based on mouse
-  let mx = mouse.active ? (mouse.targetX - width / 2) * 0.4 : 0;
-  let my = mouse.active ? (mouse.targetY - height / 2) * 0.4 : 0;
+  const scale = FOV / (p.z + 800);
+  // Parallax shift based on mouse position
+  let mx = mouse.active ? (mouse.targetX - width / 2) * 0.15 : 0;
+  let my = mouse.active ? (mouse.targetY - height / 2) * 0.15 : 0;
 
   return {
     x: width / 2 + (p.x - mx) * scale,
@@ -289,40 +292,30 @@ function animateMesh() {
   requestAnimationFrame(animateMesh);
   ctx.clearRect(0, 0, width, height);
 
-  const time = Date.now() * 0.001;
-
-  // 1. Update Points & Apply Math
+  // 1. Update Points
   for (let i = 0; i < points.length; i++) {
     let p = points[i];
-    
     p.z -= SPEED;
     
-    // Reset if too close to camera
-    if (p.z < -300) {
-      p.z = rows * SPACING;
-      p.x = p.ox;
-      p.y = p.oy;
+    // Wrap points back to the end of the tunnel
+    if (p.z < -400) {
+      p.z += RINGS * 400;
     }
 
-    // Base wave motion
-    let wave = Math.sin(time * 1.5 + p.z * 0.01 + p.x * 0.01) * 40;
-    let targetY = p.oy + wave;
-
-    // Mouse physical repulsion
+    // Mouse repulsion (3D effect)
     const proj = project(p);
     let dx = mouse.targetX - proj.x;
     let dy = mouse.targetY - proj.y;
     let dist = Math.sqrt(dx * dx + dy * dy);
     
-    if (mouse.active && dist < 300) {
-      let force = (300 - dist) / 300;
-      targetY -= force * 120; 
-      p.x -= (dx / dist) * force * 50;
+    if (mouse.active && dist < 400) {
+      let force = (400 - dist) / 400;
+      p.x -= (dx / Math.max(1, dist)) * force * 30;
+      p.y -= (dy / Math.max(1, dist)) * force * 30;
     } else {
       p.x += (p.ox - p.x) * 0.05;
+      p.y += (p.oy - p.y) * 0.05;
     }
-
-    p.y += (targetY - p.y) * 0.1;
   }
 
   // 2. Draw Lines
@@ -333,49 +326,48 @@ function animateMesh() {
     let p = points[i];
     let projP = project(p);
     
-    // Fade out in distance
-    let alpha = Math.max(0, 1 - (p.z / (rows * SPACING)));
-    alpha = Math.min(1, alpha); 
-
+    // Fade out as they get further away
+    let alpha = Math.max(0, 1 - (p.z / (RINGS * 400)));
+    alpha = Math.min(1, alpha);
     if (alpha <= 0.01) continue;
 
-    // Draw to Right
-    if ((i + 1) % cols !== 0) {
-      let right = points[i + 1];
-      let projR = project(right);
-      ctx.globalAlpha = alpha * 0.6;
-      ctx.beginPath();
-      ctx.moveTo(projP.x, projP.y);
-      ctx.lineTo(projR.x, projR.y);
-      ctx.stroke();
-    }
+    // Connect to next point in the ring
+    let nextIdx = (p.idx + 1) % POINTS_PER_RING;
+    let next = points[p.ring * POINTS_PER_RING + nextIdx];
+    let projN = project(next);
     
-    // Draw to Bottom
-    if (i + cols < points.length) {
-      let bottom = points[i + cols];
-      let projB = project(bottom);
-      ctx.globalAlpha = alpha * 0.6;
+    ctx.globalAlpha = alpha * 0.4;
+    ctx.beginPath();
+    ctx.moveTo(projP.x, projP.y);
+    ctx.lineTo(projN.x, projN.y);
+    ctx.stroke();
+
+    // Connect to the point in the next ring forward
+    if (p.ring < RINGS - 1) {
+      let front = points[(p.ring + 1) * POINTS_PER_RING + p.idx];
+      let projF = project(front);
+      
+      ctx.globalAlpha = alpha * 0.4;
       ctx.beginPath();
       ctx.moveTo(projP.x, projP.y);
-      ctx.lineTo(projB.x, projB.y);
+      ctx.lineTo(projF.x, projF.y);
       ctx.stroke();
     }
   }
 
-  // 3. Draw Nodes (Dots)
+  // 3. Draw Nodes
   ctx.fillStyle = canvasColors.node;
   for (let i = 0; i < points.length; i++) {
     let p = points[i];
     let proj = project(p);
     
-    let alpha = Math.max(0, 1 - (p.z / (rows * SPACING)));
+    let alpha = Math.max(0, 1 - (p.z / (RINGS * 400)));
     alpha = Math.min(1, alpha);
-
     if (alpha <= 0.01) continue;
 
     ctx.globalAlpha = alpha;
     ctx.beginPath();
-    ctx.arc(proj.x, proj.y, Math.max(0.5, 2 * proj.scale), 0, Math.PI * 2);
+    ctx.arc(proj.x, proj.y, Math.max(1, 2.5 * proj.scale), 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -383,7 +375,7 @@ function animateMesh() {
   if (mouse.active) {
     const gradient = ctx.createRadialGradient(
       mouse.targetX, mouse.targetY, 0,
-      mouse.targetX, mouse.targetY, 400
+      mouse.targetX, mouse.targetY, 500
     );
     gradient.addColorStop(0, canvasColors.glow);
     gradient.addColorStop(1, 'transparent');
