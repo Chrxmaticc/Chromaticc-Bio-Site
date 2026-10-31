@@ -51,9 +51,6 @@ body {
   inset: 0;
   z-index: 0; 
   pointer-events: none; 
-  /* Fade out the edges so it looks like it goes on forever */
-  -webkit-mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
-  mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
 }
 
 /* ── 4. NAVIGATION ── */
@@ -74,6 +71,7 @@ nav {
   font-family: 'JetBrains Mono', monospace; font-size: 12px;
   cursor: pointer; transition: all 0.2s;
   display: flex; align-items: center; gap: 8px;
+  backdrop-filter: blur(10px);
 }
 .theme-toggle:hover { background: var(--border); }
 
@@ -191,8 +189,12 @@ h1.hero-title {
 
 <script>
 /* ── 1. THEME SETUP ── */
-// Brighter colors so they actually show up
-let canvasColors = { line: 'rgba(255,255,255,0.2)', node: 'rgba(255,255,255,0.7)', glow: 'rgba(255,255,255,0.08)' };
+// Theme variables for the canvas
+let theme = {
+  dotColor: 'rgba(255, 255, 255, 0.25)',
+  activeColor: 'rgba(255, 255, 255, 1)',
+  bgColor: '#050505'
+};
 
 const root = document.documentElement;
 const toggleBtn = document.getElementById('themeToggle');
@@ -211,52 +213,54 @@ toggleBtn.addEventListener('click', () => {
   updateThemeUI(next);
 });
 
-function updateThemeUI(theme) {
-  if (theme === 'light') {
+function updateThemeUI(mode) {
+  if (mode === 'light') {
     themeText.textContent = 'Light';
     themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>';
-    canvasColors = { line: 'rgba(0,0,0,0.15)', node: 'rgba(0,0,0,0.5)', glow: 'rgba(0,0,0,0.04)' };
+    theme = {
+      dotColor: 'rgba(0, 0, 0, 0.15)',
+      activeColor: 'rgba(0, 0, 0, 0.8)',
+      bgColor: '#fafafa'
+    };
   } else {
     themeText.textContent = 'Dark';
     themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
-    canvasColors = { line: 'rgba(255,255,255,0.2)', node: 'rgba(255,255,255,0.7)', glow: 'rgba(255,255,255,0.08)' };
+    theme = {
+      dotColor: 'rgba(255, 255, 255, 0.15)',
+      activeColor: 'rgba(255, 255, 255, 0.9)',
+      bgColor: '#050505'
+    };
   }
 }
 
-/* ── 2. 3D INFINITE TUNNEL BACKGROUND ── */
+/* ── 2. THE MAGNETIC DOT MATRIX ── */
 const canvas = document.getElementById('bgCanvas');
 const ctx = canvas.getContext('2d');
 let width, height;
-let mouse = { targetX: -1000, targetY: -1000, active: false };
+let dots = [];
+let mouse = { x: -1000, y: -1000, active: false };
 
-// Tunnel Config
-const FOV = 800;
-const SPEED = 3;
-const RINGS = 8;
-const POINTS_PER_RING = 50;
-const RADIUS = 600;
-
-let points = [];
+const spacing = 30; // Space between dots
+const baseRadius = 1.5; // Tiny dots
+const interactionRadius = 120; // How far the mouse pushes them
 
 function initCanvas() {
   width = canvas.width = window.innerWidth;
   height = canvas.height = window.innerHeight;
   
-  points = [];
-  for (let r = 0; r < RINGS; r++) {
-    for (let i = 0; i < POINTS_PER_RING; i++) {
-      const angle = (i / POINTS_PER_RING) * Math.PI * 2;
-      // Add a slight wave to the radius so it's not a perfect circle
-      const rRadius = RADIUS + Math.sin(angle * 3) * 100 + Math.cos(angle * 5) * 50;
-      
-      points.push({
-        x: Math.cos(angle) * rRadius,
-        y: Math.sin(angle) * rRadius,
-        z: r * 400,
-        ox: Math.cos(angle) * rRadius,
-        oy: Math.sin(angle) * rRadius,
-        ring: r,
-        idx: i
+  dots = [];
+  const cols = Math.ceil(width / spacing) + 1;
+  const rows = Math.ceil(height / spacing) + 1;
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      dots.push({
+        baseX: x * spacing,
+        baseY: y * spacing,
+        x: x * spacing,
+        y: y * spacing,
+        vx: 0,
+        vy: 0
       });
     }
   }
@@ -264,132 +268,78 @@ function initCanvas() {
 
 window.addEventListener('resize', initCanvas);
 window.addEventListener('mousemove', (e) => { 
-  mouse.targetX = e.clientX; 
-  mouse.targetY = e.clientY;
+  mouse.x = e.clientX; 
+  mouse.y = e.clientY;
   mouse.active = true;
 });
 window.addEventListener('mouseleave', () => { 
-  mouse.targetX = -1000; 
-  mouse.targetY = -1000; 
+  mouse.x = -1000; 
+  mouse.y = -1000; 
   mouse.active = false;
 });
 
-function project(p) {
-  const scale = FOV / (p.z + 800);
-  // Parallax shift based on mouse position
-  let mx = mouse.active ? (mouse.targetX - width / 2) * 0.15 : 0;
-  let my = mouse.active ? (mouse.targetY - height / 2) * 0.15 : 0;
+function animate() {
+  requestAnimationFrame(animate);
+  
+  // Clear with the theme background color
+  ctx.fillStyle = theme.bgColor;
+  ctx.fillRect(0, 0, width, height);
 
-  return {
-    x: width / 2 + (p.x - mx) * scale,
-    y: height / 2 + (p.y - my) * scale,
-    scale: scale,
-    z: p.z
-  };
-}
-
-function animateMesh() {
-  requestAnimationFrame(animateMesh);
-  ctx.clearRect(0, 0, width, height);
-
-  // 1. Update Points
-  for (let i = 0; i < points.length; i++) {
-    let p = points[i];
-    p.z -= SPEED;
-    
-    // Wrap points back to the end of the tunnel
-    if (p.z < -400) {
-      p.z += RINGS * 400;
-    }
-
-    // Mouse repulsion (3D effect)
-    const proj = project(p);
-    let dx = mouse.targetX - proj.x;
-    let dy = mouse.targetY - proj.y;
-    let dist = Math.sqrt(dx * dx + dy * dy);
-    
-    if (mouse.active && dist < 400) {
-      let force = (400 - dist) / 400;
-      p.x -= (dx / Math.max(1, dist)) * force * 30;
-      p.y -= (dy / Math.max(1, dist)) * force * 30;
-    } else {
-      p.x += (p.ox - p.x) * 0.05;
-      p.y += (p.oy - p.y) * 0.05;
-    }
-  }
-
-  // 2. Draw Lines
-  ctx.strokeStyle = canvasColors.line;
-  ctx.lineWidth = 1;
-
-  for (let i = 0; i < points.length; i++) {
-    let p = points[i];
-    let projP = project(p);
-    
-    // Fade out as they get further away
-    let alpha = Math.max(0, 1 - (p.z / (RINGS * 400)));
-    alpha = Math.min(1, alpha);
-    if (alpha <= 0.01) continue;
-
-    // Connect to next point in the ring
-    let nextIdx = (p.idx + 1) % POINTS_PER_RING;
-    let next = points[p.ring * POINTS_PER_RING + nextIdx];
-    let projN = project(next);
-    
-    ctx.globalAlpha = alpha * 0.4;
-    ctx.beginPath();
-    ctx.moveTo(projP.x, projP.y);
-    ctx.lineTo(projN.x, projN.y);
-    ctx.stroke();
-
-    // Connect to the point in the next ring forward
-    if (p.ring < RINGS - 1) {
-      let front = points[(p.ring + 1) * POINTS_PER_RING + p.idx];
-      let projF = project(front);
-      
-      ctx.globalAlpha = alpha * 0.4;
-      ctx.beginPath();
-      ctx.moveTo(projP.x, projP.y);
-      ctx.lineTo(projF.x, projF.y);
-      ctx.stroke();
-    }
-  }
-
-  // 3. Draw Nodes
-  ctx.fillStyle = canvasColors.node;
-  for (let i = 0; i < points.length; i++) {
-    let p = points[i];
-    let proj = project(p);
-    
-    let alpha = Math.max(0, 1 - (p.z / (RINGS * 400)));
-    alpha = Math.min(1, alpha);
-    if (alpha <= 0.01) continue;
-
-    ctx.globalAlpha = alpha;
-    ctx.beginPath();
-    ctx.arc(proj.x, proj.y, Math.max(1, 2.5 * proj.scale), 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // 4. Cursor Spotlight
+  // Draw a massive, soft spotlight behind everything
   if (mouse.active) {
     const gradient = ctx.createRadialGradient(
-      mouse.targetX, mouse.targetY, 0,
-      mouse.targetX, mouse.targetY, 500
+      mouse.x, mouse.y, 0,
+      mouse.x, mouse.y, 600
     );
-    gradient.addColorStop(0, canvasColors.glow);
+    // Very subtle glow
+    gradient.addColorStop(0, root.getAttribute('data-theme') === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)');
     gradient.addColorStop(1, 'transparent');
-    
     ctx.fillStyle = gradient;
-    ctx.globalAlpha = 1;
     ctx.fillRect(0, 0, width, height);
   }
 
-  ctx.globalAlpha = 1;
+  ctx.fillStyle = theme.dotColor;
+
+  for (let i = 0; i < dots.length; i++) {
+    let d = dots[i];
+    
+    // Calculate distance to mouse
+    let dx = mouse.x - d.baseX;
+    let dy = mouse.y - d.baseY;
+    let dist = Math.sqrt(dx * dx + dy * dy);
+
+    let targetX = d.baseX;
+    let targetY = d.baseY;
+    let size = baseRadius;
+    let isNearMouse = false;
+
+    if (mouse.active && dist < interactionRadius) {
+      isNearMouse = true;
+      // Push the dot away from the mouse
+      let force = (interactionRadius - dist) / interactionRadius;
+      let push = force * 25; // How hard it pushes
+      
+      targetX -= (dx / dist) * push;
+      targetY -= (dy / dist) * push;
+      
+      // Make the dot slightly bigger near the mouse
+      size += force * 2;
+    }
+
+    // Smooth spring physics (lerp)
+    d.x += (targetX - d.x) * 0.15;
+    d.y += (targetY - d.y) * 0.15;
+
+    // Draw the dot
+    ctx.fillStyle = isNearMouse ? theme.activeColor : theme.dotColor;
+    ctx.beginPath();
+    ctx.arc(d.x, d.y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 initCanvas();
-animateMesh();
+animate();
 
 /* ── 3. CLAIM FLOW ── */
 const input = document.getElementById('claimInput');
