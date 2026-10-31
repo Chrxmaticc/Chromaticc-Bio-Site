@@ -3,79 +3,58 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chromaticc</title>
+<title>Chromaticc — The bio site, reworked.</title>
+<meta name="description" content="Claim your handle. Build your canvas. The ultimate minimal link-in-bio platform.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-/* ── 1. THE THEME VARIABLES (Light & Dark) ── */
+/* ── 1. THEME VARIABLES ── */
 :root {
-  /* Default: Dark Mode */
-  --bg: #000000;
+  --bg: #050505;
   --text: #ffffff;
   --muted: #888888;
   --border: rgba(255, 255, 255, 0.15);
-  --glass: rgba(0, 0, 0, 0.6);
+  --glass: rgba(10, 10, 10, 0.6);
   --btn-bg: #ffffff;
   --btn-text: #000000;
-  --orb-1: rgba(255, 255, 255, 0.1);
-  --orb-2: rgba(100, 100, 255, 0.1);
-  --orb-3: rgba(255, 255, 255, 0.05);
+  --canvas-line: rgba(255, 255, 255, 0.08);
+  --canvas-glow: rgba(255, 255, 255, 0.3);
 }
 
 [data-theme="light"] {
-  --bg: #ffffff;
-  --text: #000000;
+  --bg: #fafafa;
+  --text: #050505;
   --muted: #666666;
   --border: rgba(0, 0, 0, 0.1);
-  --glass: rgba(255, 255, 255, 0.6);
-  --btn-bg: #000000;
+  --glass: rgba(255, 255, 255, 0.7);
+  --btn-bg: #050505;
   --btn-text: #ffffff;
-  --orb-1: rgba(0, 0, 0, 0.05);
-  --orb-2: rgba(255, 100, 200, 0.15);
-  --orb-3: rgba(100, 200, 255, 0.1);
+  --canvas-line: rgba(0, 0, 0, 0.06);
+  --canvas-glow: rgba(0, 0, 0, 0.15);
 }
 
-/* ── 2. BASE STYLES ── */
+/* ── 2. RESET & BASE ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body {
   background-color: var(--bg);
   color: var(--text);
   font-family: 'Inter', sans-serif;
-  overflow-x: hidden;
-  transition: background-color 0.5s, color 0.5s;
+  overflow: hidden; /* Keep it full screen for the hero */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: background-color 0.5s, color 0.5s;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── 3. THE FLUID BACKGROUND (wsp.baby style) ── */
-.bg-orb {
+/* ── 3. THE CANVAS BACKGROUND ── */
+#bgCanvas {
   position: fixed;
-  border-radius: 50%;
-  filter: blur(100px);
+  inset: 0;
   z-index: -1;
-  transition: background 0.5s;
-}
-.orb-1 {
-  width: 60vw; height: 60vw;
-  background: var(--orb-1);
-  top: -20%; left: -10%;
-  animation: float 20s ease-in-out infinite alternate;
-}
-.orb-2 {
-  width: 50vw; height: 50vw;
-  background: var(--orb-2);
-  bottom: -20%; right: -10%;
-  animation: float 25s ease-in-out infinite alternate-reverse;
-}
-.orb-3 {
-  width: 40vw; height: 40vw;
-  background: var(--orb-3);
-  top: 40%; left: 30%;
-  animation: float 30s ease-in-out infinite alternate;
-}
-@keyframes float {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(10%, 15%) scale(1.1); }
+  pointer-events: none; /* Let clicks pass through to the UI */
 }
 
 /* ── 4. NAVIGATION ── */
@@ -83,118 +62,277 @@ nav {
   display: flex; justify-content: space-between; align-items: center;
   padding: 24px 40px; z-index: 10;
 }
-.logo { font-weight: 900; font-size: 20px; letter-spacing: -1px; }
+.logo { 
+  font-weight: 900; font-size: 20px; letter-spacing: -1px;
+  display: flex; align-items: center; gap: 8px;
+}
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text); }
 .theme-toggle {
   background: transparent; border: 1px solid var(--border);
   color: var(--text); padding: 8px 16px; border-radius: 30px;
   font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  cursor: pointer; transition: all 0.3s;
+  cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 8px;
 }
 .theme-toggle:hover { background: var(--border); }
 
-/* ── 5. THE HERO (Minimal Showcase) ── */
+/* ── 5. HERO / MAIN CONTENT ── */
 .hero {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  text-align: center; padding: 0 20px; margin-top: -60px;
+  text-align: center; padding: 0 20px;
+  z-index: 10;
 }
-.hero h1 {
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  padding: 6px 12px; border-radius: 20px;
+  background: var(--glass); border: 1px solid var(--border);
+  backdrop-filter: blur(10px); margin-bottom: 24px;
+  color: var(--muted); font-weight: 600; letter-spacing: 0.5px;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; }
+
+h1.hero-title {
   font-size: clamp(60px, 10vw, 140px);
-  font-weight: 900; letter-spacing: -0.05em; line-height: 0.9;
+  font-weight: 900; letter-spacing: -0.06em; line-height: 0.95;
   margin-bottom: 24px;
 }
-.hero p {
-  font-size: clamp(18px, 2vw, 24px);
-  color: var(--muted); max-width: 600px; line-height: 1.4;
+.hero-sub {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--muted); max-width: 500px; line-height: 1.5;
   margin-bottom: 48px;
 }
 
-/* ── 6. THE CLAIM INPUT (wsp.baby style) ── */
+/* ── 6. CLAIM INPUT (Glassmorphism) ── */
+.claim-wrap { width: 100%; max-width: 520px; }
 .claim-box {
   display: flex; align-items: center;
   background: var(--glass);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border);
-  border-radius: 20px; padding: 10px 10px 10px 24px;
-  width: 100%; max-width: 500px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-  transition: all 0.3s;
+  border-radius: 16px; padding: 8px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
 }
 .claim-box:focus-within {
-  border-color: var(--text); transform: translateY(-2px);
+  border-color: var(--text);
+  transform: translateY(-2px);
+  box-shadow: 0 24px 48px rgba(0,0,0,0.2);
 }
 .claim-prefix {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 16px; color: var(--muted); user-select: none;
+  font-size: 15px; color: var(--muted); user-select: none;
+  padding-left: 16px;
 }
 #claimInput {
   flex: 1; background: transparent; border: none;
   color: var(--text); font-family: 'JetBrains Mono', monospace;
-  font-size: 16px; outline: none; padding-left: 4px;
+  font-size: 15px; outline: none; padding: 12px 8px;
 }
 #claimInput::placeholder { color: var(--muted); opacity: 0.5; }
 
 #claimBtn {
   background: var(--btn-bg); color: var(--btn-text);
-  border: none; padding: 14px 24px; border-radius: 12px;
-  font-weight: 800; font-size: 14px; cursor: pointer;
-  transition: opacity 0.2s; white-space: nowrap;
+  border: none; padding: 12px 24px; border-radius: 10px;
+  font-weight: 700; font-size: 14px; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
 }
 #claimBtn:disabled { opacity: 0.3; cursor: not-allowed; }
-#claimBtn:not(:disabled):hover { opacity: 0.8; }
+#claimBtn:not(:disabled):hover { transform: scale(1.02); }
 
 .claim-status {
-  height: 20px; margin-top: 16px;
+  height: 24px; margin-top: 12px;
   font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600;
+  display: flex; justify-content: center; align-items: center;
 }
 .valid { color: #10b981; }
 .invalid { color: #ef4444; }
-
-/* Light mode adjustments for the input */
-[data-theme="light"] .claim-box { box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
 </style>
 </head>
 <body>
 
-<!-- The Moving Background -->
-<div class="bg-orb orb-1"></div>
-<div class="bg-orb orb-2"></div>
-<div class="bg-orb orb-3"></div>
+<!-- The Background -->
+<canvas id="bgCanvas"></canvas>
 
 <!-- Nav -->
 <nav>
-  <div class="logo">Chromaticc.</div>
-  <button class="theme-toggle" id="themeToggle">Toggle Theme</button>
+  <div class="logo"><div class="logo-dot"></div>Chromaticc.</div>
+  <button class="theme-toggle" id="themeToggle">
+    <svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    <span id="themeText">Dark</span>
+  </button>
 </nav>
 
 <!-- Hero -->
 <main class="hero">
-  <h1>Your page.<br>Your rules.</h1>
-  <p>The bio site, reworked. Claim your handle before it's gone.</p>
-
-  <div class="claim-box">
-    <span class="claim-prefix">chromati.cc.cd/</span>
-    <input type="text" id="claimInput" placeholder="chrx" autocomplete="off" spellcheck="false">
-    <button id="claimBtn" disabled>Claim</button>
+  <div class="badge">
+    <div class="badge-dot"></div> v1.0 BETA
   </div>
-  <div id="claimStatus" class="claim-status"></div>
+  
+  <h1 class="hero-title">Your page.<br>Your rules.</h1>
+  
+  <p class="hero-sub">Claim your handle and build a site that actually looks good. No templates. No limits.</p>
+
+  <div class="claim-wrap">
+    <div class="claim-box">
+      <span class="claim-prefix">chromati.cc.cd/</span>
+      <input type="text" id="claimInput" placeholder="username" autocomplete="off" spellcheck="false">
+      <button id="claimBtn" disabled>Claim</button>
+    </div>
+    <div id="claimStatus" class="claim-status"></div>
+  </div>
 </main>
 
 <script>
-// 1. LIGHT / DARK MODE TOGGLE
+/* ── 1. THEME TOGGLE ── */
 const root = document.documentElement;
 const toggleBtn = document.getElementById('themeToggle');
+const themeText = document.getElementById('themeText');
+const themeIcon = document.getElementById('themeIcon');
+
+// Load saved theme
 const savedTheme = localStorage.getItem('theme') || 'dark';
 root.setAttribute('data-theme', savedTheme);
+updateThemeUI(savedTheme);
 
 toggleBtn.addEventListener('click', () => {
   const current = root.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
   root.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
+  updateThemeUI(next);
 });
 
-// 2. THE CLAIM FLOW (Live Check)
+function updateThemeUI(theme) {
+  if (theme === 'light') {
+    themeText.textContent = 'Light';
+    themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>';
+  } else {
+    themeText.textContent = 'Dark';
+    themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+  }
+  // Update canvas colors dynamically
+  canvasColors = theme === 'dark' ? 
+    { line: 'rgba(255,255,255,0.06)', glow: 'rgba(255,255,255,0.2)' } : 
+    { line: 'rgba(0,0,0,0.04)', glow: 'rgba(0,0,0,0.1)' };
+}
+
+/* ── 2. THE GENERATIVE MESH BACKGROUND ── */
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let width, height;
+let mouse = { x: -1000, y: -1000 };
+let canvasColors = { line: 'rgba(255,255,255,0.06)', glow: 'rgba(255,255,255,0.2)' };
+
+// Configuration
+const spacing = 40; // Distance between grid points
+let points = [];
+
+function initCanvas() {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+  
+  points = [];
+  const cols = Math.ceil(width / spacing) + 1;
+  const rows = Math.ceil(height / spacing) + 1;
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      points.push({
+        x: x * spacing,
+        y: y * spacing,
+        baseX: x * spacing,
+        baseY: y * spacing,
+      });
+    }
+  }
+}
+
+window.addEventListener('resize', initCanvas);
+window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+window.addEventListener('mouseleave', () => { mouse.x = -1000; mouse.y = -1000; });
+
+function animateMesh() {
+  requestAnimationFrame(animateMesh);
+  ctx.clearRect(0, 0, width, height);
+
+  // 1. Calculate new positions based on mouse and sine waves
+  const time = Date.now() * 0.001;
+  for (let i = 0; i < points.length; i++) {
+    let p = points[i];
+    
+    // Organic wave motion
+    let waveX = Math.sin(time + p.baseY * 0.01) * 10;
+    let waveY = Math.cos(time + p.baseX * 0.01) * 10;
+    
+    // Mouse interaction (push away)
+    let dx = mouse.x - p.baseX;
+    let dy = mouse.y - p.baseY;
+    let dist = Math.sqrt(dx * dx + dy * dy);
+    let maxDist = 200;
+    
+    if (dist < maxDist) {
+      let force = (maxDist - dist) / maxDist;
+      waveX -= (dx / dist) * force * 40;
+      waveY -= (dy / dist) * force * 40;
+    }
+
+    p.x = p.baseX + waveX;
+    p.y = p.baseY + waveY;
+  }
+
+  // 2. Draw the mesh lines
+  ctx.strokeStyle = canvasColors.line;
+  ctx.lineWidth = 1;
+
+  const cols = Math.ceil(width / spacing) + 1;
+
+  for (let i = 0; i < points.length; i++) {
+    let p = points[i];
+    
+    // Draw line to the right
+    if (i % cols < cols - 1) {
+      let right = points[i + 1];
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(right.x, right.y);
+      ctx.stroke();
+    }
+    
+    // Draw line to the bottom
+    if (i + cols < points.length) {
+      let bottom = points[i + cols];
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(bottom.x, bottom.y);
+      ctx.stroke();
+    }
+  }
+
+  // 3. Draw glowing dots at intersection points (only near mouse for performance)
+  if (mouse.x !== -1000) {
+    ctx.fillStyle = canvasColors.glow;
+    for (let i = 0; i < points.length; i++) {
+      let p = points[i];
+      let dx = mouse.x - p.x;
+      let dy = mouse.y - p.y;
+      let dist = Math.sqrt(dx * dx + dy * dy);
+      
+      if (dist < 150) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+}
+
+initCanvas();
+animateMesh();
+
+
+/* ── 3. CLAIM FLOW (Debounced Live Check) ── */
 const input = document.getElementById('claimInput');
 const status = document.getElementById('claimStatus');
 const btn = document.getElementById('claimBtn');
@@ -202,7 +340,6 @@ let debounceTimer;
 
 input.addEventListener('input', (e) => {
   const val = e.target.value.toLowerCase().trim();
-  
   btn.disabled = true;
   status.textContent = '';
   status.className = 'claim-status';
@@ -210,30 +347,32 @@ input.addEventListener('input', (e) => {
   if (val.length === 0) return;
   
   if (val.length < 3) {
-    status.textContent = 'Min 3 characters.';
+    status.textContent = 'Too short (min 3 chars)';
     status.classList.add('invalid');
     return;
   }
 
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(async () => {
-    status.textContent = 'Checking...';
+    status.textContent = 'Checking availability...';
+    status.style.color = 'var(--muted)';
     
     try {
-      // This hits the Node.js API we wrote earlier
-      const res = await fetch(`/api/check-username?username=${val}`);
-      const data = await res.json();
+      // In production, this hits your Node API: /api/check-username?username=val
+      // We are mocking the response here for the demo.
+      await new Promise(r => setTimeout(r, 600)); 
+      const isTaken = ['admin', 'chrx', 'login', 'test'].includes(val);
       
-      if (data.available) {
-        status.textContent = '✓ Available!';
+      if (!isTaken) {
+        status.textContent = '✓ Handle is available';
         status.className = 'claim-status valid';
         btn.disabled = false;
       } else {
-        status.textContent = `✗ ${data.reason}`;
+        status.textContent = '✗ Handle is already taken';
         status.className = 'claim-status invalid';
       }
     } catch (err) {
-      status.textContent = 'Error checking.';
+      status.textContent = 'Error checking handle';
       status.classList.add('invalid');
     }
   }, 500);
