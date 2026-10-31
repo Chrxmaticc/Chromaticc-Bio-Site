@@ -4,30 +4,76 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chromaticc — The bio site, reworked.</title>
-<meta name="description" content="Claim your handle. Build your canvas. The ultimate minimal link-in-bio platform.">
+<meta name="description" content="Claim your handle. Build your canvas. The ultimate minimal, drag-and-drop link-in-bio platform with 60+ widgets, Discord presence, and wire mode.">
+<meta name="keywords" content="link in bio, bio site, discord presence, custom css, widgets, linktree alternative">
+<meta name="author" content="Chromaticc">
+<link rel="canonical" href="https://chromati.cc.cd/">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chromati.cc.cd/">
+<meta property="og:title" content="Chromaticc — The bio site, reworked.">
+<meta property="og:description" content="Claim your handle and build a site that actually looks good. No templates. No limits.">
+<meta property="og:image" content="https://chromati.cc.cd/og-image.jpg">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="https://chromati.cc.cd/">
+<meta property="twitter:title" content="Chromaticc — The bio site, reworked.">
+<meta property="twitter:description" content="Claim your handle and build a site that actually looks good. No templates. No limits.">
+<meta property="twitter:image" content="https://chromati.cc.cd/og-image.jpg">
+
+<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<!-- Structured Data (SEO) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Chromaticc",
+  "url": "https://chromati.cc.cd/",
+  "description": "The ultimate minimal drag-and-drop link-in-bio platform.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://chromati.cc.cd/{search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
 <style>
 /* ── 1. THEME VARIABLES ── */
 :root {
-  --bg: #050505;
+  --bg: #030303;
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface-hover: rgba(255, 255, 255, 0.06);
   --text: #ffffff;
   --muted: #888888;
-  --border: rgba(255, 255, 255, 0.15);
-  --glass: rgba(10, 10, 10, 0.6);
-  --btn-bg: #ffffff;
-  --btn-text: #000000;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-bright: rgba(255, 255, 255, 0.3);
+  
+  /* Gradient colors for dark mode */
+  --grad-1: rgba(255, 255, 255, 0.08);
+  --grad-2: rgba(150, 150, 150, 0.05);
+  --grad-3: rgba(50, 50, 50, 0.1);
 }
 
 [data-theme="light"] {
   --bg: #fafafa;
+  --surface: rgba(0, 0, 0, 0.02);
+  --surface-hover: rgba(0, 0, 0, 0.04);
   --text: #050505;
   --muted: #666666;
-  --border: rgba(0, 0, 0, 0.1);
-  --glass: rgba(255, 255, 255, 0.7);
-  --btn-bg: #050505;
-  --btn-text: #ffffff;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-bright: rgba(0, 0, 0, 0.3);
+  
+  /* Gradient colors for light mode */
+  --grad-1: rgba(0, 0, 0, 0.04);
+  --grad-2: rgba(100, 100, 100, 0.03);
+  --grad-3: rgba(200, 200, 200, 0.1);
 }
 
 /* ── 2. RESET & BASE ── */
@@ -37,7 +83,7 @@ body {
   background-color: var(--bg);
   color: var(--text);
   font-family: 'Inter', sans-serif;
-  overflow: hidden; 
+  overflow-x: hidden;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -45,19 +91,59 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── 3. THE CANVAS BACKGROUND ── */
-#bgCanvas {
+/* ── 3. THE CINEMATIC GRADIENT MESH BACKGROUND ── */
+.bg-mesh {
   position: fixed;
   inset: 0;
-  z-index: 0; 
-  pointer-events: none; 
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  transition: background 0.5s;
+}
+
+.blob-1 {
+  width: 60vw; height: 60vw;
+  background: radial-gradient(circle, var(--grad-1) 0%, transparent 70%);
+  top: -20%; left: -10%;
+  animation: float1 25s ease-in-out infinite alternate;
+}
+.blob-2 {
+  width: 50vw; height: 50vw;
+  background: radial-gradient(circle, var(--grad-2) 0%, transparent 70%);
+  bottom: -10%; right: -10%;
+  animation: float2 30s ease-in-out infinite alternate;
+}
+.blob-3 {
+  width: 40vw; height: 40vw;
+  background: radial-gradient(circle, var(--grad-3) 0%, transparent 70%);
+  top: 40%; left: 40%;
+  animation: float3 20s ease-in-out infinite alternate;
+}
+
+@keyframes float1 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(10%, 15%) scale(1.1); }
+}
+@keyframes float2 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-15%, -10%) scale(1.2); }
+}
+@keyframes float3 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-10%, 10%) scale(0.9); }
 }
 
 /* ── 4. NAVIGATION ── */
 nav {
   display: flex; justify-content: space-between; align-items: center;
   padding: 24px 40px; 
-  position: relative;
   z-index: 10;
 }
 .logo { 
@@ -66,62 +152,90 @@ nav {
 }
 .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text); }
 .theme-toggle {
-  background: transparent; border: 1px solid var(--border);
+  background: var(--surface); border: 1px solid var(--border);
   color: var(--text); padding: 8px 16px; border-radius: 30px;
   font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  cursor: pointer; transition: all 0.2s;
+  cursor: pointer; transition: all 0.3s ease;
   display: flex; align-items: center; gap: 8px;
   backdrop-filter: blur(10px);
 }
-.theme-toggle:hover { background: var(--border); }
+.theme-toggle:hover { background: var(--surface-hover); border-color: var(--border-bright); }
 
-/* ── 5. HERO / MAIN CONTENT ── */
-.hero {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  text-align: center; padding: 0 20px;
-  position: relative;
+/* ── 5. BENTO GRID LAYOUT ── */
+.container {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+  width: 100%;
   z-index: 10;
-  pointer-events: none; 
 }
-.hero > * { pointer-events: auto; } 
 
-.badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  padding: 6px 12px; border-radius: 20px;
-  background: var(--glass); border: 1px solid var(--border);
-  backdrop-filter: blur(10px); margin-bottom: 24px;
-  color: var(--muted); font-weight: 600; letter-spacing: 0.5px;
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
-.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; }
 
-h1.hero-title {
-  font-size: clamp(60px, 10vw, 140px);
-  font-weight: 900; letter-spacing: -0.06em; line-height: 0.95;
+/* Bento Card Base */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 32px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.card:hover {
+  border-color: var(--border-bright);
+  background: var(--surface-hover);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+[data-theme="light"] .card:hover {
+  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+}
+
+/* Grid Spanning */
+.hero-card { grid-column: span 3; grid-row: span 2; justify-content: center; }
+.stat-card { grid-column: span 1; grid-row: span 1; justify-content: center; align-items: center; text-align: center; }
+.feature-card { grid-column: span 2; grid-row: span 1; }
+.small-card { grid-column: span 1; grid-row: span 1; }
+
+/* Typography inside cards */
+.hero-title {
+  font-size: clamp(48px, 6vw, 80px);
+  font-weight: 900; letter-spacing: -0.05em; line-height: 1;
   margin-bottom: 24px;
 }
 .hero-sub {
-  font-size: clamp(16px, 2vw, 20px);
-  color: var(--muted); max-width: 500px; line-height: 1.5;
-  margin-bottom: 48px;
+  font-size: 18px; color: var(--muted); max-width: 480px; line-height: 1.5;
+  margin-bottom: 40px;
+}
+.card-title {
+  font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px;
+}
+.card-desc {
+  font-size: 14px; color: var(--muted); line-height: 1.5;
 }
 
 /* ── 6. CLAIM INPUT ── */
-.claim-wrap { width: 100%; max-width: 520px; }
 .claim-box {
   display: flex; align-items: center;
-  background: var(--glass);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 16px; padding: 8px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  max-width: 480px;
   transition: all 0.3s ease;
 }
 .claim-box:focus-within {
-  border-color: var(--text);
-  transform: translateY(-2px);
-  box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+  border-color: var(--border-bright);
+  box-shadow: 0 0 0 4px var(--surface);
 }
 .claim-prefix {
   font-family: 'JetBrains Mono', monospace;
@@ -136,7 +250,7 @@ h1.hero-title {
 #claimInput::placeholder { color: var(--muted); opacity: 0.5; }
 
 #claimBtn {
-  background: var(--btn-bg); color: var(--btn-text);
+  background: var(--text); color: var(--bg);
   border: none; padding: 12px 24px; border-radius: 10px;
   font-weight: 700; font-size: 14px; cursor: pointer;
   transition: all 0.2s; white-space: nowrap;
@@ -145,18 +259,64 @@ h1.hero-title {
 #claimBtn:not(:disabled):hover { transform: scale(1.02); }
 
 .claim-status {
-  height: 24px; margin-top: 12px;
-  font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600;
-  display: flex; justify-content: center; align-items: center;
+  height: 20px; margin-top: 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; padding-left: 8px;
 }
 .valid { color: #10b981; }
 .invalid { color: #ef4444; }
+
+/* ── 7. BENTO CARD VISUALS ── */
+.stat-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 40px; font-weight: 800; line-height: 1;
+  margin-bottom: 8px;
+}
+.stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;}
+
+.mock-discord {
+  display: flex; align-items: center; gap: 12px; margin-top: 20px;
+  background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 12px;
+}
+.mock-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--border-bright); }
+.mock-lines { flex: 1; }
+.mock-line-1 { width: 60%; height: 8px; background: var(--border-bright); border-radius: 4px; margin-bottom: 6px; }
+.mock-line-2 { width: 40%; height: 6px; background: var(--border); border-radius: 4px; }
+
+.code-block {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6;
+  background: var(--bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border);
+  margin-top: 20px; color: var(--muted); overflow: hidden;
+}
+.code-highlight { color: var(--text); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .bento-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-card { grid-column: span 2; }
+  .feature-card { grid-column: span 2; }
+  .stat-card, .small-card { grid-column: span 1; }
+}
+@media (max-width: 600px) {
+  .bento-grid { grid-template-columns: 1fr; }
+  .hero-card, .feature-card, .stat-card, .small-card { grid-column: span 1; }
+  nav { padding: 20px; }
+  .hero-title { font-size: 40px; }
+  .claim-box { flex-direction: column; gap: 8px; background: transparent; border: none; }
+  .claim-prefix { padding-left: 0; margin-bottom: 8px; }
+  #claimInput { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
+  #claimBtn { width: 100%; padding: 16px; }
+}
 </style>
 </head>
 <body>
 
-<!-- The Background -->
-<canvas id="bgCanvas"></canvas>
+<!-- Background Mesh -->
+<div class="bg-mesh">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
 
 <!-- Nav -->
 <nav>
@@ -167,35 +327,76 @@ h1.hero-title {
   </button>
 </nav>
 
-<!-- Hero -->
-<main class="hero">
-  <div class="badge">
-    <div class="badge-dot"></div> v1.0 BETA
-  </div>
-  
-  <h1 class="hero-title">Your page.<br>Your rules.</h1>
-  
-  <p class="hero-sub">Claim your handle and build a site that actually looks good. No templates. No limits.</p>
-
-  <div class="claim-wrap">
-    <div class="claim-box">
-      <span class="claim-prefix">chromati.cc.cd/</span>
-      <input type="text" id="claimInput" placeholder="username" autocomplete="off" spellcheck="false">
-      <button id="claimBtn" disabled>Claim</button>
+<!-- Main Content -->
+<main class="container">
+  <div class="bento-grid">
+    
+    <!-- Hero Card -->
+    <div class="card hero-card">
+      <div class="badge" style="font-family: 'JetBrains Mono'; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span> V1.0 BETA
+      </div>
+      <h1 class="hero-title">Your page.<br>Your rules.</h1>
+      <p class="hero-sub">Claim your handle and build a site that actually looks good. Drag, drop, wire, and customize. No limits.</p>
+      
+      <div class="claim-box">
+        <span class="claim-prefix">chromati.cc.cd/</span>
+        <input type="text" id="claimInput" placeholder="username" autocomplete="off" spellcheck="false">
+        <button id="claimBtn" disabled>Claim</button>
+      </div>
+      <div id="claimStatus" class="claim-status"></div>
     </div>
-    <div id="claimStatus" class="claim-status"></div>
+
+    <!-- Stats Card -->
+    <div class="card stat-card">
+      <div class="stat-num">60+</div>
+      <div class="stat-label">Widgets</div>
+    </div>
+
+    <!-- Discord Card -->
+    <div class="card feature-card">
+      <div class="card-title">Discord Presence</div>
+      <div class="card-desc">Show your live status, what you're playing, and Spotify tracks directly on your page.</div>
+      
+      <div class="mock-discord">
+        <div class="mock-avatar"></div>
+        <div class="mock-lines">
+          <div class="mock-line-1"></div>
+          <div class="mock-line-2" style="background: #10b981; opacity: 0.5;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat Card 2 -->
+    <div class="card stat-card">
+      <div class="stat-num">&lt;1s</div>
+      <div class="stat-label">Load Time</div>
+    </div>
+
+    <!-- Custom CSS Card -->
+    <div class="card feature-card">
+      <div class="card-title">Total Control</div>
+      <div class="card-desc">Every widget accepts raw HTML, CSS, and JS. Break the grid or build a masterpiece.</div>
+      
+      <div class="code-block">
+        .my-widget {<br>
+        &nbsp;&nbsp;<span class="code-highlight">background</span>: linear-gradient(...);<br>
+        &nbsp;&nbsp;<span class="code-highlight">animation</span>: glow 2s infinite;<br>
+        }
+      </div>
+    </div>
+
+    <!-- Stat Card 3 -->
+    <div class="card stat-card">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Free</div>
+    </div>
+
   </div>
 </main>
 
 <script>
-/* ── 1. THEME SETUP ── */
-// Theme variables for the canvas
-let theme = {
-  dotColor: 'rgba(255, 255, 255, 0.25)',
-  activeColor: 'rgba(255, 255, 255, 1)',
-  bgColor: '#050505'
-};
-
+/* ── 1. THEME TOGGLE ── */
 const root = document.documentElement;
 const toggleBtn = document.getElementById('themeToggle');
 const themeText = document.getElementById('themeText');
@@ -213,135 +414,17 @@ toggleBtn.addEventListener('click', () => {
   updateThemeUI(next);
 });
 
-function updateThemeUI(mode) {
-  if (mode === 'light') {
+function updateThemeUI(theme) {
+  if (theme === 'light') {
     themeText.textContent = 'Light';
     themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>';
-    theme = {
-      dotColor: 'rgba(0, 0, 0, 0.15)',
-      activeColor: 'rgba(0, 0, 0, 0.8)',
-      bgColor: '#fafafa'
-    };
   } else {
     themeText.textContent = 'Dark';
     themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
-    theme = {
-      dotColor: 'rgba(255, 255, 255, 0.15)',
-      activeColor: 'rgba(255, 255, 255, 0.9)',
-      bgColor: '#050505'
-    };
   }
 }
 
-/* ── 2. THE MAGNETIC DOT MATRIX ── */
-const canvas = document.getElementById('bgCanvas');
-const ctx = canvas.getContext('2d');
-let width, height;
-let dots = [];
-let mouse = { x: -1000, y: -1000, active: false };
-
-const spacing = 30; // Space between dots
-const baseRadius = 1.5; // Tiny dots
-const interactionRadius = 120; // How far the mouse pushes them
-
-function initCanvas() {
-  width = canvas.width = window.innerWidth;
-  height = canvas.height = window.innerHeight;
-  
-  dots = [];
-  const cols = Math.ceil(width / spacing) + 1;
-  const rows = Math.ceil(height / spacing) + 1;
-
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      dots.push({
-        baseX: x * spacing,
-        baseY: y * spacing,
-        x: x * spacing,
-        y: y * spacing,
-        vx: 0,
-        vy: 0
-      });
-    }
-  }
-}
-
-window.addEventListener('resize', initCanvas);
-window.addEventListener('mousemove', (e) => { 
-  mouse.x = e.clientX; 
-  mouse.y = e.clientY;
-  mouse.active = true;
-});
-window.addEventListener('mouseleave', () => { 
-  mouse.x = -1000; 
-  mouse.y = -1000; 
-  mouse.active = false;
-});
-
-function animate() {
-  requestAnimationFrame(animate);
-  
-  // Clear with the theme background color
-  ctx.fillStyle = theme.bgColor;
-  ctx.fillRect(0, 0, width, height);
-
-  // Draw a massive, soft spotlight behind everything
-  if (mouse.active) {
-    const gradient = ctx.createRadialGradient(
-      mouse.x, mouse.y, 0,
-      mouse.x, mouse.y, 600
-    );
-    // Very subtle glow
-    gradient.addColorStop(0, root.getAttribute('data-theme') === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)');
-    gradient.addColorStop(1, 'transparent');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
-  }
-
-  ctx.fillStyle = theme.dotColor;
-
-  for (let i = 0; i < dots.length; i++) {
-    let d = dots[i];
-    
-    // Calculate distance to mouse
-    let dx = mouse.x - d.baseX;
-    let dy = mouse.y - d.baseY;
-    let dist = Math.sqrt(dx * dx + dy * dy);
-
-    let targetX = d.baseX;
-    let targetY = d.baseY;
-    let size = baseRadius;
-    let isNearMouse = false;
-
-    if (mouse.active && dist < interactionRadius) {
-      isNearMouse = true;
-      // Push the dot away from the mouse
-      let force = (interactionRadius - dist) / interactionRadius;
-      let push = force * 25; // How hard it pushes
-      
-      targetX -= (dx / dist) * push;
-      targetY -= (dy / dist) * push;
-      
-      // Make the dot slightly bigger near the mouse
-      size += force * 2;
-    }
-
-    // Smooth spring physics (lerp)
-    d.x += (targetX - d.x) * 0.15;
-    d.y += (targetY - d.y) * 0.15;
-
-    // Draw the dot
-    ctx.fillStyle = isNearMouse ? theme.activeColor : theme.dotColor;
-    ctx.beginPath();
-    ctx.arc(d.x, d.y, size, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-initCanvas();
-animate();
-
-/* ── 3. CLAIM FLOW ── */
+/* ── 2. CLAIM FLOW ── */
 const input = document.getElementById('claimInput');
 const status = document.getElementById('claimStatus');
 const btn = document.getElementById('claimBtn');
@@ -367,8 +450,9 @@ input.addEventListener('input', (e) => {
     status.style.color = 'var(--muted)';
     
     try {
+      // Mocking API call
       await new Promise(r => setTimeout(r, 600)); 
-      const isTaken = ['admin', 'chrx', 'login', 'test'].includes(val);
+      const isTaken = ['admin', 'chrx', 'login', 'test', 'chromaticc'].includes(val);
       
       if (!isTaken) {
         status.textContent = '✓ Handle is available';
@@ -388,6 +472,20 @@ input.addEventListener('input', (e) => {
 btn.addEventListener('click', () => {
   const val = input.value.toLowerCase().trim();
   if (val) window.location.href = `/accounts.html?claim=${val}`;
+});
+
+/* ── 3. CARD ENTRANCE ANIMATION ── */
+document.addEventListener('DOMContentLoaded', () => {
+  const cards = document.querySelectorAll('.card');
+  cards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      card.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0)';
+    }, 100 + (index * 80));
+  });
 });
 </script>
 </body>
