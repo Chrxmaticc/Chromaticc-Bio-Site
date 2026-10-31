@@ -19,7 +19,8 @@
   --btn-bg: #ffffff;
   --btn-text: #000000;
   --canvas-line: rgba(255, 255, 255, 0.08);
-  --canvas-glow: rgba(255, 255, 255, 0.3);
+  --canvas-node: rgba(255, 255, 255, 0.4);
+  --canvas-glow: rgba(255, 255, 255, 0.15);
 }
 
 [data-theme="light"] {
@@ -31,7 +32,8 @@
   --btn-bg: #050505;
   --btn-text: #ffffff;
   --canvas-line: rgba(0, 0, 0, 0.06);
-  --canvas-glow: rgba(0, 0, 0, 0.15);
+  --canvas-node: rgba(0, 0, 0, 0.3);
+  --canvas-glow: rgba(0, 0, 0, 0.05);
 }
 
 /* ── 2. RESET & BASE ── */
@@ -41,7 +43,7 @@ body {
   background-color: var(--bg);
   color: var(--text);
   font-family: 'Inter', sans-serif;
-  overflow: hidden; /* Keep it full screen for the hero */
+  overflow: hidden; 
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -54,7 +56,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: -1;
-  pointer-events: none; /* Let clicks pass through to the UI */
+  pointer-events: none; 
 }
 
 /* ── 4. NAVIGATION ── */
@@ -82,7 +84,10 @@ nav {
   align-items: center; justify-content: center;
   text-align: center; padding: 0 20px;
   z-index: 10;
+  pointer-events: none; /* Let mouse pass through to canvas, except for UI elements */
 }
+.hero > * { pointer-events: auto; } /* Re-enable pointer events for hero children */
+
 .badge {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: 'JetBrains Mono', monospace; font-size: 11px;
@@ -191,7 +196,6 @@ const toggleBtn = document.getElementById('themeToggle');
 const themeText = document.getElementById('themeText');
 const themeIcon = document.getElementById('themeIcon');
 
-// Load saved theme
 const savedTheme = localStorage.getItem('theme') || 'dark';
 root.setAttribute('data-theme', savedTheme);
 updateThemeUI(savedTheme);
@@ -208,129 +212,201 @@ function updateThemeUI(theme) {
   if (theme === 'light') {
     themeText.textContent = 'Light';
     themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>';
+    canvasColors = { line: 'rgba(0,0,0,0.06)', node: 'rgba(0,0,0,0.3)', glow: 'rgba(0,0,0,0.05)' };
   } else {
     themeText.textContent = 'Dark';
     themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+    canvasColors = { line: 'rgba(255,255,255,0.08)', node: 'rgba(255,255,255,0.4)', glow: 'rgba(255,255,255,0.15)' };
   }
-  // Update canvas colors dynamically
-  canvasColors = theme === 'dark' ? 
-    { line: 'rgba(255,255,255,0.06)', glow: 'rgba(255,255,255,0.2)' } : 
-    { line: 'rgba(0,0,0,0.04)', glow: 'rgba(0,0,0,0.1)' };
 }
 
-/* ── 2. THE GENERATIVE MESH BACKGROUND ── */
+/* ── 2. THE 3D INTERACTIVE MESH BACKGROUND ── */
 const canvas = document.getElementById('bgCanvas');
 const ctx = canvas.getContext('2d');
 let width, height;
-let mouse = { x: -1000, y: -1000 };
-let canvasColors = { line: 'rgba(255,255,255,0.06)', glow: 'rgba(255,255,255,0.2)' };
+let mouse = { x: -1000, y: -1000, targetX: -1000, targetY: -1000, active: false };
+let canvasColors = { line: 'rgba(255,255,255,0.08)', node: 'rgba(255,255,255,0.4)', glow: 'rgba(255,255,255,0.15)' };
 
-// Configuration
-const spacing = 40; // Distance between grid points
+// 3D Config
+const FOV = 600;
+const SPACING = 60;
+const SPEED = 1.5;
 let points = [];
+const cols = 20; // Grid width
+const rows = 20; // Grid depth
 
 function initCanvas() {
   width = canvas.width = window.innerWidth;
   height = canvas.height = window.innerHeight;
   
   points = [];
-  const cols = Math.ceil(width / spacing) + 1;
-  const rows = Math.ceil(height / spacing) + 1;
-
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
+  // Generate a 3D grid
+  for (let x = 0; x < cols; x++) {
+    for (let z = 0; z < rows; z++) {
       points.push({
-        x: x * spacing,
-        y: y * spacing,
-        baseX: x * spacing,
-        baseY: y * spacing,
+        x: (x - cols / 2) * SPACING,
+        y: 100, // Default height
+        z: z * SPACING,
+        baseZ: z * SPACING,
+        ox: (x - cols / 2) * SPACING, // Original X
+        oy: 100,
+        oz: z * SPACING
       });
     }
   }
 }
 
 window.addEventListener('resize', initCanvas);
-window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
-window.addEventListener('mouseleave', () => { mouse.x = -1000; mouse.y = -1000; });
+window.addEventListener('mousemove', (e) => { 
+  mouse.targetX = e.clientX; 
+  mouse.targetY = e.clientY;
+  mouse.active = true;
+});
+window.addEventListener('mouseleave', () => { 
+  mouse.targetX = -1000; 
+  mouse.targetY = -1000; 
+  mouse.active = false;
+});
+
+function project(p) {
+  // Rotate slightly based on mouse
+  const rotX = (mouse.targetY - height / 2) * 0.0001;
+  const rotY = (mouse.targetX - width / 2) * 0.0001;
+  
+  // Apply 3D rotation
+  let x = p.x - (mouse.targetX - width / 2) * 0.1;
+  let y = p.y - (mouse.targetY - height / 2) * 0.1;
+  let z = p.z;
+  
+  // Perspective projection
+  const scale = FOV / (FOV + z);
+  return {
+    x: width / 2 + x * scale,
+    y: height / 2 + y * scale,
+    scale: scale,
+    z: z
+  };
+}
 
 function animateMesh() {
   requestAnimationFrame(animateMesh);
   ctx.clearRect(0, 0, width, height);
 
-  // 1. Calculate new positions based on mouse and sine waves
   const time = Date.now() * 0.001;
+
+  // 1. Update Points & Apply Math
   for (let i = 0; i < points.length; i++) {
     let p = points[i];
     
-    // Organic wave motion
-    let waveX = Math.sin(time + p.baseY * 0.01) * 10;
-    let waveY = Math.cos(time + p.baseX * 0.01) * 10;
+    // Move points forward
+    p.z -= SPEED;
     
-    // Mouse interaction (push away)
-    let dx = mouse.x - p.baseX;
-    let dy = mouse.y - p.baseY;
-    let dist = Math.sqrt(dx * dx + dy * dy);
-    let maxDist = 200;
-    
-    if (dist < maxDist) {
-      let force = (maxDist - dist) / maxDist;
-      waveX -= (dx / dist) * force * 40;
-      waveY -= (dy / dist) * force * 40;
+    // Reset if too close
+    if (p.z < -FOV) {
+      p.z = rows * SPACING;
+      p.x = p.ox;
+      p.y = p.oy;
     }
 
-    p.x = p.baseX + waveX;
-    p.y = p.baseY + waveY;
+    // Base wave motion
+    let wave = Math.sin(time * 2 + p.z * 0.01 + p.x * 0.01) * 40;
+    let targetY = p.oy + wave;
+
+    // Mouse repulsion (3D force)
+    // Project point to 2D first to check distance to mouse
+    const proj = project(p);
+    let dx = mouse.targetX - proj.x;
+    let dy = mouse.targetY - proj.y;
+    let dist = Math.sqrt(dx * dx + dy * dy);
+    
+    if (dist < 300) {
+      // Push points away from mouse
+      let force = (300 - dist) / 300;
+      targetY -= force * 100; 
+      p.x -= (dx / dist) * force * 50;
+    } else {
+      // Gently return to original position
+      p.x += (p.ox - p.x) * 0.05;
+    }
+
+    // Smooth Y transition
+    p.y += (targetY - p.y) * 0.1;
   }
 
-  // 2. Draw the mesh lines
+  // 2. Draw Lines (Connect neighbors)
   ctx.strokeStyle = canvasColors.line;
   ctx.lineWidth = 1;
 
-  const cols = Math.ceil(width / spacing) + 1;
-
   for (let i = 0; i < points.length; i++) {
     let p = points[i];
     
-    // Draw line to the right
-    if (i % cols < cols - 1) {
+    // Connect to right neighbor
+    if ((i + 1) % cols !== 0) {
       let right = points[i + 1];
+      let projP = project(p);
+      let projR = project(right);
+      
+      // Fade out in the distance
+      const alpha = Math.max(0, 1 - (p.z / (rows * SPACING)));
+      ctx.globalAlpha = alpha * 0.5;
+      
       ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo(right.x, right.y);
+      ctx.moveTo(projP.x, projP.y);
+      ctx.lineTo(projR.x, projR.y);
       ctx.stroke();
     }
     
-    // Draw line to the bottom
+    // Connect to front neighbor
     if (i + cols < points.length) {
-      let bottom = points[i + cols];
+      let front = points[i + cols];
+      let projP = project(p);
+      let projF = project(front);
+      
+      const alpha = Math.max(0, 1 - (p.z / (rows * SPACING)));
+      ctx.globalAlpha = alpha * 0.5;
+
       ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo(bottom.x, bottom.y);
+      ctx.moveTo(projP.x, projP.y);
+      ctx.lineTo(projF.x, projF.y);
       ctx.stroke();
     }
   }
 
-  // 3. Draw glowing dots at intersection points (only near mouse for performance)
-  if (mouse.x !== -1000) {
-    ctx.fillStyle = canvasColors.glow;
-    for (let i = 0; i < points.length; i++) {
-      let p = points[i];
-      let dx = mouse.x - p.x;
-      let dy = mouse.y - p.y;
-      let dist = Math.sqrt(dx * dx + dy * dy);
-      
-      if (dist < 150) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
+  // 3. Draw Nodes (Dots)
+  ctx.fillStyle = canvasColors.node;
+  for (let i = 0; i < points.length; i++) {
+    let p = points[i];
+    let proj = project(p);
+    
+    // Fade out in distance
+    const alpha = Math.max(0, 1 - (p.z / (rows * SPACING)));
+    ctx.globalAlpha = alpha;
+    
+    // Draw dot
+    ctx.beginPath();
+    ctx.arc(proj.x, proj.y, Math.max(0.5, 2 * proj.scale), 0, Math.PI * 2);
+    ctx.fill();
   }
+
+  // 4. Cursor Spotlight (Radial Gradient)
+  if (mouse.active) {
+    const gradient = ctx.createRadialGradient(
+      mouse.targetX, mouse.targetY, 0,
+      mouse.targetX, mouse.targetY, 400
+    );
+    gradient.addColorStop(0, canvasColors.glow);
+    gradient.addColorStop(1, 'transparent');
+    
+    ctx.fillStyle = gradient;
+    ctx.globalAlpha = 1;
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  ctx.globalAlpha = 1;
 }
 
 initCanvas();
 animateMesh();
-
 
 /* ── 3. CLAIM FLOW (Debounced Live Check) ── */
 const input = document.getElementById('claimInput');
@@ -359,7 +435,6 @@ input.addEventListener('input', (e) => {
     
     try {
       // In production, this hits your Node API: /api/check-username?username=val
-      // We are mocking the response here for the demo.
       await new Promise(r => setTimeout(r, 600)); 
       const isTaken = ['admin', 'chrx', 'login', 'test'].includes(val);
       
