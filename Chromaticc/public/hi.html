@@ -3,308 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chromaticc — Worldwide</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Chromaticc — Ghost Canvas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Three.js and Globe.gl -->
-    <script src="//unpkg.com/three"></script>
-    <script src="//unpkg.com/globe.gl"></script>
-
-    <script>
-        // Prevent theme flash on load
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (savedTheme === 'light' || (!savedTheme && !prefersDark)) {
-            document.documentElement.setAttribute('data-theme', 'light');
-        }
-    </script>
 
     <style>
-        :root[data-theme="dark"] {
-            --bg: #000000;
+        :root {
+            --bg: #09090b;
             --text: #ffffff;
             --muted: #a1a1aa;
-            --gradient-start: rgba(0,0,0,0);
-            --gradient-end: #000000;
-            --globe-glow: #062056;
-        }
-
-        :root[data-theme="light"] {
-            --bg: #ffffff;
-            --text: #09090b;
-            --muted: #52525b;
-            --gradient-start: rgba(255,255,255,0);
-            --gradient-end: #ffffff;
-            --globe-glow: #e4e4e7;
+            --surface: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #38bdf8;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            background-color: var(--bg);
+            background: var(--bg);
             color: var(--text);
             font-family: 'Poppins', sans-serif;
-            overflow: hidden;
-            transition: background-color 0.5s ease, color 0.5s ease;
+            overflow-y: auto;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            justify-content: center;
         }
 
-        /* ── MAIN SECTION ── */
-        .globe-section {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
+        /* ── THE GHOST CANVAS ── */
+        .canvas {
+            width: 100%;
+            max-width: 600px;
+            min-height: 100vh;
+            padding: 100px 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding-top: 12vh;
-        }
-
-        /* ── ANIMATED TEXT ── */
-        .text-container {
+            gap: 16px;
             position: relative;
-            z-index: 10;
-            text-align: center;
-            max-width: 48rem;
-            padding: 0 24px;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        @keyframes fadeInUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .text-container h2 {
-            font-size: clamp(24px, 4vw, 36px);
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            margin-bottom: 12px;
-        }
-
-        .text-container p {
-            font-size: clamp(16px, 2vw, 18px);
-            font-weight: 300;
+        /* Empty state prompt */
+        .empty-prompt {
             color: var(--muted);
-            max-width: 32rem;
-            margin: 0 auto;
-            line-height: 1.6;
+            font-size: 15px;
+            font-style: italic;
+            opacity: 0.5;
+            cursor: text;
         }
 
-        /* ── GLOBE CONTAINER ── */
-        .globe-container {
-            position: absolute;
-            bottom: -10%;
-            width: 100%;
-            height: 100vh;
-            z-index: 1;
+        /* ── WIDGETS ── */
+        .widget {
+            position: relative;
+            border-radius: 12px;
+            transition: all 0.2s var(--ease);
+            padding: 4px;
+            outline: 1px solid transparent;
             cursor: grab;
         }
 
-        .globe-container:active {
-            cursor: grabbing;
+        .widget:hover {
+            background: var(--surface);
+            outline: 1px solid var(--border);
         }
 
-        /* ── GRADIENT FADE ── */
-        .gradient-overlay {
+        /* The Drag Handle (Appears on hover) */
+        .drag-handle {
             position: absolute;
-            bottom: 0;
+            left: -32px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            opacity: 0;
+            cursor: grab;
+            padding: 8px;
+            transition: opacity 0.2s;
+        }
+        .widget:hover .drag-handle { opacity: 1; }
+
+        /* ── ACTUAL WIDGET STYLES ── */
+        .w-profile { display: flex; align-items: center; gap: 16px; padding: 16px 0; }
+        .w-avatar { width: 64px; height: 64px; border-radius: 50%; background: #333; border: 2px solid var(--border); }
+        .w-name { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; outline: none; }
+        .w-bio { font-size: 14px; color: var(--muted); outline: none; }
+
+        .w-link { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; background: #111; border: 1px solid var(--border);
+            border-radius: 10px; text-decoration: none; color: var(--text);
+            font-size: 14px; font-weight: 500; transition: background 0.2s;
+            cursor: pointer;
+        }
+        .w-link:hover { background: #18181b; }
+
+        /* ── THE FLOATING TOOLBAR ── */
+        .toolbar {
+            position: absolute;
+            top: -45px;
             left: 0;
-            right: 0;
-            height: 180px;
-            background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
-            z-index: 5;
-            pointer-events: none;
-        }
-
-        /* ── THEME TOGGLE ── */
-        .theme-toggle {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            z-index: 50;
-            background: transparent;
-            border: 1px solid var(--muted);
-            color: var(--text);
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 4px;
+            background: rgba(20, 20, 22, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(5px) scale(0.95);
+            transition: all 0.2s var(--ease);
+            z-index: 100;
+        }
+        
+        .widget:hover .toolbar, .widget:focus-within .toolbar {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        .toolbar-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            width: 28px; height: 28px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
         }
-        .theme-toggle:hover {
-            background: var(--text);
-            color: var(--bg);
+        .toolbar-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+        .toolbar-btn.delete:hover { color: #ef4444; }
+        .toolbar-divider { width: 1px; height: 14px; background: var(--border); margin: 0 4px; }
+
+        /* ── THE SLASH MENU ── */
+        .slash-menu {
+            position: absolute;
+            width: 280px;
+            background: rgba(18, 18, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            padding: 6px;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            gap: 2px;
         }
-        .fa-solid { font-size: 18px; }
+        .slash-menu.active { display: flex; }
+
+        .slash-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; border-radius: 6px;
+            color: var(--muted); font-size: 13px; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .slash-item:hover, .slash-item.active {
+            background: rgba(255,255,255,0.08); color: var(--text);
+        }
+        .slash-item i { width: 16px; text-align: center; }
+
+        /* ── STATUS BAR ── */
+        .status-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 20, 22, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--muted);
+            display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px #22c55e; }
     </style>
 </head>
 <body>
 
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme">
-        <i class="fa-solid fa-moon" id="themeIcon"></i>
-    </button>
-
-    <div class="globe-section">
-        <div class="text-container">
-            <h2>Users worldwide.</h2>
-            <p>Get it? Because we're worldwide.</p>
-        </div>
-
-        <div class="gradient-overlay"></div>
-        <div class="globe-container" id="globeViz"></div>
+    <div class="canvas" id="canvas">
+        <!-- Widgets will spawn here -->
+        <div class="empty-prompt" id="emptyPrompt">Type / to add a widget...</div>
     </div>
 
-     <script>
-        // ── 1. DATA ──
-        const arcColors = ["#06b6d4", "#3b82f6", "#6366f1"];
-        
-        const userLocations = [
-            { lat: 40.7128, lng: -74.0060, count: 14, city: "New York" },
-            { lat: 51.5072, lng: -0.1276, count: 22, city: "London" },
-            { lat: 35.6762, lng: 139.6503, count: 18, city: "Tokyo" },
-            { lat: -33.8688, lng: 151.2093, count: 7, city: "Sydney" },
-            { lat: 48.8566, lng: 2.3522, count: 11, city: "Paris" },
-            { lat: 37.7749, lng: -122.4194, count: 9, city: "San Francisco" },
-            { lat: 19.0760, lng: 72.8777, count: 15, city: "Mumbai" },
-            { lat: -23.5505, lng: -46.6333, count: 8, city: "São Paulo" }
-        ];
+    <!-- Slash Menu (Hidden by default) -->
+    <div class="slash-menu" id="slashMenu">
+        <div class="slash-item" data-type="profile"><i class="fa-solid fa-user"></i> Profile Card</div>
+        <div class="slash-item" data-type="link"><i class="fa-solid fa-link"></i> Link Button</div>
+        <div class="slash-item" data-type="text"><i class="fa-solid fa-font"></i> Text Block</div>
+    </div>
 
-        const sampleArcs = [
-            { startLat: 40.7128, startLng: -74.0060, endLat: 51.5072, endLng: -0.1276, arcAlt: 0.2, color: arcColors[0] },
-            { startLat: 35.6762, startLng: 139.6503, endLat: 37.7749, endLng: -122.4194, arcAlt: 0.3, color: arcColors[1] },
-            { startLat: 19.0760, startLng: 72.8777, endLat: -33.8688, endLng: 151.2093, arcAlt: 0.2, color: arcColors[2] },
-            { startLat: 48.8566, startLng: 2.3522, endLat: 40.7128, endLng: -74.0060, arcAlt: 0.4, color: arcColors[0] }
-        ];
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-dot"></div>
+        <span id="statusText">All changes saved</span>
+    </div>
 
-        // ── 2. SETUP GLOBE ──
-        let world;
-        const globeEl = document.getElementById('globeViz');
+    <script>
+        const canvas = document.getElementById('canvas');
+        const slashMenu = document.getElementById('slashMenu');
+        const emptyPrompt = document.getElementById('emptyPrompt');
+        const statusText = document.getElementById('statusText');
+        let widgetCount = 0;
 
-        function initGlobe() {
-            world = Globe()
-                (globeEl)
-                .backgroundColor('rgba(0,0,0,0)') 
-                .showAtmosphere(true)
-                .atmosphereAltitude(0.15)
-                .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-                
-                // Arcs
-                .arcsData(sampleArcs)
-                .arcStartLat(d => d.startLat)
-                .arcStartLng(d => d.startLng)
-                .arcEndLat(d => d.endLat)
-                .arcEndLng(d => d.endLng)
-                .arcColor(d => d.color)
-                .arcAltitude(d => d.arcAlt)
-                .arcDashLength(0.9)
-                .arcDashGap(0.2)
-                .arcDashAnimateTime(1500)
-                .arcsTransitionDuration(0)
-
-                // User Pings
-                .pointsData(userLocations)
-                .pointLat('lat')
-                .pointLng('lng')
-                .pointColor(() => '#38bdf8') 
-                .pointAltitude(0.02) 
-                .pointRadius(d => Math.min(0.6, 0.15 + (d.count * 0.02))) 
-
-                .ringsData(userLocations)
-                .ringLat('lat')
-                .ringLng('lng')
-                .ringColor(() => t => `rgba(56, 189, 248, ${1 - t})`) 
-                .ringMaxRadius(2.5)
-                .ringPropagationSpeed(1.5)
-                .ringRepeatPeriod(2000)
-
-                // Controls
-                .enableZoom(false)
-                .enablePan(false)
-                .autoRotate(true)
-                .autoRotateSpeed(0.6);
-
-            // Apply Theme
-            updateGlobeTheme();
-
-            // Handle Resize
-            window.addEventListener('resize', () => {
-                world.width(globeEl.clientWidth);
-                world.height(globeEl.clientHeight);
-            });
-            world.width(globeEl.clientWidth);
-            world.height(globeEl.clientHeight);
-
-            // Hover Tooltip
-            world.onPointHover((point) => {
-                if (point) {
-                    globeEl.style.cursor = 'pointer';
-                    globeEl.title = `${point.count} users active in ${point.city}`;
-                } else {
-                    globeEl.style.cursor = 'grab';
-                    globeEl.title = '';
-                }
-            });
-        }
-
-        // ── 3. THEME LOGIC ──
-        const root = document.documentElement;
-        const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = document.getElementById('themeIcon');
-
-        function updateGlobeTheme() {
-            if (!world) return;
-            const isDark = root.getAttribute('data-theme') === 'dark';
-            
-            // Swap Textures
-            world.globeImageUrl(isDark 
-                ? 'https://unpkg.com/three-globe/example/img/earth-dark.jpg' // Navy earth
-                : 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg' // Bright earth
-            );
-            
-            // Atmosphere
-            world.atmosphereColor(isDark ? '#ffffff' : '#000000');
-            
-            // Reset material so it just uses the texture naturally
-            const globeMaterial = world.globeMaterial();
-            globeMaterial.color = new THREE.Color('#ffffff'); 
-            globeMaterial.emissive = new THREE.Color('#000000');
-            globeMaterial.emissiveIntensity = 0;
-            globeMaterial.shininess = 10; 
-            globeMaterial.needsUpdate = true;
-        }
-
-        themeToggle.addEventListener('click', () => {
-            const current = root.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            
-            root.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
-            
-            if (next === 'dark') {
-                themeIcon.classList.replace('fa-sun', 'fa-moon');
-            } else {
-                themeIcon.classList.replace('fa-moon', 'fa-sun');
+        // ── 1. SHOW SLASH MENU ──
+        document.addEventListener('keydown', (e) => {
+            // If user types '/', show menu at center of screen
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && !document.activeElement.isContentEditable) {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                // Position menu roughly in the middle of the canvas
+                slashMenu.style.top = (window.scrollY + 200) + 'px';
+                slashMenu.style.left = '50%';
+                slashMenu.style.transform = 'translateX(-50%)';
+                slashMenu.classList.add('active');
             }
-            
-            updateGlobeTheme();
+            if (e.key === 'Escape') {
+                slashMenu.classList.remove('active');
+            }
         });
 
-        if (root.getAttribute('data-theme') === 'light') {
-            themeIcon.classList.replace('fa-moon', 'fa-sun');
+        // Click outside to close menu
+        document.addEventListener('click', (e) => {
+            if (!slashMenu.contains(e.target) && e.target.id !== 'emptyPrompt') {
+                slashMenu.classList.remove('active');
+            }
+        });
+
+        // ── 2. CREATE WIDGETS ──
+        document.querySelectorAll('.slash-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const type = item.dataset.type;
+                addWidget(type);
+                slashMenu.classList.remove('active');
+            });
+        });
+
+        function addWidget(type) {
+            emptyPrompt.style.display = 'none';
+            widgetCount++;
+
+            const widget = document.createElement('div');
+            widget.className = 'widget';
+            
+            // The floating toolbar HTML (Shared across all widgets)
+            const toolbarHTML = `
+                <div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>
+                <div class="toolbar">
+                    <button class="toolbar-btn"><i class="fa-solid fa-palette"></i></button>
+                    <button class="toolbar-btn"><i class="fa-solid fa-sliders"></i></button>
+                    <div class="toolbar-divider"></div>
+                    <button class="toolbar-btn delete" onclick="this.closest('.widget').remove()"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `;
+
+            if (type === 'profile') {
+                widget.innerHTML = `
+                    ${toolbarHTML}
+                    <div class="w-profile">
+                        <div class="w-avatar"></div>
+                        <div>
+                            <div class="w-name" contenteditable="true">Alex</div>
+                            <div class="w-bio" contenteditable="true">Designer & Builder</div>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'link') {
+                widget.innerHTML = `
+                    ${toolbarHTML}
+                    <div class="w-link">
+                        <span contenteditable="true">My Portfolio</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--muted); font-size:12px;"></i>
+                    </div>
+                `;
+            } else if (type === 'text') {
+                widget.innerHTML = `
+                    ${toolbarHTML}
+                    <div style="font-size:16px; padding: 8px 0; outline:none;" contenteditable="true">Type something...</div>
+                `;
+            }
+
+            canvas.appendChild(widget);
+            saveMock();
         }
 
-        // ── 4. BOOT ──
-        window.addEventListener('DOMContentLoaded', () => {
-            initGlobe();
+        // ── 3. INLINE EDITING & SAVING ──
+        // Every time a user types in an editable field, show "Saving..."
+        canvas.addEventListener('input', (e) => {
+            if (e.target.isContentEditable) {
+                saveMock();
+            }
         });
+
+        function saveMock() {
+            statusText.textContent = 'Saving...';
+            statusText.parentElement.style.color = '#fbbf24'; // Yellow
+            
+            clearTimeout(window.saveTimeout);
+            window.saveTimeout = setTimeout(() => {
+                statusText.textContent = 'All changes saved';
+                statusText.parentElement.style.color = 'var(--muted)';
+            }, 800);
+        }
     </script>
 </body>
 </html>
