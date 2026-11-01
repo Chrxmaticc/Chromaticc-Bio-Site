@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chromaticc — Editor</title>
+    <title>Chromaticc — Canvas Editor</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- Interact.js for Real Drag & Resize -->
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
     <style>
         :root {
-            --bg: #f9f9fb;
+            --bg: #f4f4f5;
             --page: #ffffff;
             --surface: #f4f4f5;
             --border: #e4e4e7;
-            --text: #18181b;
-            --muted: #a1a1aa;
+            --text: #09090b;
+            --muted: #71717a;
             --accent: #18181b;
             --danger: #ef4444;
             --font: 'Poppins', sans-serif;
-            --ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -30,86 +30,78 @@
             font-family: var(--font);
             overflow: hidden;
             height: 100vh;
-            display: flex;
         }
 
-        /* ── THE DOCUMENT VIEW ── */
-        .main-view {
-            flex: 1;
-            overflow-y: auto;
+        /* ── THE CANVAS ── */
+        .canvas-container {
+            position: absolute;
+            inset: 0;
+            overflow: auto;
             display: flex;
             justify-content: center;
-            padding: 60px 20px 200px 20px;
-            transition: padding-right 0.4s var(--ease);
-        }
-        
-        .main-view.settings-open {
-            padding-right: 340px; /* Make room for settings */
+            padding: 60px;
         }
 
-        .page {
+        .canvas {
             width: 100%;
-            max-width: 700px;
+            max-width: 900px;
+            min-height: 2000px;
             background: var(--page);
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-            min-height: 100%;
-            padding: 80px 60px;
             position: relative;
-            cursor: text;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 20px 20px;
+            /* We don't want the grid to be too loud */
+            background-position: center center;
         }
 
-        /* ── BLOCKS (No Textboxes) ── */
-        .block-list {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-height: 500px; /* Clickable void area */
-        }
-
-        .block-wrapper {
-            position: relative;
-            display: flex;
-            align-items: flex-start;
-            border-radius: 8px;
-            padding: 2px 0;
-            transition: background 0.2s;
-        }
-
-        /* Hover effect only on the handle, not the whole block */
-        .block-wrapper:hover .drag-handle,
-        .block-wrapper:hover .block-toolbar {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* Drag Handle */
-        .drag-handle {
+        /* ── BLOCKS ── */
+        .block {
             position: absolute;
-            left: -30px;
-            top: 8px;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--muted);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid transparent;
             cursor: grab;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s, background 0.2s;
-            border-radius: 4px;
+            touch-action: none; /* Important for interact.js */
+            transition: border-color 0.1s;
         }
-        .drag-handle:hover { background: var(--surface); color: var(--text); }
-        .drag-handle:active { cursor: grabbing; }
 
-        /* Hover Toolbar */
+        .block:hover {
+            border-color: var(--border);
+        }
+
+        .block.selected {
+            border-color: var(--accent);
+            border-style: dashed;
+            z-index: 100;
+        }
+
+        /* The Resize Handle */
+        .resize-handle {
+            position: absolute;
+            right: -6px;
+            bottom: -6px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: se-resize;
+        }
+
+        .block:hover .resize-handle,
+        .block.selected .resize-handle {
+            opacity: 1;
+        }
+
+        /* Block Toolbar */
         .block-toolbar {
             position: absolute;
-            right: -30px;
-            top: 8px;
+            top: -36px;
+            right: 0;
             display: flex;
-            flex-direction: column;
             gap: 2px;
             background: var(--page);
             border: 1px solid var(--border);
@@ -117,75 +109,66 @@
             padding: 4px;
             opacity: 0;
             pointer-events: none;
-            transition: all 0.2s var(--ease);
+            transition: opacity 0.2s;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            cursor: default;
+        }
+
+        .block:hover .block-toolbar,
+        .block.selected .block-toolbar {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .tool-btn {
             background: transparent;
             border: none;
             color: var(--muted);
-            width: 24px; height: 24px;
+            width: 26px; height: 26px;
             border-radius: 4px;
             cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
         }
         .tool-btn:hover { background: var(--surface); color: var(--text); }
         .tool-btn.delete:hover { color: var(--danger); background: #fee2e2; }
 
         /* ── EDITABLE CONTENT ── */
-        .block-content {
-            flex: 1;
-            min-width: 0;
-        }
-
         [contenteditable] {
             outline: none;
             cursor: text;
-            padding: 4px 0;
-            min-height: 32px;
-            font-size: 16px;
-            line-height: 1.7;
-            color: var(--text);
-            background: transparent; /* NO TEXTBOX */
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+            min-width: 20px;
+            min-height: 24px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
+
         [contenteditable]:empty:before {
             content: attr(data-placeholder);
             color: var(--muted);
             pointer-events: none;
-            display: block;
         }
 
-        /* Sortable Ghost */
-        .sortable-ghost { opacity: 0.3; }
-        .sortable-drag { opacity: 1 !important; background: var(--page); box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 8px; padding: 8px; }
-
-        /* ── WIDGET STYLES (Sleek, integrated) ── */
-        .w-text { font-size: 18px; line-height: 1.6; width: 100%; padding: 8px 0; }
-        
-        .w-link { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; width: 100%; text-decoration: none; color: var(--text); transition: all 0.2s; cursor: pointer; margin: 8px 0; }
-        .w-link:hover { background: #ebebeb; border-color: var(--muted); }
-        
-        .w-profile { display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: 100%; margin: 8px 0; }
-        .w-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--border); border: 1px solid var(--muted); flex-shrink: 0; object-fit: cover; }
-        .w-name { font-size: 22px; font-weight: 600; }
-        .w-bio { font-size: 14px; color: var(--muted); margin-top: 2px; }
-        
-        .w-image img { width: 100%; border-radius: 10px; display: block; margin: 8px 0; }
-        
-        .w-divider { padding: 16px 0; width: 100%; }
-        .w-divider hr { border: none; border-top: 2px solid var(--border); }
+        /* ── SPECIFIC WIDGETS ── */
+        .w-text { font-size: 18px; line-height: 1.5; width: 100%; height: 100%; }
+        .w-link { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; width: 100%; height: 100%; text-decoration: none; color: var(--text); }
+        .w-profile { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: 100%; height: 100%; }
+        .w-avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--border); flex-shrink: 0; object-fit: cover; }
+        .w-name { font-size: 20px; font-weight: 600; }
+        .w-bio { font-size: 14px; color: var(--muted); }
+        .w-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
 
         /* ── SETTINGS PANEL ── */
         .settings-panel {
-            width: 340px;
+            width: 320px;
             background: var(--page);
             border-left: 1px solid var(--border);
             position: fixed;
             top: 0; right: 0; bottom: 0;
             transform: translateX(100%);
-            transition: transform 0.4s var(--ease);
+            transition: transform 0.3s ease;
             z-index: 1000;
             display: flex;
             flex-direction: column;
@@ -196,57 +179,53 @@
 
         .settings-header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 24px; border-bottom: 1px solid var(--border);
+            padding: 20px; border-bottom: 1px solid var(--border);
         }
-        .settings-header h2 { font-size: 16px; font-weight: 600; }
+        .settings-header h2 { font-size: 15px; font-weight: 600; }
         .close-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; }
-        .close-btn:hover { color: var(--text); }
 
         .settings-body {
-            padding: 24px;
+            padding: 20px;
             overflow-y: auto;
             flex: 1;
-            display: flex; flex-direction: column; gap: 20px;
+            display: flex; flex-direction: column; gap: 16px;
         }
 
-        .setting-group { display: flex; flex-direction: column; gap: 8px; }
-        .setting-group label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
-        .setting-group input, .setting-group textarea, .setting-group select {
-            width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
-            background: var(--surface); font-family: var(--font); font-size: 14px; color: var(--text);
-            outline: none; transition: border-color 0.2s;
+        .setting-group { display: flex; flex-direction: column; gap: 6px; }
+        .setting-group label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--muted); }
+        .setting-row { display: flex; gap: 10px; }
+        .setting-row > div { flex: 1; }
+        
+        .setting-group input, .setting-group textarea {
+            width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
+            background: var(--surface); font-family: var(--font); font-size: 13px; color: var(--text);
+            outline: none;
         }
         .setting-group input:focus, .setting-group textarea:focus { border-color: var(--accent); background: var(--page); }
-        
+
         .delete-btn {
-            margin-top: auto; padding: 12px; border-radius: 8px; border: 1px solid #fecaca;
-            background: #fef2f2; color: var(--danger); font-weight: 600; font-size: 14px;
-            cursor: pointer; transition: all 0.2s;
+            margin-top: auto; padding: 10px; border-radius: 6px; border: 1px solid #fecaca;
+            background: #fef2f2; color: var(--danger); font-weight: 600; font-size: 13px;
+            cursor: pointer;
         }
-        .delete-btn:hover { background: var(--danger); color: white; }
 
         /* ── SLASH MENU ── */
         .slash-menu {
             position: fixed;
-            width: 240px;
+            width: 220px;
             background: var(--page);
             border: 1px solid var(--border);
             border-radius: 10px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
             padding: 6px;
             z-index: 2000;
             display: none;
-            flex-direction: column;
-            gap: 2px;
+            flex-direction: column; gap: 2px;
         }
         .slash-menu.active { display: flex; }
-        
-        .slash-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); padding: 8px 12px 4px; }
-        
         .slash-item {
-            display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+            display: flex; align-items: center; gap: 10px; padding: 10px 12px;
             border-radius: 6px; color: var(--text); font-size: 13px; cursor: pointer;
-            transition: background 0.1s;
         }
         .slash-item:hover, .slash-item.active { background: var(--surface); }
         .slash-item i { width: 16px; text-align: center; color: var(--muted); }
@@ -254,29 +233,35 @@
         /* ── DOCK ── */
         .dock-wrapper {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            z-index: 900; display: flex; flex-direction: column; align-items: center;
+            z-index: 900; display: flex; align-items: center; gap: 8px;
         }
         .dock {
-            display: flex; align-items: center; background: rgba(255,255,255,0.9);
-            backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 16px;
+            display: flex; align-items: center; background: var(--page);
+            border: 1px solid var(--border); border-radius: 12px;
             padding: 6px; box-shadow: 0 10px 40px rgba(0,0,0,0.08);
         }
         .dock-btn {
             background: transparent; border: none; color: var(--muted);
-            width: 44px; height: 44px; border-radius: 12px; cursor: pointer;
+            width: 40px; height: 40px; border-radius: 8px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s; font-size: 16px;
+            transition: all 0.2s; font-size: 15px;
         }
         .dock-btn:hover { background: var(--surface); color: var(--text); }
+        
+        .dock-scroll {
+            display: flex; gap: 4px; overflow-x: auto; max-width: 250px; scrollbar-width: none;
+            scroll-behavior: smooth;
+        }
+        .dock-scroll::-webkit-scrollbar { display: none; }
 
     </style>
 </head>
 <body>
 
-    <!-- Document View -->
-    <div class="main-view" id="mainView">
-        <div class="page" id="page">
-            <div class="block-list" id="blockList"></div>
+    <!-- Canvas Area -->
+    <div class="canvas-container">
+        <div class="canvas" id="canvas">
+            <!-- Blocks injected here -->
         </div>
     </div>
 
@@ -293,48 +278,47 @@
 
     <!-- Slash Menu -->
     <div class="slash-menu" id="slashMenu">
-        <div class="slash-header">Basic Blocks</div>
         <div id="slashList"></div>
     </div>
 
     <!-- Bottom Dock -->
     <div class="dock-wrapper">
         <div class="dock">
-            <button class="dock-btn" onclick="document.getElementById('blockList').focus()"><i class="fa-solid fa-font"></i></button>
-            <button class="dock-btn" onclick="addBlock('profile', 'end')"><i class="fa-solid fa-user"></i></button>
-            <button class="dock-btn" onclick="addBlock('link', 'end')"><i class="fa-solid fa-link"></i></button>
-            <button class="dock-btn" onclick="addBlock('image', 'end')"><i class="fa-solid fa-image"></i></button>
-            <button class="dock-btn" onclick="addBlock('divider', 'end')"><i class="fa-solid fa-minus"></i></button>
-            <button class="dock-btn" onclick="saveLayout()" style="color:var(--text);"><i class="fa-solid fa-check"></i></button>
+            <button class="dock-btn" onclick="scrollDock(-100)"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="dock-scroll" id="dockScroll">
+                <!-- Widget buttons injected here -->
+            </div>
+            <button class="dock-btn" onclick="scrollDock(100)"><i class="fa-solid fa-chevron-right"></i></button>
+            <div style="width:1px; height:20px; background:var(--border); margin:0 4px;"></div>
+            <button class="dock-btn" onclick="saveLayout()" style="color:var(--accent);"><i class="fa-solid fa-cloud-arrow-up"></i></button>
         </div>
     </div>
 
     <script>
         const WIDGET_TYPES = [
             { type: 'text', name: 'Text', icon: 'fa-font' },
-            { type: 'profile', name: 'Profile Card', icon: 'fa-user' },
-            { type: 'link', name: 'Link Button', icon: 'fa-link' },
-            { type: 'image', name: 'Image', icon: 'fa-image' },
-            { type: 'divider', name: 'Divider', icon: 'fa-minus' }
+            { type: 'profile', name: 'Profile', icon: 'fa-user' },
+            { type: 'link', name: 'Link', icon: 'fa-link' },
+            { type: 'image', name: 'Image', icon: 'fa-image' }
         ];
 
         let layout = [];
         let selectedId = null;
-        let sortableInstance = null;
-        let slashCaretPos = null;
 
         // ── INIT ──
         function init() {
+            buildDock();
             buildSlashMenu();
 
-            const saved = localStorage.getItem('chroma_inline_editor');
+            const saved = localStorage.getItem('chroma_real_canvas');
             if (saved) {
                 layout = JSON.parse(saved);
             } else {
+                // Default layout
                 layout = [
-                    { id: '1', type: 'text', data: { text: 'Welcome to my page. Click anywhere to type, or press / for commands.' } },
-                    { id: '2', type: 'profile', data: { name: 'Alex', bio: 'Designer & Builder' } },
-                    { id: '3', type: 'link', data: { label: 'My Portfolio', url: '#' } }
+                    { id: '1', type: 'profile', x: 50, y: 50, w: 300, h: 100, data: { name: 'Alex', bio: 'Designer & Builder' } },
+                    { id: '2', type: 'link', x: 50, y: 180, w: 300, h: 60, data: { label: 'My Portfolio', url: '#' } },
+                    { id: '3', type: 'text', x: 50, y: 280, w: 400, h: 50, data: { text: 'Welcome to my page. Click the background to spawn text, or press / to add a widget.' } }
                 ];
             }
             render();
@@ -344,54 +328,48 @@
 
         // ── RENDER ──
         function render() {
-            const list = document.getElementById('blockList');
-            list.innerHTML = '';
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = ''; // Clear everything
 
-            layout.forEach((block, index) => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'block-wrapper';
-                wrapper.dataset.id = block.id;
-                wrapper.dataset.index = index;
+            layout.forEach(block => {
+                const el = document.createElement('div');
+                el.className = 'block';
+                if (block.id === selectedId) el.classList.add('selected');
+                el.dataset.id = block.id;
+                
+                // Apply position and size
+                el.style.left = `${block.x}px`;
+                el.style.top = `${block.y}px`;
+                el.style.width = `${block.w}px`;
+                el.style.height = `${block.h}px`;
 
-                // Drag Handle
-                wrapper.innerHTML += `<div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>`;
+                // Toolbar & Resize Handle
+                el.innerHTML = `
+                    <div class="block-toolbar">
+                        <button class="tool-btn" onclick="event.stopPropagation(); openSettings('${block.id}')"><i class="fa-solid fa-sliders"></i></button>
+                        <button class="tool-btn delete" onclick="event.stopPropagation(); deleteBlock('${block.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <div class="resize-handle"></div>
+                `;
 
                 // Content
                 const content = document.createElement('div');
                 content.className = 'block-content';
                 content.innerHTML = getBlockHTML(block);
-                
-                // Toolbar
-                content.innerHTML += `
-                    <div class="block-toolbar">
-                        <button class="tool-btn" onclick="openSettings('${block.id}')"><i class="fa-solid fa-sliders"></i></button>
-                    </div>
-                `;
+                el.appendChild(content);
 
-                wrapper.appendChild(content);
-                list.appendChild(wrapper);
-            });
+                // Apply Interact.js
+                makeInteractable(el, block);
 
-            // Init Sortable
-            if (!sortableInstance) {
-                sortableInstance = new Sortable(list, {
-                    handle: '.drag-handle',
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
-                    dragClass: 'sortable-drag',
-                    onEnd: function (evt) {
-                        const [moved] = layout.splice(evt.oldIndex, 1);
-                        layout.splice(evt.newIndex, 0, moved);
-                        saveLayout();
-                        render(); // Re-render to update indices
+                // Click to select
+                el.addEventListener('mousedown', (e) => {
+                    if (!e.target.closest('.block-toolbar') && !e.target.closest('.resize-handle') && !e.target.isContentEditable) {
+                        selectBlock(block.id);
                     }
                 });
-            }
-            
-            // Focus logic for empty pages
-            if(layout.length === 0) {
-                document.getElementById('page').style.cursor = 'text';
-            }
+
+                canvas.appendChild(el);
+            });
         }
 
         // ── HTML GENERATOR ──
@@ -401,82 +379,142 @@
 
             switch (block.type) {
                 case 'text':
-                    return `<div contenteditable="true" data-placeholder="Type '/' for commands..." ${update('text')}>${d.text || ''}</div>`;
+                    return `<div class="w-text" contenteditable="true" data-placeholder="Type something..." ${update('text')}>${d.text || ''}</div>`;
                 case 'profile':
                     return `<div class="w-profile">
                         <img class="w-avatar" src="${d.avatar || 'https://api.dicebear.com/7.x/initials/svg?seed=' + (d.name || 'A')}" alt="Avatar">
                         <div>
-                            <div class="w-name">${d.name || 'Your Name'}</div>
-                            <div class="w-bio">${d.bio || 'Your bio here'}</div>
+                            <div class="w-name" ${update('name')} contenteditable="true">${d.name || 'Your Name'}</div>
+                            <div class="w-bio" ${update('bio')} contenteditable="true">${d.bio || 'Your bio'}</div>
                         </div>
                     </div>`;
                 case 'link':
                     return `<a class="w-link" href="${d.url || '#'}" onclick="event.preventDefault()">
-                        <span style="font-weight:500;">${d.label || 'New Link'}</span>
+                        <span ${update('label')} contenteditable="true" style="font-weight:500;">${d.label || 'New Link'}</span>
                         <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--muted); font-size:12px;"></i>
                     </a>`;
                 case 'image':
                     return `<div class="w-image"><img src="${d.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop'}" alt="Image"></div>`;
-                case 'divider':
-                    return `<div class="w-divider"><hr></div>`;
                 default: return '';
             }
         }
 
-        // ── ADD BLOCK ──
-        function addBlock(type, position = 'end', insertIndex = -1) {
+        // ── INTERACT.JS (DRAG & RESIZE) ──
+        function makeInteractable(el, block) {
+            interact(el)
+                .draggable({
+                    ignoreFrom: '.block-toolbar, .resize-handle, [contenteditable]',
+                    inertia: true,
+                    modifiers: [
+                        interact.modifiers.restrictRect({
+                            restriction: 'parent',
+                            endOnly: false
+                        })
+                    ],
+                    listeners: {
+                        move(event) {
+                            const target = event.target;
+                            let x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                            let y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                            target.style.transform = `translate(${x}px, ${y}px)`;
+                            target.setAttribute('data-x', x);
+                            target.setAttribute('data-y', y);
+                            
+                            // Update state
+                            block.x = block.x + event.dx;
+                            block.y = block.y + event.dy;
+                        },
+                        end(event) {
+                            const target = event.target;
+                            target.style.transform = 'none';
+                            target.style.left = `${block.x}px`;
+                            target.style.top = `${block.y}px`;
+                            target.setAttribute('data-x', 0);
+                            target.setAttribute('data-y', 0);
+                            
+                            // Update settings panel if open
+                            if (selectedId === block.id) updateSettingsInputs(block);
+                            saveLayout();
+                        }
+                    }
+                })
+                .resizable({
+                    edges: { right: '.resize-handle', bottom: '.resize-handle' },
+                    listeners: {
+                        move(event) {
+                            const target = event.target;
+                            let x = parseFloat(target.style.left) || block.x;
+                            let y = parseFloat(target.style.top) || block.y;
+
+                            target.style.width = `${event.rect.width}px`;
+                            target.style.height = `${event.rect.height}px`;
+
+                            block.w = event.rect.width;
+                            block.h = event.rect.height;
+                            
+                            // Update settings panel if open
+                            if (selectedId === block.id) updateSettingsInputs(block);
+                        },
+                        end() {
+                            saveLayout();
+                        }
+                    },
+                    modifiers: [
+                        interact.modifiers.restrictSize({
+                            min: { width: 50, height: 30 }
+                        })
+                    ]
+                });
+        }
+
+        // ── SPAWNING BLOCKS ──
+        function spawnBlock(type, x, y) {
+            const defaultSize = type === 'profile' ? { w: 300, h: 100 } : type === 'link' ? { w: 300, h: 60 } : { w: 200, h: 50 };
+            
             const newBlock = {
                 id: generateId(),
                 type: type,
+                x: Math.max(0, x), 
+                y: Math.max(0, y),
+                w: defaultSize.w,
+                h: defaultSize.h,
                 data: getDefaultData(type)
             };
 
-            if (insertIndex >= 0) {
-                layout.splice(insertIndex, 0, newBlock);
-            } else {
-                layout.push(newBlock);
-            }
-
-            saveLayout();
+            layout.push(newBlock);
+            selectedId = newBlock.id;
             render();
-
+            saveLayout();
+            
+            // Focus text if it's a text block
             setTimeout(() => {
-                const el = document.querySelector(`[data-id="${newBlock.id}"]`);
-                if (el && el.querySelector('[contenteditable]')) {
-                    el.querySelector('[contenteditable]').focus();
-                }
-                selectBlock(newBlock.id);
+                const el = document.querySelector(`.block[data-id="${newBlock.id}"] [contenteditable]`);
+                if (el) el.focus();
             }, 50);
         }
 
         function getDefaultData(type) {
             switch(type) {
                 case 'text': return { text: '' };
-                case 'profile': return { name: 'Your Name', bio: 'Your bio', avatar: '' };
+                case 'profile': return { name: 'Your Name', bio: 'Your bio' };
                 case 'link': return { label: 'New Link', url: '#' };
                 case 'image': return { url: '' };
                 default: return {};
             }
         }
 
-        // ── THE VOID (Click background to type) ──
-        document.getElementById('blockList').addEventListener('mousedown', (e) => {
-            // If clicking directly on the list background (the void)
-            if (e.target.id === 'blockList') {
-                e.preventDefault();
-                addBlock('text', 'end');
+        // Click background to spawn text
+        document.getElementById('canvas').addEventListener('dblclick', (e) => {
+            if (e.target.id === 'canvas') {
+                const rect = e.target.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                spawnBlock('text', x, y);
             }
         });
 
-        document.getElementById('page').addEventListener('mousedown', (e) => {
-            // If clicking the padding of the page
-            if (e.target.id === 'page') {
-                e.preventDefault();
-                addBlock('text', 'end');
-            }
-        });
-
-        // ── SLASH MENU LOGIC ──
+        // ── SLASH MENU ──
         function buildSlashMenu() {
             const list = document.getElementById('slashList');
             list.innerHTML = WIDGET_TYPES.map(w => `
@@ -487,118 +525,73 @@
 
             list.querySelectorAll('.slash-item').forEach(item => {
                 item.onclick = () => {
-                    // Delete the "/" character from the text block before spawning
-                    const activeBlock = document.activeElement.closest('.block-wrapper');
-                    if (activeBlock) {
-                        const editable = activeBlock.querySelector('[contenteditable]');
-                        if (editable && editable.innerText.endsWith('/')) {
-                            editable.innerText = editable.innerText.slice(0, -1);
-                            updateData(activeBlock.dataset.id, 'text', editable.innerText);
-                        }
-                    }
-                    
-                    // Add the block
-                    const idx = activeBlock ? parseInt(activeBlock.dataset.index) + 1 : layout.length;
-                    addBlock(item.dataset.type, 'inline', idx);
+                    const x = window.slashX || 100;
+                    const y = window.slashY || 100;
+                    spawnBlock(item.dataset.type, x, y);
                     closeSlashMenu();
                 };
             });
         }
 
-        // Show menu when user types '/'
         document.addEventListener('keydown', (e) => {
-            if (e.key === '/' && e.target.isContentEditable) {
-                // Get cursor position
-                const sel = window.getSelection();
-                if (sel.rangeCount > 0) {
-                    const rect = sel.getRangeAt(0).getBoundingClientRect();
+            if (e.key === '/' && !e.target.closest('.slash-menu')) {
+                // If we aren't typing in an input
+                if (!e.target.isContentEditable && e.target.tagName !== 'INPUT') {
+                    e.preventDefault();
+                    
+                    // Save mouse position relative to canvas
+                    const canvas = document.getElementById('canvas');
+                    const rect = canvas.getBoundingClientRect();
+                    
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    window.slashX = x;
+                    window.slashY = y;
+                    
                     const menu = document.getElementById('slashMenu');
-                    
-                    // Position menu
-                    menu.style.left = `${rect.left}px`;
-                    menu.style.top = `${rect.bottom + 10}px`;
+                    menu.style.left = `${e.clientX}px`;
+                    menu.style.top = `${e.clientY + 20}px`;
                     menu.classList.add('active');
-                    
-                    // Add active state to first item
-                    document.querySelectorAll('.slash-item')[0]?.classList.add('active');
                 }
             }
-        });
-
-        // Filter menu as user types after '/'
-        document.addEventListener('input', (e) => {
-            const menu = document.getElementById('slashMenu');
-            if (menu.classList.contains('active') && e.target.isContentEditable) {
-                const text = e.target.innerText.split('/').pop().toLowerCase();
-                if (!text.trim() && !e.target.innerText.endsWith('/')) {
-                    closeSlashMenu();
-                } else {
-                    document.querySelectorAll('.slash-item').forEach(item => {
-                        const match = item.innerText.toLowerCase().includes(text);
-                        item.style.display = match ? 'flex' : 'none';
-                    });
-                }
-            }
-        });
-
-        // Arrow keys for menu
-        document.addEventListener('keydown', (e) => {
-            const menu = document.getElementById('slashMenu');
-            if (!menu.classList.contains('active')) return;
-
-            const visibleItems = Array.from(document.querySelectorAll('.slash-item')).filter(i => i.style.display !== 'none');
-            if (visibleItems.length === 0) return;
-
-            let idx = visibleItems.findIndex(i => i.classList.contains('active'));
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                visibleItems.forEach(i => i.classList.remove('active'));
-                idx = (idx + 1) % visibleItems.length;
-                visibleItems[idx].classList.add('active');
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                visibleItems.forEach(i => i.classList.remove('active'));
-                idx = (idx - 1 + visibleItems.length) % visibleItems.length;
-                visibleItems[idx].classList.add('active');
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                if (idx >= 0) visibleItems[idx].click();
-            } else if (e.key === 'Escape') {
-                closeSlashMenu();
-            }
+            if (e.key === 'Escape') closeSlashMenu();
         });
 
         function closeSlashMenu() {
             document.getElementById('slashMenu').classList.remove('active');
-            document.querySelectorAll('.slash-item').forEach(i => i.classList.remove('active'));
         }
 
         // ── SETTINGS PANEL ──
         function openSettings(id) {
             selectedId = id;
             const block = layout.find(b => b.id === id);
-            const panel = document.getElementById('settingsPanel');
-            const body = document.getElementById('settingsBody');
-            const title = document.getElementById('settingsTitle');
-            
-            document.getElementById('mainView').classList.add('settings-open');
-            panel.classList.add('open');
-            
-            title.innerText = `Edit ${block.type.charAt(0).toUpperCase() + block.type.slice(1)}`;
-            body.innerHTML = '';
+            if(!block) return;
 
+            document.getElementById('settingsPanel').classList.add('open');
+            document.getElementById('settingsTitle').innerText = `Edit ${block.type.toUpperCase()}`;
+            
+            const body = document.getElementById('settingsBody');
+            body.innerHTML = `
+                <div class="setting-row">
+                    <div class="setting-group"><label>X Pos</label><input type="number" id="s-x" value="${Math.round(block.x)}" oninput="changeProp('${id}', 'x', this.value)"></div>
+                    <div class="setting-group"><label>Y Pos</label><input type="number" id="s-y" value="${Math.round(block.y)}" oninput="changeProp('${id}', 'y', this.value)"></div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-group"><label>Width</label><input type="number" id="s-w" value="${Math.round(block.w)}" oninput="changeProp('${id}', 'w', this.value)"></div>
+                    <div class="setting-group"><label>Height</label><input type="number" id="s-h" value="${Math.round(block.h)}" oninput="changeProp('${id}', 'h', this.value)"></div>
+                </div>
+                <hr style="border:none; border-top:1px solid var(--border); margin: 10px 0;">
+            `;
+
+            // Append specific fields
             if (block.type === 'text') {
-                body.innerHTML += `
-                    <div class="setting-group">
-                        <label>Content</label>
-                        <textarea rows="4" oninput="updateData('${id}', 'text', this.value)">${block.data.text || ''}</textarea>
-                    </div>`;
+                body.innerHTML += `<div class="setting-group"><label>Content</label><textarea rows="4" oninput="updateData('${id}', 'text', this.value)">${block.data.text || ''}</textarea></div>`;
             } else if (block.type === 'profile') {
                 body.innerHTML += `
                     <div class="setting-group"><label>Name</label><input type="text" value="${block.data.name || ''}" oninput="updateData('${id}', 'name', this.value)"></div>
                     <div class="setting-group"><label>Bio</label><input type="text" value="${block.data.bio || ''}" oninput="updateData('${id}', 'bio', this.value)"></div>
-                    <div class="setting-group"><label>Avatar URL</label><input type="text" value="${block.data.avatar || ''}" oninput="updateData('${id}', 'avatar', this.value)" placeholder="https://..."></div>
+                    <div class="setting-group"><label>Avatar URL</label><input type="text" value="${block.data.avatar || ''}" oninput="updateData('${id}', 'avatar', this.value)"></div>
                 `;
             } else if (block.type === 'link') {
                 body.innerHTML += `
@@ -606,21 +599,44 @@
                     <div class="setting-group"><label>URL</label><input type="text" value="${block.data.url || ''}" oninput="updateData('${id}', 'url', this.value)"></div>
                 `;
             } else if (block.type === 'image') {
-                body.innerHTML += `
-                    <div class="setting-group"><label>Image URL</label><input type="text" value="${block.data.url || ''}" oninput="updateData('${id}', 'url', this.value)" placeholder="https://..."></div>
-                `;
+                body.innerHTML += `<div class="setting-group"><label>Image URL</label><input type="text" value="${block.data.url || ''}" oninput="updateData('${id}', 'url', this.value)"></div>`;
             }
 
             body.innerHTML += `<button class="delete-btn" onclick="deleteBlock('${id}')">Delete Block</button>`;
         }
 
-        function closeSettings() {
-            document.getElementById('mainView').classList.remove('settings-open');
-            document.getElementById('settingsPanel').classList.remove('open');
-            selectedId = null;
+        function updateSettingsInputs(block) {
+            const x = document.getElementById('s-x');
+            const y = document.getElementById('s-y');
+            const w = document.getElementById('s-w');
+            const h = document.getElementById('s-h');
+            if(x) x.value = Math.round(block.x);
+            if(y) y.value = Math.round(block.y);
+            if(w) w.value = Math.round(block.w);
+            if(h) h.value = Math.round(block.h);
         }
 
-        // ── DATA UPDATES ──
+        function closeSettings() {
+            document.getElementById('settingsPanel').classList.remove('open');
+            selectedId = null;
+            render(); // Remove active highlights
+        }
+
+        function changeProp(id, prop, val) {
+            const block = layout.find(b => b.id === id);
+            if(block) {
+                block[prop] = parseFloat(val);
+                const el = document.querySelector(`.block[data-id="${id}"]`);
+                if(el) {
+                    if(prop === 'x') el.style.left = `${val}px`;
+                    if(prop === 'y') el.style.top = `${val}px`;
+                    if(prop === 'w') el.style.width = `${val}px`;
+                    if(prop === 'h') el.style.height = `${val}px`;
+                }
+                saveLayout();
+            }
+        }
+
         function updateData(id, field, value) {
             const block = layout.find(b => b.id === id);
             if (block) {
@@ -628,15 +644,13 @@
                 saveLayout();
                 
                 // Live update DOM
-                const el = document.querySelector(`.block[data-id="${id}"]`) || document.querySelector(`.block-wrapper[data-id="${id}"]`);
+                const el = document.querySelector(`.block[data-id="${id}"]`);
                 if (el) {
-                    if (field === 'text' && el.querySelector('[contenteditable]')) {
-                        el.querySelector('[contenteditable]').innerText = value;
-                    }
+                    if (field === 'text') el.querySelector('[contenteditable]').innerText = value;
                     if (field === 'name') el.querySelector('.w-name').innerText = value;
                     if (field === 'bio') el.querySelector('.w-bio').innerText = value;
-                    if (field === 'avatar' && el.querySelector('.w-avatar')) el.querySelector('.w-avatar').src = value;
                     if (field === 'label') el.querySelector('.w-link span').innerText = value;
+                    if (field === 'avatar') el.querySelector('.w-avatar').src = value;
                     if (field === 'url' && block.type === 'link') el.querySelector('a').href = value;
                     if (field === 'url' && block.type === 'image') el.querySelector('img').src = value;
                 }
@@ -651,11 +665,38 @@
         }
 
         function selectBlock(id) {
-            // Optional visual feedback
+            selectedId = id;
+            document.querySelectorAll('.block').forEach(b => b.classList.remove('selected'));
+            const el = document.querySelector(`.block[data-id="${id}"]`);
+            if (el) el.classList.add('selected');
         }
 
+        // ── DOCK ──
+        function buildDock() {
+            const scroll = document.getElementById('dockScroll');
+            WIDGET_TYPES.forEach(w => {
+                const btn = document.createElement('button');
+                btn.className = 'dock-btn';
+                btn.innerHTML = `<i class="fa-solid ${w.icon}"></i>`;
+                btn.title = w.name;
+                btn.onclick = () => {
+                    // Spawn in center of canvas
+                    const canvas = document.getElementById('canvas');
+                    const x = canvas.clientWidth / 2 - 100;
+                    const y = canvas.clientHeight / 2 - 50;
+                    spawnBlock(w.type, x, y);
+                };
+                scroll.appendChild(btn);
+            });
+        }
+
+        function scrollDock(amount) {
+            document.getElementById('dockScroll').scrollBy({ left: amount, behavior: 'smooth' });
+        }
+
+        // ── SAVE ──
         function saveLayout() {
-            localStorage.setItem('chroma_inline_editor', JSON.stringify(layout));
+            localStorage.setItem('chroma_real_canvas', JSON.stringify(layout));
         }
 
         // Start
