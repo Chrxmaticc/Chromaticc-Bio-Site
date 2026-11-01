@@ -1,16 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chromaticc — Canvas Pro</title>
+    <title>Chromaticc — Editor</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <style>
         :root {
             --bg: #09090b;
+            --page-bg: #09090b;
             --surface: #121214;
             --surface-hover: #18181b;
             --border: #27272a;
@@ -18,7 +22,19 @@
             --muted: #a1a1aa;
             --accent: #38bdf8;
             --font: 'Poppins', sans-serif;
-            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --chroma-accent: #ffffff;
+        }
+
+        /* Chromaticc Light Mode Override */
+        :root[data-theme="light"] {
+            --bg: #f4f4f5;
+            --page-bg: #ffffff;
+            --surface: #ffffff;
+            --surface-hover: #f4f4f5;
+            --border: #e4e4e7;
+            --text: #09090b;
+            --muted: #71717a;
+            --chroma-accent: #09090b;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -27,246 +43,220 @@
             background: var(--bg);
             color: var(--text);
             font-family: var(--font);
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-        }
-
-        /* ── MAIN CANVAS AREA ── */
-        .workspace {
-            flex: 1;
-            position: relative;
-            overflow: auto;
-            background-image: 
-                radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0);
-            background-size: 40px 40px;
-            cursor: default;
-            transition: padding-right 0.3s var(--ease);
-        }
-
-        .workspace.settings-open { padding-right: 320px; }
-
-        /* The actual infinite page */
-        .page {
-            position: relative;
-            width: 2000px;
-            height: 2000px;
-            /* Center it roughly */
-            margin: 100px auto;
-        }
-
-        /* ── WIDGETS ── */
-        .widget {
-            position: absolute;
-            padding: 4px;
-            border-radius: 8px;
-            border: 1px solid transparent;
-            cursor: default;
-            touch-action: none; /* Crucial for interact.js */
-            transition: border-color 0.1s, box-shadow 0.1s;
-        }
-
-        /* Only show outline on hover */
-        .widget:hover {
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Selected state */
-        .widget.selected {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 1px var(--accent), 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 100;
-        }
-
-        /* Drag handle (the whole widget is draggable, but we show a grab cursor) */
-        .widget:not(.selected) { cursor: grab; }
-        .widget:not(.selected):active { cursor: grabbing; }
-
-        /* Resize Handle */
-        .resize-handle {
-            position: absolute;
-            right: -5px;
-            bottom: -5px;
-            width: 14px;
-            height: 14px;
-            background: var(--accent);
-            border: 2px solid var(--bg);
-            border-radius: 50%;
-            opacity: 0;
-            cursor: se-resize;
-            transition: opacity 0.2s;
-            z-index: 10;
-        }
-        .widget.selected .resize-handle { opacity: 1; }
-
-        /* Toolbar */
-        .widget-toolbar {
-            position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 2px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 4px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .widget.selected .widget-toolbar {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .tool-btn {
-            background: transparent;
-            border: none;
-            color: var(--muted);
-            width: 26px; height: 26px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .tool-btn:hover { background: var(--surface-hover); color: var(--text); }
-        .tool-btn.delete:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
-
-        /* ── EDITABLE CONTENT ── */
-        [contenteditable] {
-            outline: none;
-            cursor: text;
-            padding: 4px;
-            min-width: 20px;
-            border-radius: 4px;
-        }
-        [contenteditable]:focus {
-            background: rgba(255,255,255,0.05);
-            box-shadow: 0 0 0 1px var(--border);
-        }
-        [contenteditable]:empty:before {
-            content: attr(data-placeholder);
-            color: var(--muted);
-            pointer-events: none;
-        }
-
-        /* ── SPECIFIC WIDGETS ── */
-        .w-text { font-size: 18px; line-height: 1.5; width: 100%; height: 100%; }
-        .w-link { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; width: 100%; height: 100%; text-decoration: none; color: var(--text); }
-        .w-profile { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: 100%; height: 100%; }
-        .w-avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
-        .w-name { font-size: 20px; font-weight: 600; }
-        .w-bio { font-size: 14px; color: var(--muted); }
-
-        /* ── RIGHT SETTINGS PANEL ── */
-        .settings-panel {
-            width: 320px;
-            background: var(--surface);
-            border-left: 1px solid var(--border);
-            position: fixed;
-            top: 0; right: 0; bottom: 0;
-            transform: translateX(100%);
-            transition: transform 0.3s var(--ease);
-            z-index: 1000;
             display: flex;
             flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
         }
-        .settings-panel.open { transform: translateX(0); }
 
-        .settings-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px; border-bottom: 1px solid var(--border);
+        /* ── TOP BAR ── */
+        .top-bar {
+            height: 60px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
         }
-        .settings-header h2 { font-size: 15px; font-weight: 600; }
-        .close-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; }
-        .close-btn:hover { color: var(--text); }
+        .brand { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .brand-mark { width: 16px; height: 16px; background: var(--text); border-radius: 4px; }
+        .top-actions { display: flex; gap: 12px; align-items: center; }
+        .icon-btn {
+            background: transparent; border: none; color: var(--muted);
+            width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; transition: 0.2s;
+        }
+        .icon-btn:hover { background: var(--surface); color: var(--text); }
+        .btn-publish {
+            background: var(--text); color: var(--bg);
+            border: none; padding: 8px 16px; border-radius: 8px;
+            font-weight: 600; font-size: 13px; cursor: pointer;
+        }
 
-        .settings-body {
-            padding: 20px;
-            overflow-y: auto;
+        /* ── MAIN DOCUMENT ── */
+        .document-container {
             flex: 1;
-            display: flex; flex-direction: column; gap: 16px;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px 120px 20px;
+            background: var(--bg);
+        }
+        .page {
+            width: 100%;
+            max-width: 600px;
+            background: var(--page-bg);
+            border-radius: 12px;
+            min-height: 800px;
+            padding: 60px 40px;
+            position: relative;
+            cursor: text;
+            transition: background 0.3s;
+        }
+        .block-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 500px;
         }
 
-        .setting-group { display: flex; flex-direction: column; gap: 6px; }
-        .setting-group label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--muted); }
-        .setting-row { display: flex; gap: 10px; }
-        .setting-row > div { flex: 1; }
-        
-        .setting-group input, .setting-group textarea {
-            width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
-            background: var(--bg); font-family: var(--font); font-size: 13px; color: var(--text);
-            outline: none;
+        /* ── BLOCKS ── */
+        .block-wrapper {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            padding: 4px 0;
+            border-radius: 8px;
         }
-        .setting-group input:focus, .setting-group textarea:focus { border-color: var(--accent); }
+        .block-wrapper:hover { background: rgba(255,255,255,0.02); }
+        [data-theme="light"] .block-wrapper:hover { background: rgba(0,0,0,0.02); }
+
+        .drag-handle {
+            position: absolute; left: -28px; top: 6px;
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            color: var(--muted); cursor: grab; opacity: 0;
+            transition: opacity 0.2s; border-radius: 4px;
+        }
+        .drag-handle:hover { background: var(--surface); color: var(--text); }
+        .block-wrapper:hover .drag-handle { opacity: 1; }
+
+        .block-content { flex: 1; min-width: 0; }
+
+        [contenteditable] {
+            outline: none; cursor: text; padding: 4px 8px;
+            min-height: 32px; font-size: 16px; line-height: 1.6;
+            border-radius: 4px; transition: background 0.2s;
+        }
+        [contenteditable]:focus { background: var(--surface); }
+        [contenteditable]:empty:before {
+            content: attr(data-placeholder); color: var(--muted); pointer-events: none; display: block;
+        }
+
+        .sortable-ghost { opacity: 0.4; background: var(--surface); }
+        .sortable-drag { opacity: 1 !important; }
+
+        /* ── WIDGET STYLES ── */
+        .w-text { font-size: 16px; width: 100%; }
+        .w-link { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; margin: 8px 0; text-decoration: none; color: var(--text);
+            font-weight: 500; transition: all 0.2s; cursor: pointer;
+        }
+        .w-link:hover { background: var(--surface-hover); }
+        .w-profile { 
+            display: flex; align-items: center; gap: 16px; padding: 20px;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin: 8px 0;
+        }
+        .w-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--border); flex-shrink: 0; object-fit: cover; }
+        .w-name { font-size: 22px; font-weight: 600; }
+        .w-bio { font-size: 14px; color: var(--muted); }
+        .w-image img { width: 100%; border-radius: 12px; margin: 8px 0; display: block; }
+
+        /* ── CHROMATICC MODE (Glassmorphism) ── */
+        .chroma-enabled .w-link, 
+        .chroma-enabled .w-profile, 
+        .chroma-enabled .w-image img {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid transparent;
+            background-clip: padding-box, border-box;
+            background-origin: border-box;
+            background-image: linear-gradient(rgba(0,0,1,0.4), rgba(0,0,1,0.4)), linear-gradient(135deg, var(--chroma-accent), #ffffff, var(--chroma-accent), #ffffff, var(--chroma-accent));
+            background-size: 100% 100%, 300% 300%;
+            box-shadow: 0 0 32px rgba(255,255,255,0.15), 0 8px 24px rgba(0,0,0,0.4);
+            animation: auroraBorder 3s ease infinite, auroraPulse 3s ease infinite;
+        }
+        @keyframes auroraBorder { 0%,100% { background-position: 0% 50%,0% 50%; } 50% { background-position: 0% 50%,100% 50%; } }
+        @keyframes auroraPulse { 0%,100% { box-shadow: 0 0 32px rgba(255,255,255,0.1); } 50% { box-shadow: 0 0 55px rgba(255,255,255,0.3); } }
 
         /* ── SLASH MENU ── */
         .slash-menu {
             position: fixed;
-            width: 220px;
+            width: 260px;
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-            padding: 6px;
-            z-index: 2000;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding: 8px;
+            z-index: 1000;
             display: none;
-            flex-direction: column; gap: 2px;
+            flex-direction: column;
+            gap: 2px;
         }
         .slash-menu.active { display: flex; animation: popIn 0.15s var(--ease); }
-        @keyframes popIn { from { opacity: 0; transform: scale(0.95) translateY(-5px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes popIn { from { opacity: 0; transform: translateY(-5px) scale(0.95); } to { opacity: 1; transform: none; } }
 
         .slash-item {
-            display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+            display: flex; align-items: center; gap: 12px; padding: 10px 12px;
             border-radius: 6px; color: var(--text); font-size: 13px; cursor: pointer;
         }
         .slash-item:hover, .slash-item.active { background: var(--surface-hover); }
-        .slash-item i { width: 16px; text-align: center; color: var(--muted); }
+        .slash-item i { width: 20px; text-align: center; color: var(--muted); }
 
-        /* ── DOCK ── */
-        .dock-wrapper {
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-            z-index: 900; display: flex; align-items: center; gap: 8px;
+        /* ── BOTTOM SHEET SETTINGS ── */
+        .sheet-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            z-index: 2000; backdrop-filter: blur(4px);
         }
-        .dock {
-            display: flex; align-items: center; background: var(--surface);
-            border: 1px solid var(--border); border-radius: 12px;
-            padding: 6px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        }
-        .dock-btn {
-            background: transparent; border: none; color: var(--muted);
-            width: 40px; height: 40px; border-radius: 8px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s; font-size: 15px;
-        }
-        .dock-btn:hover { background: var(--surface-hover); color: var(--text); }
-        
-        .dock-scroll {
-            display: flex; gap: 4px; overflow-x: auto; max-width: 250px; scrollbar-width: none;
-            scroll-behavior: smooth;
-        }
-        .dock-scroll::-webkit-scrollbar { display: none; }
+        .sheet-overlay.active { opacity: 1; pointer-events: auto; }
 
+        .sheet {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--bg);
+            border-radius: 24px 24px 0 0;
+            padding: 24px 24px 40px;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 2001; max-height: 80vh; overflow-y: auto;
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.3);
+        }
+        .sheet.active { transform: translateY(0); }
+
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .sheet-header h3 { font-size: 18px; font-weight: 600; }
+        .close-sheet { background: var(--surface); border: none; width: 32px; height: 32px; border-radius: 50%; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        .setting-group { margin-bottom: 16px; }
+        .setting-group label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
+        .setting-group input, .setting-group textarea, .setting-group select {
+            width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--border);
+            background: var(--surface); font-family: var(--font); font-size: 15px; color: var(--text);
+            outline: none; transition: border 0.2s;
+        }
+        .setting-group input:focus { border-color: var(--accent); }
+
+        /* Toggle Switch */
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .toggle-row span { font-size: 15px; font-weight: 500; }
+        .switch { position: relative; width: 48px; height: 28px; background: var(--border); border-radius: 20px; cursor: pointer; transition: background 0.2s; }
+        .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+        .switch.on { background: var(--accent); }
+        .switch.on::after { transform: translateX(20px); }
     </style>
 </head>
 <body>
 
-    <!-- Main Canvas -->
-    <div class="workspace" id="workspace">
-        <div class="page" id="page">
-            <!-- Widgets go here -->
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="brand"><div class="brand-mark"></div> Editor</div>
+        <div class="top-actions">
+            <button class="icon-btn" onclick="openPageSettings()"><i class="fa-solid fa-sliders"></i></button>
+            <button class="btn-publish" onclick="alert('Saved to Neon!')">Publish</button>
         </div>
     </div>
 
-    <!-- Settings Panel -->
-    <div class="settings-panel" id="settingsPanel">
-        <div class="settings-header">
-            <h2 id="settingsTitle">Widget Settings</h2>
-            <button class="close-btn" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="settings-body" id="settingsBody">
-            <!-- Dynamic -->
+    <!-- Document -->
+    <div class="document-container">
+        <div class="page" id="page">
+            <div class="block-list" id="blockList"></div>
         </div>
     </div>
 
@@ -275,455 +265,329 @@
         <div id="slashList"></div>
     </div>
 
-    <!-- Bottom Dock -->
-    <div class="dock-wrapper">
-        <div class="dock">
-            <button class="dock-btn" onclick="scrollDock(-100)"><i class="fa-solid fa-chevron-left"></i></button>
-            <div class="dock-scroll" id="dockScroll">
-                <!-- Widget buttons -->
-            </div>
-            <button class="dock-btn" onclick="scrollDock(100)"><i class="fa-solid fa-chevron-right"></i></button>
-            <div style="width:1px; height:20px; background:var(--border); margin:0 4px;"></div>
-            <button class="dock-btn" onclick="saveLayout()" style="color:var(--accent);"><i class="fa-solid fa-cloud-arrow-up"></i></button>
+    <!-- Settings Bottom Sheet -->
+    <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+    <div class="sheet" id="bottomSheet">
+        <div class="sheet-header">
+            <h3 id="sheetTitle">Settings</h3>
+            <button class="close-sheet" onclick="closeSheet()"><i class="fa-solid fa-xmark"></i></button>
         </div>
+        <div id="sheetContent"></div>
     </div>
 
     <script>
+        // ── DATA FROM DASHBOARD ──
         const WIDGET_TYPES = [
-            { type: 'text', name: 'Text', icon: 'fa-font' },
-            { type: 'profile', name: 'Profile', icon: 'fa-user' },
-            { type: 'link', name: 'Link', icon: 'fa-link' },
+            { type: 'text', name: 'Text Block', icon: 'fa-font' },
+            { type: 'profile', name: 'Profile Card', icon: 'fa-user' },
+            { type: 'link', name: 'Link Button', icon: 'fa-link' },
             { type: 'image', name: 'Image', icon: 'fa-image' }
         ];
 
         let layout = [];
-        let selectedId = null;
-        let snapGrid = 20; // Snap to 20px grid
+        let pageSettings = {
+            aurora: { enabled: false }, // Chromaticc mode
+            background: '#09090b',
+            theme: 'dark'
+        };
+        let activeBlockId = null;
+        let slashMenuIndex = 0;
 
         // ── INIT ──
         function init() {
-            buildDock();
             buildSlashMenu();
+            
+            // Load state from LocalStorage (Replace with fetch to Neon in prod)
+            const savedLayout = localStorage.getItem('chroma_layout');
+            const savedSettings = localStorage.getItem('chroma_settings');
 
-            const saved = localStorage.getItem('chroma_pro_canvas');
-            if (saved) {
-                layout = JSON.parse(saved);
-            } else {
-                // Default layout
+            if (savedLayout) layout = JSON.parse(savedLayout);
+            if (savedSettings) pageSettings = JSON.parse(savedSettings);
+
+            if (layout.length === 0) {
                 layout = [
-                    { id: '1', type: 'profile', x: 400, y: 200, w: 320, h: 100, data: { name: 'Alex', bio: 'Designer & Builder' } },
-                    { id: '2', type: 'link', x: 400, y: 320, w: 320, h: 60, data: { label: 'My Portfolio', url: '#' } }
+                    { id: '1', type: 'profile', data: { name: 'Alex', bio: 'Designer & Builder' } },
+                    { id: '2', type: 'link', data: { label: 'My Portfolio', url: '#' } }
                 ];
             }
-            renderAll();
+
+            applyPageSettings();
+            render();
         }
 
         function generateId() { return Math.random().toString(36).substr(2, 9); }
 
-        // ── RENDER (Only runs once on load, then we update DOM directly) ──
-        function renderAll() {
-            const page = document.getElementById('page');
-            page.innerHTML = ''; // Clear
+        // ── RENDER ENGINE ──
+        function render() {
+            const list = document.getElementById('blockList');
+            list.innerHTML = '';
 
-            layout.forEach(block => {
-                createWidgetDOM(block);
+            layout.forEach((block) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'block-wrapper';
+                wrapper.dataset.id = block.id;
+
+                wrapper.innerHTML = `<div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>`;
+
+                const content = document.createElement('div');
+                content.className = 'block-content';
+                content.innerHTML = getBlockHTML(block);
+                wrapper.appendChild(content);
+                list.appendChild(wrapper);
+
+                // Click to open settings (except on text edit)
+                content.addEventListener('click', (e) => {
+                    if (!e.target.isContentEditable) {
+                        openWidgetSettings(block.id);
+                    }
+                });
             });
-        }
 
-        function createWidgetDOM(block) {
-            const page = document.getElementById('page');
-            const el = document.createElement('div');
-            el.className = 'widget';
-            el.id = `widget-${block.id}`;
-            el.dataset.id = block.id;
-
-            // Set position & size
-            el.style.left = `${block.x}px`;
-            el.style.top = `${block.y}px`;
-            el.style.width = `${block.w}px`;
-            el.style.height = `${block.h}px`;
-
-            // Content and Toolbar
-            el.innerHTML = `
-                <div class="widget-toolbar">
-                    <button class="tool-btn" onclick="openSettings('${block.id}')"><i class="fa-solid fa-sliders"></i></button>
-                    <button class="tool-btn delete" onclick="deleteWidget('${block.id}')"><i class="fa-solid fa-trash"></i></button>
-                </div>
-                <div class="resize-handle"></div>
-                <div class="w-content" style="width:100%; height:100%;">
-                    ${getWidgetHTML(block)}
-                </div>
-            `;
-
-            page.appendChild(el);
-
-            // Make it draggable/resizable
-            makeInteractable(el, block);
-
-            // Click to select
-            el.addEventListener('mousedown', (e) => {
-                // Only select if we aren't clicking a button, handle, or contenteditable
-                if (!e.target.closest('.widget-toolbar') && !e.target.closest('.resize-handle') && !e.target.isContentEditable) {
-                    selectWidget(block.id);
-                }
-            });
+            // Init Drag & Drop
+            if (!window.sortableInstance) {
+                window.sortableInstance = new Sortable(list, {
+                    handle: '.drag-handle',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function (evt) {
+                        const [moved] = layout.splice(evt.oldIndex, 1);
+                        layout.splice(evt.newIndex, 0, moved);
+                        saveData();
+                    }
+                });
+            }
         }
 
         // ── HTML GENERATOR ──
-        function getWidgetHTML(block) {
+        function getBlockHTML(block) {
             const d = block.data;
             const update = (field) => `oninput="updateData('${block.id}', '${field}', this.innerText)"`;
 
             switch (block.type) {
                 case 'text':
-                    return `<div class="w-text" contenteditable="true" data-placeholder="Type something..." ${update('text')}>${d.text || ''}</div>`;
+                    return `<div class="w-text" contenteditable="true" data-placeholder="Type '/' for commands..." ${update('text')}>${d.text || ''}</div>`;
                 case 'profile':
                     return `<div class="w-profile">
-                        <div class="w-avatar" style="background-image:url(${d.avatar || 'https://api.dicebear.com/7.x/initials/svg?seed=' + (d.name || 'A')}); background-size:cover;"></div>
+                        <img class="w-avatar" src="${d.avatar || 'https://api.dicebear.com/7.x/initials/svg?seed=' + (d.name || 'A')}">
                         <div>
-                            <div class="w-name" ${update('name')} contenteditable="true">${d.name || 'Your Name'}</div>
-                            <div class="w-bio" ${update('bio')} contenteditable="true">${d.bio || 'Your bio'}</div>
+                            <div class="w-name" contenteditable="true" ${update('name')}>${d.name || 'Your Name'}</div>
+                            <div class="w-bio" contenteditable="true" ${update('bio')}>${d.bio || 'Your bio'}</div>
                         </div>
                     </div>`;
                 case 'link':
                     return `<a class="w-link" href="${d.url || '#'}" onclick="event.preventDefault()">
-                        <span ${update('label')} contenteditable="true" style="font-weight:500;">${d.label || 'New Link'}</span>
+                        <span contenteditable="true" ${update('label')} style="font-weight:500;">${d.label || 'New Link'}</span>
                         <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--muted); font-size:12px;"></i>
                     </a>`;
                 case 'image':
-                    return `<div class="w-image" style="width:100%; height:100%; border-radius:8px; overflow:hidden;">
-                        <img src="${d.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop'}" style="width:100%; height:100%; object-fit:cover;">
-                    </div>`;
+                    return `<div class="w-image"><img src="${d.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop'}"></div>`;
                 default: return '';
             }
         }
 
-        // ── INTERACT.JS (THE MAGIC) ──
-        function makeInteractable(el, block) {
-            interact(el)
-                .draggable({
-                    ignoreFrom: '.widget-toolbar, .resize-handle, [contenteditable]',
-                    inertia: true,
-                    modifiers: [
-                        interact.modifiers.snap({
-                            targets: [interact.snappers.grid({ x: snapGrid, y: snapGrid })],
-                            range: Infinity,
-                            relativePoints: [ { x: 0, y: 0 } ]
-                        }),
-                        interact.modifiers.restrictRect({
-                            restriction: 'parent',
-                            endOnly: false
-                        })
-                    ],
-                    listeners: {
-                        move(event) {
-                            const target = event.target;
-                            
-                            // Calculate new position based on starting position + drag delta
-                            let newX = block.x + event.dx;
-                            let newY = block.y + event.dy;
-
-                            // Apply visually via transform for buttery smoothness
-                            target.style.transform = `translate(${newX - block.x}px, ${newY - block.y}px)`;
-
-                            // Live-update the settings panel if it's open
-                            if (selectedId === block.id) {
-                                const xInput = document.getElementById('s-x');
-                                const yInput = document.getElementById('s-y');
-                                if(xInput) xInput.value = Math.round(newX);
-                                if(yInput) yInput.value = Math.round(newY);
-                            }
-                        },
-                        end(event) {
-                            const target = event.target;
-                            
-                            // Commit the final position to state
-                            block.x = Math.round((block.x + event.dx) / snapGrid) * snapGrid;
-                            block.y = Math.round((block.y + event.dy) / snapGrid) * snapGrid;
-
-                            // Reset transform and apply absolute left/top
-                            target.style.transform = 'none';
-                            target.style.left = `${block.x}px`;
-                            target.style.top = `${block.y}px`;
-
-                            saveLayout();
-                        }
-                    }
-                })
-                .resizable({
-                    edges: { right: '.resize-handle', bottom: '.resize-handle' },
-                    listeners: {
-                        move(event) {
-                            const target = event.target;
-                            
-                            // Apply new size visually
-                            target.style.width = `${event.rect.width}px`;
-                            target.style.height = `${event.rect.height}px`;
-                            
-                            // Live-update the settings panel
-                            if (selectedId === block.id) {
-                                const wInput = document.getElementById('s-w');
-                                const hInput = document.getElementById('s-h');
-                                if(wInput) wInput.value = Math.round(event.rect.width);
-                                if(hInput) hInput.value = Math.round(event.rect.height);
-                            }
-                        },
-                        end(event) {
-                            // Commit final size to state
-                            block.w = event.rect.width;
-                            block.h = event.rect.height;
-                            saveLayout();
-                        }
-                    },
-                    modifiers: [
-                        interact.modifiers.restrictSize({
-                            min: { width: 50, height: 30 }
-                        })
-                    ]
-                });
+        // ── STATE MUTATIONS ──
+        function updateData(id, field, value) {
+            const block = layout.find(b => b.id === id);
+            if (block) {
+                block.data[field] = value;
+                saveData();
+            }
         }
 
-        // ── SPAWNING WIDGETS ──
-        function spawnWidget(type, x, y) {
-            const defaultSize = type === 'profile' ? { w: 320, h: 100 } : type === 'link' ? { w: 320, h: 60 } : { w: 200, h: 50 };
-            
+        function addWidget(type, insertIndex) {
             const newBlock = {
                 id: generateId(),
                 type: type,
-                x: Math.max(0, x), 
-                y: Math.max(0, y),
-                w: defaultSize.w,
-                h: defaultSize.h,
                 data: getDefaultData(type)
             };
-
-            layout.push(newBlock);
-            createWidgetDOM(newBlock);
-            selectWidget(newBlock.id);
-            saveLayout();
             
-            // Focus text if it's a text block
-            if (type === 'text') {
-                setTimeout(() => {
-                    const el = document.querySelector(`#widget-${newBlock.id} [contenteditable]`);
-                    if (el) el.focus();
-                }, 50);
-            }
+            if (insertIndex >= 0) layout.splice(insertIndex, 0, newBlock);
+            else layout.push(newBlock);
+
+            saveData();
+            render();
+
+            setTimeout(() => {
+                const el = document.querySelector(`[data-id="${newBlock.id}"] [contenteditable]`);
+                if (el) el.focus();
+            }, 50);
         }
 
         function getDefaultData(type) {
-            switch(type) {
-                case 'text': return { text: '' };
-                case 'profile': return { name: 'Your Name', bio: 'Your bio' };
-                case 'link': return { label: 'New Link', url: '#' };
-                case 'image': return { url: '' };
-                default: return {};
-            }
+            if (type === 'text') return { text: '' };
+            if (type === 'profile') return { name: 'Your Name', bio: 'Your bio' };
+            if (type === 'link') return { label: 'New Link', url: '#' };
+            if (type === 'image') return { url: '' };
+            return {};
         }
 
-        // Double click workspace to spawn
-        document.getElementById('workspace').addEventListener('dblclick', (e) => {
-            if (e.target.id === 'workspace' || e.target.id === 'page') {
-                const page = document.getElementById('page');
-                const rect = page.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                spawnWidget('text', x, y);
-            }
-        });
-
-        // Click workspace to deselect
-        document.getElementById('workspace').addEventListener('mousedown', (e) => {
-            if (e.target.id === 'workspace' || e.target.id === 'page') {
-                selectWidget(null); // Deselect
-            }
-        });
-
-        // ── SLASH MENU ──
+        // ── SLASH MENU LOGIC ──
         function buildSlashMenu() {
-            const list = document.getElementById('slashList');
-            list.innerHTML = WIDGET_TYPES.map(w => `
+            document.getElementById('slashList').innerHTML = WIDGET_TYPES.map(w => `
                 <div class="slash-item" data-type="${w.type}">
                     <i class="fa-solid ${w.icon}"></i> ${w.name}
                 </div>
             `).join('');
 
-            list.querySelectorAll('.slash-item').forEach(item => {
-                item.onclick = () => {
-                    spawnWidget(item.dataset.type, window.slashX, window.slashY);
-                    closeSlashMenu();
+            document.querySelectorAll('.slash-item').forEach(item => {
+                item.onmousedown = (e) => {
+                    e.preventDefault();
+                    insertWidget(item.dataset.type);
                 };
             });
         }
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === '/' && !e.target.closest('.slash-menu')) {
-                if (!e.target.isContentEditable && e.target.tagName !== 'INPUT') {
-                    e.preventDefault();
-                    
-                    const page = document.getElementById('page');
-                    const rect = page.getBoundingClientRect();
-                    
-                    // Get mouse pos relative to page
-                    window.slashX = Math.round((window.lastMouseX - rect.left) / snapGrid) * snapGrid;
-                    window.slashY = Math.round((window.lastMouseY - rect.top) / snapGrid) * snapGrid;
+            if (e.key === '/' && e.target.isContentEditable) {
+                const sel = window.getSelection();
+                if (sel.rangeCount > 0) {
+                    const rect = sel.getRangeAt(0).getBoundingClientRect();
+                    activeBlockId = e.target.closest('.block-wrapper').dataset.id;
                     
                     const menu = document.getElementById('slashMenu');
-                    menu.style.left = `${window.lastMouseX}px`;
-                    menu.style.top = `${window.lastMouseY + 20}px`;
+                    menu.style.left = `${Math.min(window.innerWidth - 280, rect.left)}px`;
+                    menu.style.top = `${rect.bottom + 8}px`;
                     menu.classList.add('active');
+                    highlightSlashItem(0);
                 }
             }
-            if (e.key === 'Escape') {
-                closeSlashMenu();
-                selectWidget(null);
+
+            const menu = document.getElementById('slashMenu');
+            if (menu.classList.contains('active')) {
+                const items = Array.from(menu.querySelectorAll('.slash-item'));
+                if (e.key === 'ArrowDown') { e.preventDefault(); highlightSlashItem((slashMenuIndex + 1) % items.length); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); highlightSlashItem((slashMenuIndex - 1 + items.length) % items.length); }
+                else if (e.key === 'Enter') { e.preventDefault(); items[slashMenuIndex].dispatchEvent(new Event('mousedown')); }
+                else if (e.key === 'Escape') { menu.classList.remove('active'); }
             }
         });
 
-        // Track mouse for slash command
-        window.addEventListener('mousemove', (e) => {
-            window.lastMouseX = e.clientX;
-            window.lastMouseY = e.clientY;
-        });
+        function highlightSlashItem(index) {
+            const items = document.querySelectorAll('.slash-item');
+            items.forEach(i => i.classList.remove('active'));
+            if (items[index]) { items[index].classList.add('active'); slashMenuIndex = index; }
+        }
 
-        function closeSlashMenu() {
+        function insertWidget(type) {
             document.getElementById('slashMenu').classList.remove('active');
-        }
-
-        // ── SETTINGS PANEL ──
-        function selectWidget(id) {
-            selectedId = id;
-            
-            // Remove selected class from all
-            document.querySelectorAll('.widget').forEach(w => w.classList.remove('selected'));
-            
-            if (id) {
-                const el = document.getElementById(`widget-${id}`);
-                if (el) el.classList.add('selected');
-                openSettings(id);
-            } else {
-                closeSettings();
+            const activeEl = document.querySelector(`[data-id="${activeBlockId}"] [contenteditable]`);
+            if (activeEl) {
+                activeEl.innerText = activeEl.innerText.replace(/\/$/, '').trim();
+                updateData(activeBlockId, 'text', activeEl.innerText);
             }
+            const idx = layout.findIndex(b => b.id === activeBlockId);
+            addWidget(type, idx !== -1 ? idx + 1 : layout.length);
         }
 
-        function openSettings(id) {
+        // ── CLICK BACKGROUND TO TYPE ──
+        document.getElementById('blockList').addEventListener('mousedown', (e) => {
+            if (e.target.id === 'blockList' || e.target.id === 'page') {
+                addWidget('text', layout.length);
+            }
+        });
+
+        // ── BOTTOM SHEETS (Settings) ──
+        function openSheet() {
+            document.getElementById('sheetOverlay').classList.add('active');
+            document.getElementById('bottomSheet').classList.add('active');
+        }
+        function closeSheet() {
+            document.getElementById('sheetOverlay').classList.remove('active');
+            document.getElementById('bottomSheet').classList.remove('active');
+        }
+
+        function openWidgetSettings(id) {
+            activeBlockId = id;
             const block = layout.find(b => b.id === id);
-            if(!block) return;
+            if (!block) return;
 
-            document.getElementById('workspace').classList.add('settings-open');
-            document.getElementById('settingsPanel').classList.add('open');
-            document.getElementById('settingsTitle').innerText = `Edit ${block.type.toUpperCase()}`;
+            document.getElementById('sheetTitle').innerText = `Edit ${block.type}`;
+            const body = document.getElementById('sheetContent');
             
-            const body = document.getElementById('settingsBody');
-            body.innerHTML = `
-                <div class="setting-row">
-                    <div class="setting-group"><label>X Pos</label><input type="number" id="s-x" value="${Math.round(block.x)}" onchange="changeProp('${id}', 'x', this.value)"></div>
-                    <div class="setting-group"><label>Y Pos</label><input type="number" id="s-y" value="${Math.round(block.y)}" onchange="changeProp('${id}', 'y', this.value)"></div>
-                </div>
-                <div class="setting-row">
-                    <div class="setting-group"><label>Width</label><input type="number" id="s-w" value="${Math.round(block.w)}" onchange="changeProp('${id}', 'w', this.value)"></div>
-                    <div class="setting-group"><label>Height</label><input type="number" id="s-h" value="${Math.round(block.h)}" onchange="changeProp('${id}', 'h', this.value)"></div>
-                </div>
-                <hr style="border:none; border-top:1px solid var(--border); margin: 10px 0;">
-            `;
-
-            // Append specific fields
-            if (block.type === 'text') {
-                body.innerHTML += `<div class="setting-group"><label>Content</label><textarea rows="4" oninput="updateData('${id}', 'text', this.value)">${block.data.text || ''}</textarea></div>`;
-            } else if (block.type === 'profile') {
-                body.innerHTML += `
-                    <div class="setting-group"><label>Name</label><input type="text" value="${block.data.name || ''}" oninput="updateData('${id}', 'name', this.value)"></div>
-                    <div class="setting-group"><label>Bio</label><input type="text" value="${block.data.bio || ''}" oninput="updateData('${id}', 'bio', this.value)"></div>
-                    <div class="setting-group"><label>Avatar URL</label><input type="text" value="${block.data.avatar || ''}" oninput="updateData('${id}', 'avatar', this.value)"></div>
+            let html = '';
+            if (block.type === 'profile') {
+                html = `
+                    <div class="setting-group"><label>Name</label><input type="text" value="${block.data.name}" oninput="updateData('${id}', 'name', this.value)"></div>
+                    <div class="setting-group"><label>Bio</label><input type="text" value="${block.data.bio}" oninput="updateData('${id}', 'bio', this.value)"></div>
                 `;
             } else if (block.type === 'link') {
-                body.innerHTML += `
-                    <div class="setting-group"><label>Label</label><input type="text" value="${block.data.label || ''}" oninput="updateData('${id}', 'label', this.value)"></div>
-                    <div class="setting-group"><label>URL</label><input type="text" value="${block.data.url || ''}" oninput="updateData('${id}', 'url', this.value)"></div>
+                html = `
+                    <div class="setting-group"><label>Label</label><input type="text" value="${block.data.label}" oninput="updateData('${id}', 'label', this.value)"></div>
+                    <div class="setting-group"><label>URL</label><input type="text" value="${block.data.url}" oninput="updateData('${id}', 'url', this.value)"></div>
                 `;
             } else if (block.type === 'image') {
-                body.innerHTML += `<div class="setting-group"><label>Image URL</label><input type="text" value="${block.data.url || ''}" oninput="updateData('${id}', 'url', this.value)"></div>`;
+                html = `<div class="setting-group"><label>Image URL</label><input type="text" value="${block.data.url || ''}" oninput="updateData('${id}', 'url', this.value)"></div>`;
+            } else {
+                html = `<p style="color:var(--muted); font-size:14px;">Use inline editing to change text.</p>`;
             }
+
+            html += `<button onclick="deleteWidget('${id}')" style="width:100%; padding:14px; border-radius:10px; border:none; background:rgba(239,68,68,0.1); color:#ef4444; font-weight:600; font-size:15px; cursor:pointer; margin-top:20px;">Delete Widget</button>`;
+            
+            body.innerHTML = html;
+            openSheet();
         }
 
-        function closeSettings() {
-            document.getElementById('workspace').classList.remove('settings-open');
-            document.getElementById('settingsPanel').classList.remove('open');
-            selectedId = null;
+        function openPageSettings() {
+            activeBlockId = null;
+            document.getElementById('sheetTitle').innerText = 'Page Settings';
+            const body = document.getElementById('sheetContent');
+            
+            body.innerHTML = `
+                <div class="toggle-row">
+                    <span>Chromaticc Mode</span>
+                    <div class="switch ${pageSettings.aurora.enabled ? 'on' : ''}" onclick="toggleAurora(this)"></div>
+                </div>
+                <div class="toggle-row" style="margin-top:16px; border:none;">
+                    <span>Light Theme</span>
+                    <div class="switch ${pageSettings.theme === 'light' ? 'on' : ''}" onclick="toggleTheme(this)"></div>
+                </div>
+            `;
+            openSheet();
         }
 
-        function changeProp(id, prop, val) {
-            const block = layout.find(b => b.id === id);
-            if(block) {
-                block[prop] = parseFloat(val);
-                const el = document.getElementById(`widget-${id}`);
-                if(el) {
-                    if(prop === 'x') el.style.left = `${val}px`;
-                    if(prop === 'y') el.style.top = `${val}px`;
-                    if(prop === 'w') el.style.width = `${val}px`;
-                    if(prop === 'h') el.style.height = `${val}px`;
-                }
-                saveLayout();
-            }
+        function toggleAurora(el) {
+            el.classList.toggle('on');
+            pageSettings.aurora.enabled = el.classList.contains('on');
+            applyPageSettings();
+            saveData();
         }
 
-        function updateData(id, field, value) {
-            const block = layout.find(b => b.id === id);
-            if (block) {
-                block.data[field] = value;
-                saveLayout();
-                
-                // Live update DOM
-                const el = document.querySelector(`#widget-${id}`);
-                if (el) {
-                    if (field === 'text') el.querySelector('[contenteditable]').innerText = value;
-                    if (field === 'name') el.querySelector('.w-name').innerText = value;
-                    if (field === 'bio') el.querySelector('.w-bio').innerText = value;
-                    if (field === 'label') el.querySelector('.w-link span').innerText = value;
-                    if (field === 'avatar') el.querySelector('.w-avatar').style.backgroundImage = `url(${value})`;
-                    if (field === 'url' && block.type === 'link') el.querySelector('a').href = value;
-                    if (field === 'url' && block.type === 'image') el.querySelector('img').src = value;
-                }
+        function toggleTheme(el) {
+            el.classList.toggle('on');
+            pageSettings.theme = el.classList.contains('on') ? 'light' : 'dark';
+            applyPageSettings();
+            saveData();
+        }
+
+        function applyPageSettings() {
+            document.documentElement.setAttribute('data-theme', pageSettings.theme);
+            const pageEl = document.getElementById('page');
+            if (pageSettings.aurora.enabled) {
+                pageEl.classList.add('chroma-enabled');
+            } else {
+                pageEl.classList.remove('chroma-enabled');
             }
         }
 
         function deleteWidget(id) {
             layout = layout.filter(b => b.id !== id);
-            const el = document.getElementById(`widget-${id}`);
-            if (el) el.remove();
-            saveLayout();
-            closeSettings();
+            saveData();
+            render();
+            closeSheet();
         }
 
-        // ── DOCK ──
-        function buildDock() {
-            const scroll = document.getElementById('dockScroll');
-            WIDGET_TYPES.forEach(w => {
-                const btn = document.createElement('button');
-                btn.className = 'dock-btn';
-                btn.innerHTML = `<i class="fa-solid ${w.icon}"></i>`;
-                btn.title = w.name;
-                btn.onclick = () => {
-                    // Spawn in center of the visible workspace
-                    const workspace = document.getElementById('workspace');
-                    const x = workspace.scrollLeft + (workspace.clientWidth / 2) - 100;
-                    const y = workspace.scrollTop + (workspace.clientHeight / 2) - 50;
-                    spawnWidget(w.type, x, y);
-                };
-                scroll.appendChild(btn);
-            });
+        function saveData() {
+            localStorage.setItem('chroma_layout', JSON.stringify(layout));
+            localStorage.setItem('chroma_settings', JSON.stringify(pageSettings));
+            
+            // Show "Saved" toast
+            const toast = document.createElement('div');
+            toast.innerText = 'Saved';
+            toast.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:8px 16px; border-radius:20px; font-size:12px; font-weight:600; z-index:9999;';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 1500);
         }
 
-        function scrollDock(amount) {
-            document.getElementById('dockScroll').scrollBy({ left: amount, behavior: 'smooth' });
-        }
-
-        // ── SAVE ──
-        function saveLayout() {
-            localStorage.setItem('chroma_pro_canvas', JSON.stringify(layout));
-        }
-
-        // Start
         init();
     </script>
 </body>
