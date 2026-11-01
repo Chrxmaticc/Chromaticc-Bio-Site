@@ -1,65 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chromaticc — Your whole internet.</title>
     
-    <!-- Poppins Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <script>
+        // Set theme instantly on load to prevent flash
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme === 'light' || (!savedTheme && !prefersDark)) {
+            document.documentElement.setAttribute('data-theme', 'light');
+        }
+    </script>
+
     <style>
-        :root {
+        :root[data-theme="dark"] {
             --bg: #000000;
             --surface: #09090b;
             --surface-hover: #141415;
             --border: #27272a;
+            --border-hover: #52525b;
             --text: #ffffff;
             --muted: #a1a1aa;
-            --faint: #52525b;
+            --faint: #3f3f46;
+            --glow-color: rgba(255,255,255,0.08);
+            --dot-1: #ff5f56; --dot-2: #ffbd2e; --dot-3: #27c93f;
+        }
+
+        :root[data-theme="light"] {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --surface-hover: #f4f4f5;
+            --border: #e4e4e7;
+            --border-hover: #a1a1aa;
+            --text: #09090b;
+            --muted: #52525b;
+            --faint: #d4d4d8;
+            --glow-color: rgba(0,0,0,0.04);
+            --dot-1: #ff5f56; --dot-2: #ffbd2e; --dot-3: #27c93f;
+        }
+
+        :root {
             --font: 'Poppins', sans-serif;
             --ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        
         body {
             background-color: var(--bg);
             color: var(--text);
             font-family: var(--font);
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
+            transition: background-color 0.4s var(--ease), color 0.4s var(--ease);
         }
 
-        ::selection {
-            background: var(--text);
-            color: var(--bg);
+        ::selection { background: var(--text); color: var(--bg); }
+
+        /* ── NOISE OVERLAY & AMBIENT BACKGROUND ── */
+        .noise {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+        .ambient-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.5;
+            animation: drift 20s infinite alternate;
+            transition: background 0.4s;
+        }
+        .blob-1 { width: 50vw; height: 50vw; top: -10vw; left: -10vw; background: var(--glow-color); }
+        .blob-2 { width: 40vw; height: 40vw; bottom: -10vw; right: -10vw; background: var(--glow-color); animation-delay: -5s; }
+
+        @keyframes drift {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(10vw, 10vh) scale(1.2); }
+        }
 
         /* ── CUSTOM CURSOR GLOW ── */
         .cursor-glow {
             position: fixed;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0) 60%);
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--glow-color) 0%, transparent 60%);
             border-radius: 50%;
             pointer-events: none;
             transform: translate(-50%, -50%);
@@ -70,8 +109,7 @@
         /* ── NAVBAR ── */
         nav {
             position: fixed;
-            top: 0;
-            width: 100%;
+            top: 0; width: 100%;
             padding: 24px 48px;
             display: flex;
             justify-content: space-between;
@@ -85,364 +123,211 @@
         nav.scrolled {
             padding: 16px 48px;
             border-bottom: 1px solid var(--border);
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(var(--bg), 0.8);
         }
         .logo {
-            font-weight: 600;
-            font-size: 16px;
-            letter-spacing: -0.02em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-weight: 600; font-size: 16px; letter-spacing: -0.02em;
+            display: flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none;
         }
-        .logo-mark {
-            width: 14px;
-            height: 14px;
-            background: var(--text);
-            border-radius: 4px;
-        }
-        .nav-links {
-            display: flex;
-            gap: 32px;
-            align-items: center;
-        }
-        .nav-links a {
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 400;
-            transition: color 0.3s;
-        }
-        .nav-links a:hover {
+        .logo-mark { width: 14px; height: 14px; background: var(--text); border-radius: 4px; transition: background 0.4s; }
+        
+        .nav-right { display: flex; align-items: center; gap: 24px; }
+        .nav-links { display: flex; gap: 32px; align-items: center; }
+        .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 400; transition: color 0.3s; }
+        .nav-links a:hover { color: var(--text); }
+        
+        .theme-toggle {
+            background: var(--surface);
+            border: 1px solid var(--border);
             color: var(--text);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.3s var(--ease);
         }
+        .theme-toggle:hover { border-color: var(--border-hover); transform: scale(1.05); }
+        
         .nav-btn {
-            background: var(--text);
-            color: var(--bg);
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 13px;
-            text-decoration: none;
+            background: var(--text); color: var(--bg);
+            padding: 8px 16px; border-radius: 6px;
+            font-weight: 500; font-size: 13px; text-decoration: none;
             transition: transform 0.2s var(--ease);
         }
-        .nav-btn:hover {
-            transform: scale(1.02);
-        }
+        .nav-btn:hover { transform: scale(1.02); }
 
         /* ── HERO ── */
         .hero {
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 0 24px;
-            position: relative;
-            z-index: 1;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 0 24px; position: relative; z-index: 1;
         }
         .hero h1 {
-            font-size: clamp(48px, 8vw, 110px);
-            line-height: 0.95;
-            font-weight: 500;
-            letter-spacing: -0.04em;
-            max-width: 1000px;
-            margin-bottom: 24px;
+            font-size: clamp(48px, 8vw, 110px); line-height: 0.95;
+            font-weight: 500; letter-spacing: -0.04em; max-width: 1000px; margin-bottom: 24px;
         }
-        .hero h1 span {
-            display: inline-block;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeUp 1s var(--ease) forwards;
-        }
+        .hero h1 span { display: inline-block; opacity: 0; transform: translateY(30px); animation: fadeUp 1.2s var(--ease) forwards; }
         .hero h1 span:nth-child(1) { animation-delay: 0.1s; }
         .hero h1 span:nth-child(2) { animation-delay: 0.2s; }
         .hero h1 span:nth-child(3) { animation-delay: 0.3s; }
         
         .hero p {
-            color: var(--muted);
-            font-size: clamp(16px, 2vw, 20px);
-            max-width: 500px;
-            line-height: 1.6;
-            font-weight: 300;
-            opacity: 0;
-            animation: fadeUp 1s 0.5s var(--ease) forwards;
-            margin-bottom: 40px;
+            color: var(--muted); font-size: clamp(16px, 2vw, 20px);
+            max-width: 500px; line-height: 1.6; font-weight: 300;
+            opacity: 0; animation: fadeUp 1.2s 0.5s var(--ease) forwards; margin-bottom: 40px;
         }
-        .hero-actions {
-            display: flex;
-            gap: 16px;
-            opacity: 0;
-            animation: fadeUp 1s 0.6s var(--ease) forwards;
-        }
+        .hero-actions { display: flex; gap: 16px; opacity: 0; animation: fadeUp 1.2s 0.6s var(--ease) forwards; }
+        
         .btn-primary {
-            background: var(--text);
-            color: var(--bg);
-            padding: 14px 28px;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 15px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            background: var(--text); color: var(--bg);
+            padding: 16px 32px; border-radius: 8px;
+            font-weight: 500; font-size: 15px; text-decoration: none;
+            display: flex; align-items: center; gap: 12px;
             transition: all 0.3s var(--ease);
         }
         .btn-primary i { transition: transform 0.3s; }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 40px rgba(255,255,255,0.15);
-        }
-        .btn-primary:hover i { transform: translateX(4px); }
+        .btn-primary:hover { box-shadow: 0 10px 40px var(--glow-color); }
+        .btn-primary:hover i { transform: translateX(6px); }
 
-        @keyframes fadeUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
-        /* ── EDITOR SHOWCASE ── */
+        /* ── EDITOR SHOWCASE (3D TILT) ── */
         .showcase {
             padding: 100px 24px;
-            display: flex;
-            justify-content: center;
-            perspective: 1000px;
-            position: relative;
-            z-index: 1;
+            display: flex; justify-content: center;
+            perspective: 1200px; position: relative; z-index: 1;
         }
         .editor-window {
-            width: 100%;
-            max-width: 1100px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
-            transform: rotateX(10deg) scale(0.95);
-            opacity: 0;
-            transition: all 1s var(--ease);
+            width: 100%; max-width: 1100px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.1);
+            transform-style: preserve-3d;
+            opacity: 0; transform: translateY(50px) rotateX(10deg);
+            transition: opacity 1s var(--ease), transform 1s var(--ease);
+            will-change: transform;
         }
-        .editor-window.visible {
-            transform: rotateX(0deg) scale(1);
-            opacity: 1;
-        }
+        [data-theme="dark"] .editor-window { box-shadow: 0 40px 100px rgba(0,0,0,0.8); }
+        .editor-window.visible { opacity: 1; transform: translateY(0) rotateX(0deg); }
         
         .editor-topbar {
-            height: 48px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            gap: 8px;
-            background: #040404;
+            height: 48px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 16px; gap: 8px;
+            background: var(--surface-hover);
         }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
-        .dot:nth-child(1) { background: #ff5f56; }
-        .dot:nth-child(2) { background: #ffbd2e; }
-        .dot:nth-child(3) { background: #27c93f; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot:nth-child(1) { background: var(--dot-1); }
+        .dot:nth-child(2) { background: var(--dot-2); }
+        .dot:nth-child(3) { background: var(--dot-3); }
         
         .editor-canvas {
-            height: 600px;
-            position: relative;
+            height: 600px; position: relative;
             background-image: 
-                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 60%),
+                radial-gradient(circle at 50% 50%, var(--glow-color) 0%, transparent 60%),
                 linear-gradient(var(--border) 1px, transparent 1px),
                 linear-gradient(90deg, var(--border) 1px, transparent 1px);
             background-size: 100% 100%, 40px 40px, 40px 40px;
             background-position: center center;
-            padding: 60px;
-            display: flex;
-            justify-content: center;
+            padding: 60px; display: flex; justify-content: center;
         }
 
-        /* The Mock Profile Page */
         .mock-profile {
-            width: 400px;
-            background: #000;
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 40px 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
-            position: relative;
+            width: 400px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 24px;
+            padding: 40px 24px; display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative;
+            transition: background 0.4s;
         }
+        [data-theme="dark"] .mock-profile { box-shadow: 0 20px 60px rgba(0,0,0,0.9); }
+        
         .mock-avatar {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #333, #111);
-            margin-bottom: 16px;
-            border: 2px solid var(--border);
+            width: 80px; height: 80px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--border), var(--surface-hover));
+            margin-bottom: 16px; border: 2px solid var(--border);
         }
         .mock-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
         .mock-bio { font-size: 13px; color: var(--muted); margin-bottom: 32px; text-align: center; }
         
         .mock-links { width: 100%; display: flex; flex-direction: column; gap: 12px; }
         .mock-link {
-            width: 100%;
-            padding: 16px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            transition: all 0.2s;
-            cursor: pointer;
+            width: 100%; padding: 16px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 14px; transition: all 0.2s; cursor: pointer; color: var(--text);
         }
-        .mock-link:hover {
-            background: var(--surface-hover);
-            border-color: var(--muted);
-            transform: translateY(-2px);
-        }
+        .mock-link:hover { background: var(--surface-hover); border-color: var(--border-hover); transform: translateY(-2px); }
         .mock-link i { color: var(--faint); }
 
-        /* The Floating Slash Menu (From your screenshot) */
+        /* ── ADVANCED SLASH MENU ── */
         .slash-menu {
-            position: absolute;
-            top: 50%;
-            left: 50%;
+            position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -20px) scale(0.95);
-            width: 280px;
-            background: #111113;
-            border: 1px solid #27272a;
-            border-radius: 12px;
-            padding: 8px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s var(--ease);
-            z-index: 10;
+            width: 320px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 12px;
+            padding: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            opacity: 0; pointer-events: none;
+            transition: all 0.3s var(--ease); z-index: 10;
         }
-        .slash-menu.active {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-            pointer-events: auto;
-        }
+        [data-theme="dark"] .slash-menu { box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .slash-menu.active { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+        
         .slash-input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-family: var(--font);
-            font-size: 14px;
-            padding: 8px 12px;
-            outline: none;
-            border-bottom: 1px solid #27272a;
-            margin-bottom: 8px;
+            width: 100%; background: transparent; border: none;
+            color: var(--text); font-family: var(--font); font-size: 14px;
+            padding: 8px 12px; outline: none;
+            border-bottom: 1px solid var(--border); margin-bottom: 8px;
         }
+        .slash-input::placeholder { color: var(--faint); }
+        
+        .slash-list { max-height: 200px; overflow-y: auto; }
         .slash-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            color: #a1a1aa;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.15s;
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; border-radius: 6px;
+            color: var(--muted); font-size: 13px; cursor: pointer; transition: all 0.15s;
         }
-        .slash-item:hover, .slash-item.active {
-            background: #27272a;
-            color: #fff;
-        }
+        .slash-item:hover, .slash-item.active { background: var(--surface-hover); color: var(--text); }
         .slash-item i { width: 16px; text-align: center; font-size: 14px; }
+        .slash-empty { padding: 20px; text-align: center; color: var(--muted); font-size: 13px; }
 
-        /* ── FEATURES (No Bento) ── */
+        /* ── FEATURES ── */
         .features {
-            padding: 120px 24px;
-            max-width: 1000px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 120px;
-            position: relative;
-            z-index: 1;
+            padding: 120px 24px; max-width: 1000px; margin: 0 auto;
+            display: flex; flex-direction: column; gap: 140px; position: relative; z-index: 1;
         }
         .feature-row {
-            display: flex;
-            align-items: center;
-            gap: 60px;
-            opacity: 0;
-            transform: translateY(40px);
-            transition: all 0.8s var(--ease);
+            display: flex; align-items: center; gap: 60px;
+            opacity: 0; transform: translateY(40px); transition: all 0.8s var(--ease);
         }
-        .feature-row.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .feature-row:nth-child(even) {
-            flex-direction: row-reverse;
-        }
-        .feature-text {
-            flex: 1;
-        }
+        .feature-row.visible { opacity: 1; transform: translateY(0); }
+        .feature-row:nth-child(even) { flex-direction: row-reverse; }
+        .feature-text { flex: 1; }
         .feature-text h2 {
-            font-size: clamp(32px, 4vw, 48px);
-            font-weight: 500;
-            line-height: 1.1;
-            letter-spacing: -0.03em;
-            margin-bottom: 16px;
+            font-size: clamp(32px, 4vw, 48px); font-weight: 500;
+            line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px;
         }
-        .feature-text p {
-            color: var(--muted);
-            font-size: 16px;
-            line-height: 1.6;
-            font-weight: 300;
-            max-width: 400px;
-        }
+        .feature-text p { color: var(--muted); font-size: 16px; line-height: 1.6; font-weight: 300; max-width: 400px; }
+        
         .feature-visual {
-            flex: 1;
-            height: 300px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
+            flex: 1; height: 300px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden; transition: background 0.4s;
         }
-        /* Simple abstract visuals for features */
-        .visual-circle {
-            width: 150px; height: 150px;
-            border-radius: 50%;
-            border: 1px dashed var(--muted);
-            animation: spin 20s linear infinite;
-        }
+        
+        .visual-circle { width: 150px; height: 150px; border-radius: 50%; border: 1px dashed var(--muted); animation: spin 20s linear infinite; }
         .visual-circle::after {
-            content: ''; position: absolute; top: 50%; left: 50%; width: 80px; height: 80px; background: var(--text); border-radius: 50%; transform: translate(-50%, -50%);
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 80px; height: 80px; background: var(--text); border-radius: 50%;
+            transform: translate(-50%, -50%);
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .visual-lines {
-            display: flex; flex-direction: column; gap: 12px; width: 200px;
-        }
-        .visual-line {
-            height: 12px; background: var(--border); border-radius: 6px;
-        }
-        .visual-line:nth-child(1) { width: 100%; background: var(--text); }
-        .visual-line:nth-child(2) { width: 80%; }
-        .visual-line:nth-child(3) { width: 60%; }
-
         /* ── FOOTER ── */
         footer {
-            padding: 60px 48px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--faint);
-            font-size: 13px;
-            position: relative;
-            z-index: 1;
+            padding: 60px 48px; border-top: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            color: var(--faint); font-size: 13px; position: relative; z-index: 1;
         }
-        footer a {
-            color: var(--faint);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
+        footer a { color: var(--faint); text-decoration: none; transition: color 0.2s; }
         footer a:hover { color: var(--text); }
 
         @media (max-width: 768px) {
@@ -458,24 +343,29 @@
 </head>
 <body>
 
-    <!-- Custom Glow Cursor -->
+    <div class="noise"></div>
+    <div class="ambient-blob blob-1"></div>
+    <div class="ambient-blob blob-2"></div>
     <div class="cursor-glow" id="cursorGlow"></div>
 
-    <!-- Navbar -->
     <nav id="navbar">
-        <div class="logo">
+        <a href="#" class="logo">
             <div class="logo-mark"></div>
             Chromaticc
+        </a>
+        <div class="nav-right">
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#showcase">Demo</a>
+                <a href="#pricing">Pricing</a>
+            </div>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme">
+                <i class="fa-solid fa-moon" id="themeIcon"></i>
+            </button>
+            <a href="#" class="nav-btn">Claim handle</a>
         </div>
-        <div class="nav-links">
-            <a href="#features">Features</a>
-            <a href="#showcase">Demo</a>
-            <a href="#pricing">Pricing</a>
-        </div>
-        <a href="#" class="nav-btn">Claim handle</a>
     </nav>
 
-    <!-- Hero -->
     <section class="hero">
         <h1>
             <span>Your whole</span><br>
@@ -488,8 +378,8 @@
         </div>
     </section>
 
-    <!-- Editor Showcase -->
     <section class="showcase" id="showcase">
+        <!-- Tilt Wrapper -->
         <div class="editor-window" id="editorWindow">
             <div class="editor-topbar">
                 <div class="dot"></div>
@@ -497,19 +387,22 @@
                 <div class="dot"></div>
                 <div style="flex:1; text-align:center; font-size:11px; color:var(--faint); font-family:monospace;">chromaticc.cc.cd/alex</div>
             </div>
-            <div class="editor-canvas">
+            <div class="editor-canvas" id="canvasArea">
                 
-                <!-- The Floating Slash Menu -->
+                <!-- Interactive Slash Menu -->
                 <div class="slash-menu active" id="slashMenu">
-                    <input type="text" class="slash-input" value="Input blocks" readonly>
-                    <div class="slash-item active"><i class="fa-solid fa-equals"></i> Short answer</div>
-                    <div class="slash-item"><i class="fa-solid fa-bars"></i> Long answer</div>
-                    <div class="slash-item"><i class="fa-regular fa-circle-check"></i> Multiple choice</div>
-                    <div class="slash-item"><i class="fa-regular fa-square-check"></i> Checkboxes</div>
-                    <div class="slash-item"><i class="fa-solid fa-chevron-down"></i> Dropdown</div>
+                    <input type="text" class="slash-input" id="slashInput" placeholder="Type a command..." autocomplete="off">
+                    <div class="slash-list" id="slashList">
+                        <div class="slash-item active"><i class="fa-solid fa-equals"></i> Short answer</div>
+                        <div class="slash-item"><i class="fa-solid fa-bars"></i> Long answer</div>
+                        <div class="slash-item"><i class="fa-regular fa-circle-check"></i> Multiple choice</div>
+                        <div class="slash-item"><i class="fa-regular fa-square-check"></i> Checkboxes</div>
+                        <div class="slash-item"><i class="fa-solid fa-chevron-down"></i> Dropdown</div>
+                        <div class="slash-item"><i class="fa-solid fa-image"></i> Image Block</div>
+                        <div class="slash-item"><i class="fa-solid fa-link"></i> Link List</div>
+                    </div>
                 </div>
 
-                <!-- The Mock Profile Page -->
                 <div class="mock-profile">
                     <div class="mock-avatar"></div>
                     <div class="mock-name">Alex</div>
@@ -535,52 +428,31 @@
         </div>
     </section>
 
-    <!-- Features (No Bento) -->
     <section class="features" id="features">
-        
         <div class="feature-row">
             <div class="feature-text">
                 <h2>Slash commands. Not clunky menus.</h2>
                 <p>Press <code>/</code> on an empty canvas and the block menu appears exactly where your mouse is. Add a text box, a link list, or a Discord presence in a fraction of a second.</p>
             </div>
             <div class="feature-visual">
-                <div class="visual-lines">
-                    <div class="visual-line"></div>
-                    <div class="visual-line"></div>
-                    <div class="visual-line"></div>
+                <div style="display:flex; gap:10px; font-family:monospace; font-size:20px; color:var(--muted);">
+                    <span style="background:var(--surface-hover); padding:4px 12px; border-radius:6px; border:1px solid var(--border);">/</span>
+                    <span>type to filter...</span>
                 </div>
             </div>
         </div>
 
         <div class="feature-row">
             <div class="feature-text">
-                <h2>Pure black. High contrast.</h2>
-                <p>No generic AI gradients. No glassmorphism. Just crisp white text, deep blacks, and razor-thin borders that let your content do the talking.</p>
+                <h2>Pure contrast. High fidelity.</h2>
+                <p>No generic AI gradients. No glassmorphism. Just crisp text, deep backgrounds, and razor-thin borders that let your content do the talking.</p>
             </div>
             <div class="feature-visual">
                 <div class="visual-circle"></div>
             </div>
         </div>
-
-        <div class="feature-row">
-            <div class="feature-text">
-                <h2>Built for the web.</h2>
-                <p>Powered by Neon Postgres. Your layout is saved as a JSON array and rendered at the edge. It loads before the tap finishes.</p>
-            </div>
-            <div class="feature-visual">
-                <div style="font-family:monospace; font-size:12px; color:var(--muted); text-align:left; padding:24px;">
-                    <span style="color:#ff79c6;">{</span><br>
-                    &nbsp;&nbsp;<span style="color:#8be9fd;">"type"</span>: <span style="color:#f1fa8c;">"profile-card"</span>,<br>
-                    &nbsp;&nbsp;<span style="color:#8be9fd;">"layout"</span>: <span style="color:#ff79c6;">{</span> <span style="color:#8be9fd;">"x"</span>: 20, <span style="color:#8be9fd;">"y"</span>: 10 <span style="color:#ff79c6;">}</span>,<br>
-                    &nbsp;&nbsp;<span style="color:#8be9fd;">"style"</span>: <span style="color:#ff79c6;">{</span> <span style="color:#8be9fd;">"bg"</span>: <span style="color:#f1fa8c;">"#000"</span> <span style="color:#ff79c6;">}</span><br>
-                    <span style="color:#ff79c6;">}</span>
-                </div>
-            </div>
-        </div>
-
     </section>
 
-    <!-- Footer -->
     <footer>
         <div>© 2026 Chromaticc. All rights reserved.</div>
         <div style="display:flex; gap:24px;">
@@ -591,29 +463,64 @@
     </footer>
 
     <script>
-        // ── CUSTOM GLOW CURSOR ──
-        const glow = document.getElementById('cursorGlow');
-        document.addEventListener('mousemove', (e) => {
-            glow.style.left = e.clientX + 'px';
-            glow.style.top = e.clientY + 'px';
-        });
+        // ── THEME TOGGLE ──
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const root = document.documentElement;
 
-        // ── SCROLL NAVBAR EFFECT ──
-        const nav = document.getElementById('navbar');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                nav.classList.add('scrolled');
+        function updateIcon() {
+            if (root.getAttribute('data-theme') === 'dark') {
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
             } else {
-                nav.classList.remove('scrolled');
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
             }
+        }
+        updateIcon();
+
+        themeToggle.addEventListener('click', () => {
+            const current = root.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            root.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateIcon();
         });
 
-        // ── INTERSECTION OBSERVER (SCROLL ANIMATIONS) ──
-        const observerOptions = {
-            threshold: 0.2,
-            rootMargin: "0px 0px -50px 0px"
-        };
+        // ── CURSOR GLOW & NAVBAR ──
+        const glow = document.getElementById('cursorGlow');
+        const nav = document.getElementById('navbar');
+        
+        document.addEventListener('mousemove', (e) => {
+            // Smooth cursor with requestAnimationFrame
+            requestAnimationFrame(() => {
+                glow.style.left = e.clientX + 'px';
+                glow.style.top = e.clientY + 'px';
+            });
+        });
 
+        window.addEventListener('scroll', () => {
+            nav.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // ── 3D TILT EFFECT ──
+        const editorWindow = document.getElementById('editorWindow');
+        const canvasArea = document.getElementById('canvasArea');
+        
+        // Only apply tilt on desktop
+        if (window.innerWidth > 768) {
+            canvasArea.addEventListener('mousemove', (e) => {
+                const rect = editorWindow.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+                
+                editorWindow.style.transform = `perspective(1000px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) scale(1)`;
+            });
+            
+            canvasArea.addEventListener('mouseleave', () => {
+                editorWindow.style.transform = `perspective(1000px) rotateY(0deg) rotateX(0deg) scale(1)`;
+            });
+        }
+
+        // ── INTERSECTION OBSERVER ──
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -621,20 +528,16 @@
                     observer.unobserve(entry.target);
                 }
             });
-        }, observerOptions);
+        }, { threshold: 0.2, rootMargin: "0px 0px -50px 0px" });
 
-        document.querySelectorAll('.editor-window, .feature-row').forEach(el => {
-            observer.observe(el);
-        });
+        document.querySelectorAll('.editor-window, .feature-row').forEach(el => observer.observe(el));
 
-        // ── MAGNETIC BUTTONS ──
-        const magneticBtns = document.querySelectorAll('.magnetic');
-        magneticBtns.forEach(btn => {
+        // ── MAGNETIC BUTTON ──
+        document.querySelectorAll('.magnetic').forEach(btn => {
             btn.addEventListener('mousemove', (e) => {
                 const rect = btn.getBoundingClientRect();
                 const x = e.clientX - rect.left - rect.width / 2;
                 const y = e.clientY - rect.top - rect.height / 2;
-                
                 btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
             });
             btn.addEventListener('mouseleave', () => {
@@ -642,41 +545,98 @@
             });
         });
 
-        // ── SLASH MENU INTERACTION (Mockup) ──
+        // ── INTERACTIVE SLASH MENU ──
         const slashMenu = document.getElementById('slashMenu');
-        const canvas = document.querySelector('.editor-canvas');
+        const slashInput = document.getElementById('slashInput');
+        const slashList = document.getElementById('slashList');
+        let slashItems = Array.from(slashList.querySelectorAll('.slash-item'));
         
-        // Toggle menu on click
-        canvas.addEventListener('click', (e) => {
-            if(e.target.closest('.mock-link')) return; // ignore link clicks
-            slashMenu.classList.toggle('active');
+        // Toggle menu on canvas click
+        canvasArea.addEventListener('click', (e) => {
+            if(e.target.closest('.mock-link') || e.target.closest('.slash-menu')) return;
+            slashMenu.classList.add('active');
+            slashInput.value = '';
+            filterMenu('');
+            slashInput.focus();
         });
 
-        // Cycle active item with arrow keys
-        let activeIndex = 0;
-        const items = document.querySelectorAll('.slash-item');
+        // Filter function
+        function filterMenu(query) {
+            let hasVisible = false;
+            slashItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(query.toLowerCase())) {
+                    item.style.display = 'flex';
+                    hasVisible = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Handle empty state
+            let emptyMsg = slashList.querySelector('.slash-empty');
+            if (!hasVisible) {
+                if (!emptyMsg) {
+                    emptyMsg = document.createElement('div');
+                    emptyMsg.className = 'slash-empty';
+                    emptyMsg.textContent = 'No blocks found';
+                    slashList.appendChild(emptyMsg);
+                }
+            } else if (emptyMsg) {
+                emptyMsg.remove();
+            }
+
+            // Reset active state to first visible item
+            slashItems.forEach(i => i.classList.remove('active'));
+            const firstVisible = slashItems.find(i => i.style.display !== 'none');
+            if (firstVisible) firstVisible.classList.add('active');
+        }
+
+        slashInput.addEventListener('input', (e) => filterMenu(e.target.value));
+
+        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
             if (!slashMenu.classList.contains('active')) return;
-            
+
+            const visibleItems = slashItems.filter(i => i.style.display !== 'none');
+            if (visibleItems.length === 0) return;
+
+            let activeIndex = visibleItems.findIndex(i => i.classList.contains('active'));
+
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                items[activeIndex].classList.remove('active');
-                activeIndex = (activeIndex + 1) % items.length;
-                items[activeIndex].classList.add('active');
+                visibleItems[activeIndex].classList.remove('active');
+                activeIndex = (activeIndex + 1) % visibleItems.length;
+                visibleItems[activeIndex].classList.add('active');
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                items[activeIndex].classList.remove('active');
-                activeIndex = (activeIndex - 1 + items.length) % items.length;
-                items[activeIndex].classList.add('active');
+                visibleItems[activeIndex].classList.remove('active');
+                activeIndex = (activeIndex - 1 + visibleItems.length) % visibleItems.length;
+                visibleItems[activeIndex].classList.add('active');
+            } else if (e.key === 'Escape') {
+                slashMenu.classList.remove('active');
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                // Simulate adding the block
+                const text = visibleItems[activeIndex].textContent.trim();
+                slashMenu.classList.remove('active');
+                
+                // Reset mock profile text temporarily to show it worked
+                const nameEl = document.querySelector('.mock-name');
+                const oldName = nameEl.textContent;
+                nameEl.textContent = `Added: ${text}`;
+                setTimeout(() => nameEl.textContent = oldName, 1500);
             }
         });
 
-        // Hover logic for menu items
-        items.forEach((item, index) => {
+        // Hover states for menu items
+        slashItems.forEach(item => {
             item.addEventListener('mouseenter', () => {
-                items[activeIndex].classList.remove('active');
-                activeIndex = index;
-                items[activeIndex].classList.add('active');
+                slashItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+            item.addEventListener('click', () => {
+                slashMenu.classList.remove('active');
             });
         });
     </script>
