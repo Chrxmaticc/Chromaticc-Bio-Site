@@ -193,9 +193,9 @@
                 (globeEl)
                 .backgroundColor('rgba(0,0,0,0)') 
                 .showAtmosphere(true)
-                .atmosphereAltitude(0.1)
+                .atmosphereAltitude(0.15)
                 
-                // Load the geography bump map for realistic 3D mountains/valleys
+                // Topography bump map for 3D mountains
                 .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
                 
                 // ── ARCS (Flight paths) ──
@@ -234,7 +234,13 @@
                 .autoRotate(true)
                 .autoRotateSpeed(0.6);
 
-            // Apply Theme (Textures & Colors)
+            // FORCE BRIGHT LIGHTING so the texture is never a void
+            world.lights([
+                new THREE.AmbientLight(0xffffff, 2.5),       // Bright ambient light
+                new THREE.DirectionalLight(0xffffff, 1.5)    // Sharp directional light for shadows
+            ]);
+
+            // Apply Theme
             updateGlobeTheme();
 
             // Handle Resize
@@ -266,22 +272,27 @@
             if (!world) return;
             const isDark = root.getAttribute('data-theme') === 'dark';
             
-            // 1. Swap Textures
-            world.globeImageUrl(isDark 
-                ? 'https://unpkg.com/three-globe/example/img/earth-night.jpg' 
-                : 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg'
-            );
+            // Use the same highly realistic "Blue Marble" texture for both
+            world.globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
             
-            // 2. Atmosphere
+            // Atmosphere (White glow on dark, Black outline on light)
             world.atmosphereColor(isDark ? '#ffffff' : '#000000');
             
-            // 3. Material overrides to remove the default "plastic/blue" look
+            // Material Overrides
             const globeMaterial = world.globeMaterial();
-            globeMaterial.color = new THREE.Color('#ffffff'); // Pure white base
-            globeMaterial.emissive = new THREE.Color('#000000'); // Kill artificial glow
-            globeMaterial.emissiveIntensity = 0;
-            globeMaterial.shininess = 0; // Matte finish, no shiny ocean glare
             
+            if (isDark) {
+                // DARK MODE: Dim the realistic texture to 40% brightness
+                globeMaterial.color = new THREE.Color('#555555'); 
+                globeMaterial.emissive = new THREE.Color('#000000');
+            } else {
+                // LIGHT MODE: Full brightness, vibrant colors
+                globeMaterial.color = new THREE.Color('#ffffff');
+                globeMaterial.emissive = new THREE.Color('#000000');
+            }
+            
+            globeMaterial.emissiveIntensity = 0;
+            globeMaterial.shininess = 10; // Gives the oceans a slight, realistic satellite sheen
             globeMaterial.needsUpdate = true;
         }
 
