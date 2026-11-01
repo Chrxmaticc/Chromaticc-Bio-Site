@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chromaticc — Ghost Canvas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Chromaticc Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
             --bg: #09090b;
+            --surface: #121214;
+            --border: #27272a;
             --text: #ffffff;
             --muted: #a1a1aa;
-            --surface: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.1);
             --accent: #38bdf8;
+            --danger: #ef4444;
             --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --font: 'Poppins', sans-serif;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,294 +25,449 @@
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'Poppins', sans-serif;
-            overflow-y: auto;
+            font-family: var(--font);
+            overflow: hidden; /* App-like feel */
             -webkit-font-smoothing: antialiased;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
         }
 
-        /* ── THE GHOST CANVAS ── */
+        /* ── THE CANVAS ── */
+        .canvas-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            padding: 100px 20px 200px 20px; /* Space for dock */
+        }
+
         .canvas {
             width: 100%;
             max-width: 600px;
-            min-height: 100vh;
-            padding: 100px 20px;
+            position: relative;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            position: relative;
-        }
-
-        /* Empty state prompt */
-        .empty-prompt {
-            color: var(--muted);
-            font-size: 15px;
-            font-style: italic;
-            opacity: 0.5;
-            cursor: text;
+            gap: 12px;
         }
 
         /* ── WIDGETS ── */
         .widget {
             position: relative;
             border-radius: 12px;
-            transition: all 0.2s var(--ease);
-            padding: 4px;
+            padding: 8px;
             outline: 1px solid transparent;
-            cursor: grab;
+            transition: outline 0.2s, background 0.2s;
+            group: widget;
         }
 
         .widget:hover {
-            background: var(--surface);
             outline: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
         }
 
-        /* The Drag Handle (Appears on hover) */
+        /* Invisible drag handle that sits on the left */
         .drag-handle {
             position: absolute;
-            left: -32px;
+            left: -24px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--muted);
-            opacity: 0;
+            width: 24px;
+            height: 100%;
             cursor: grab;
-            padding: 8px;
-            transition: opacity 0.2s;
-        }
-        .widget:hover .drag-handle { opacity: 1; }
-
-        /* ── ACTUAL WIDGET STYLES ── */
-        .w-profile { display: flex; align-items: center; gap: 16px; padding: 16px 0; }
-        .w-avatar { width: 64px; height: 64px; border-radius: 50%; background: #333; border: 2px solid var(--border); }
-        .w-name { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; outline: none; }
-        .w-bio { font-size: 14px; color: var(--muted); outline: none; }
-
-        .w-link { 
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 20px; background: #111; border: 1px solid var(--border);
-            border-radius: 10px; text-decoration: none; color: var(--text);
-            font-size: 14px; font-weight: 500; transition: background 0.2s;
-            cursor: pointer;
-        }
-        .w-link:hover { background: #18181b; }
-
-        /* ── THE FLOATING TOOLBAR ── */
-        .toolbar {
-            position: absolute;
-            top: -45px;
-            left: 0;
             display: flex;
             align-items: center;
+            justify-content: center;
+            color: var(--border);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .widget:hover .drag-handle { opacity: 1; }
+        .drag-handle:active { cursor: grabbing; }
+
+        /* Floating Toolbar inside widget */
+        .widget-toolbar {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            display: flex;
             gap: 4px;
-            background: rgba(20, 20, 22, 0.8);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 4px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             opacity: 0;
             pointer-events: none;
-            transform: translateY(5px) scale(0.95);
+            transform: translateY(4px);
             transition: all 0.2s var(--ease);
-            z-index: 100;
+            z-index: 50;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        
-        .widget:hover .toolbar, .widget:focus-within .toolbar {
+
+        .widget:hover .widget-toolbar {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .tool-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+        .tool-btn.delete:hover { color: var(--danger); }
+
+        /* ── EDITABLE CONTENT ── */
+        [contenteditable] {
+            outline: none;
+            transition: background 0.2s;
+            border-radius: 4px;
+        }
+        [contenteditable]:focus {
+            background: rgba(255,255,255,0.05);
+            box-shadow: 0 0 0 2px var(--border);
+        }
+
+        /* Specific Widget Styles */
+        .w-profile { display: flex; align-items: center; gap: 16px; padding: 12px; }
+        .w-avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #333, #111); border: 1px solid var(--border); }
+        .w-name { font-size: 22px; font-weight: 600; }
+        .w-bio { font-size: 14px; color: var(--muted); }
+
+        .w-link { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; text-decoration: none; color: var(--text); font-size: 14px;
+        }
+        .w-link:hover { background: #18181b; }
+        .w-text { font-size: 16px; line-height: 1.5; padding: 8px 12px; }
+
+        /* ── THE BOTTOM DOCK ── */
+        .dock-wrapper {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        /* The Widget Menu that pops UP */
+        .widget-menu {
+            background: rgba(18, 18, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px) scale(0.95);
+            transition: all 0.3s var(--ease);
+            width: 220px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+        }
+
+        .widget-menu.active {
             opacity: 1;
             pointer-events: auto;
             transform: translateY(0) scale(1);
         }
 
-        .toolbar-btn {
-            background: transparent;
-            border: none;
-            color: var(--muted);
-            width: 28px; height: 28px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
-        }
-        .toolbar-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-        .toolbar-btn.delete:hover { color: #ef4444; }
-        .toolbar-divider { width: 1px; height: 14px; background: var(--border); margin: 0 4px; }
-
-        /* ── THE SLASH MENU ── */
-        .slash-menu {
-            position: absolute;
-            width: 280px;
-            background: rgba(18, 18, 20, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            padding: 6px;
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .slash-menu.active { display: flex; }
-
-        .slash-item {
+        .menu-item {
             display: flex; align-items: center; gap: 12px;
-            padding: 10px 12px; border-radius: 6px;
+            padding: 10px 12px; border-radius: 8px;
             color: var(--muted); font-size: 13px; cursor: pointer;
             transition: all 0.15s;
         }
-        .slash-item:hover, .slash-item.active {
-            background: rgba(255,255,255,0.08); color: var(--text);
-        }
-        .slash-item i { width: 16px; text-align: center; }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+        .menu-item i { width: 16px; text-align: center; }
 
-        /* ── STATUS BAR ── */
-        .status-bar {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(20, 20, 22, 0.8);
-            backdrop-filter: blur(16px);
+        /* The Dock itself */
+        .dock {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(18, 18, 20, 0.85);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .dock-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s var(--ease);
+            font-size: 16px;
+        }
+        .dock-btn span { font-size: 9px; font-weight: 500; margin-top: 2px; opacity: 0; transform: translateY(4px); transition: all 0.2s; position: absolute; bottom: 4px; }
+        .dock-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+        
+        /* The Center Add Button (Highlighted) */
+        .dock-btn.add-btn {
+            background: var(--text);
+            color: var(--bg);
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            font-size: 20px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+        .dock-btn.add-btn:hover { transform: scale(1.05); }
+        .dock-btn.add-btn.active { transform: rotate(45deg); background: var(--muted); color: var(--bg); }
+
+        .dock-divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--text);
+            color: var(--bg);
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 12px;
-            color: var(--muted);
-            display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 100;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s var(--ease);
+            pointer-events: none;
+            z-index: 2000;
         }
-        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
     </style>
 </head>
 <body>
 
-    <div class="canvas" id="canvas">
-        <!-- Widgets will spawn here -->
-        <div class="empty-prompt" id="emptyPrompt">Type / to add a widget...</div>
+    <!-- The Actual Canvas -->
+    <div class="canvas-wrapper" id="canvasWrapper">
+        <div class="canvas" id="canvas">
+            <!-- Widgets render here -->
+        </div>
     </div>
 
-    <!-- Slash Menu (Hidden by default) -->
-    <div class="slash-menu" id="slashMenu">
-        <div class="slash-item" data-type="profile"><i class="fa-solid fa-user"></i> Profile Card</div>
-        <div class="slash-item" data-type="link"><i class="fa-solid fa-link"></i> Link Button</div>
-        <div class="slash-item" data-type="text"><i class="fa-solid fa-font"></i> Text Block</div>
+    <!-- Bottom Dock -->
+    <div class="dock-wrapper">
+        
+        <!-- Widget Menu (Pops up above dock) -->
+        <div class="widget-menu" id="widgetMenu">
+            <div class="menu-item" onclick="addWidget('profile')"><i class="fa-solid fa-user"></i> Profile Card</div>
+            <div class="menu-item" onclick="addWidget('link')"><i class="fa-solid fa-link"></i> Link Button</div>
+            <div class="menu-item" onclick="addWidget('text')"><i class="fa-solid fa-font"></i> Text Block</div>
+            <div class="menu-item" onclick="addWidget('image')"><i class="fa-solid fa-image"></i> Image</div>
+        </div>
+
+        <!-- Dock Buttons -->
+        <div class="dock">
+            <button class="dock-btn" onclick="openSettings()"><i class="fa-solid fa-sliders"></i></button>
+            <button class="dock-btn" onclick="toggleWireMode()"><i class="fa-solid fa-circle-nodes"></i></button>
+            
+            <div class="dock-divider"></div>
+            
+            <!-- Center Add Button -->
+            <button class="dock-btn add-btn" id="addBtn" onclick="toggleMenu()"><i class="fa-solid fa-plus"></i></button>
+            
+            <div class="dock-divider"></div>
+
+            <button class="dock-btn" onclick="saveLayout()"><i class="fa-solid fa-cloud-arrow-up"></i></button>
+            <button class="dock-btn" onclick="clearLayout()"><i class="fa-solid fa-trash"></i></button>
+        </div>
     </div>
 
-    <!-- Status Bar -->
-    <div class="status-bar">
-        <div class="status-dot"></div>
-        <span id="statusText">All changes saved</span>
-    </div>
+    <div class="toast" id="toast">Saved</div>
 
     <script>
-        const canvas = document.getElementById('canvas');
-        const slashMenu = document.getElementById('slashMenu');
-        const emptyPrompt = document.getElementById('emptyPrompt');
-        const statusText = document.getElementById('statusText');
-        let widgetCount = 0;
+        // ── STATE ──
+        let layout = [];
+        let selectedId = null;
 
-        // ── 1. SHOW SLASH MENU ──
-        document.addEventListener('keydown', (e) => {
-            // If user types '/', show menu at center of screen
-            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && !document.activeElement.isContentEditable) {
-                e.preventDefault();
-                const rect = canvas.getBoundingClientRect();
-                // Position menu roughly in the middle of the canvas
-                slashMenu.style.top = (window.scrollY + 200) + 'px';
-                slashMenu.style.left = '50%';
-                slashMenu.style.transform = 'translateX(-50%)';
-                slashMenu.classList.add('active');
+        // ── INIT ──
+        function init() {
+            const saved = localStorage.getItem('chromaticc_ghost_layout');
+            if (saved) {
+                layout = JSON.parse(saved);
+            } else {
+                // Default starting layout
+                layout = [
+                    { id: generateId(), type: 'profile', name: 'Alex', bio: 'Designer & Builder' },
+                    { id: generateId(), type: 'link', label: 'My Portfolio', url: '#' },
+                    { id: generateId(), type: 'link', label: 'Twitter / X', url: '#' }
+                ];
             }
-            if (e.key === 'Escape') {
-                slashMenu.classList.remove('active');
-            }
-        });
+            render();
+        }
 
-        // Click outside to close menu
-        document.addEventListener('click', (e) => {
-            if (!slashMenu.contains(e.target) && e.target.id !== 'emptyPrompt') {
-                slashMenu.classList.remove('active');
-            }
-        });
+        function generateId() {
+            return Math.random().toString(36).substr(2, 9);
+        }
 
-        // ── 2. CREATE WIDGETS ──
-        document.querySelectorAll('.slash-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const type = item.dataset.type;
-                addWidget(type);
-                slashMenu.classList.remove('active');
-            });
-        });
+        // ── RENDER ──
+        function render() {
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '';
 
-        function addWidget(type) {
-            emptyPrompt.style.display = 'none';
-            widgetCount++;
+            layout.forEach(widget => {
+                const el = document.createElement('div');
+                el.className = 'widget';
+                el.dataset.id = widget.id;
+                
+                // Draggable handle (invisible, left side)
+                const handle = document.createElement('div');
+                handle.className = 'drag-handle';
+                handle.innerHTML = '<i class="fa-solid fa-grip-vertical"></i>';
+                el.appendChild(handle);
 
-            const widget = document.createElement('div');
-            widget.className = 'widget';
-            
-            // The floating toolbar HTML (Shared across all widgets)
-            const toolbarHTML = `
-                <div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>
-                <div class="toolbar">
-                    <button class="toolbar-btn"><i class="fa-solid fa-palette"></i></button>
-                    <button class="toolbar-btn"><i class="fa-solid fa-sliders"></i></button>
-                    <div class="toolbar-divider"></div>
-                    <button class="toolbar-btn delete" onclick="this.closest('.widget').remove()"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            `;
+                // Floating Toolbar
+                const toolbar = document.createElement('div');
+                toolbar.className = 'widget-toolbar';
+                toolbar.innerHTML = `
+                    <button class="tool-btn" onclick="selectWidget('${widget.id}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="tool-btn delete" onclick="deleteWidget('${widget.id}')"><i class="fa-solid fa-trash"></i></button>
+                `;
+                el.appendChild(toolbar);
 
-            if (type === 'profile') {
-                widget.innerHTML = `
-                    ${toolbarHTML}
-                    <div class="w-profile">
+                // Widget Content
+                const content = document.createElement('div');
+                if (widget.type === 'profile') {
+                    content.className = 'w-profile';
+                    content.innerHTML = `
                         <div class="w-avatar"></div>
                         <div>
-                            <div class="w-name" contenteditable="true">Alex</div>
-                            <div class="w-bio" contenteditable="true">Designer & Builder</div>
+                            <div class="w-name" contenteditable="true" oninput="updateWidget('${widget.id}', 'name', this.innerText)">${widget.name}</div>
+                            <div class="w-bio" contenteditable="true" oninput="updateWidget('${widget.id}', 'bio', this.innerText)">${widget.bio}</div>
                         </div>
-                    </div>
-                `;
-            } else if (type === 'link') {
-                widget.innerHTML = `
-                    ${toolbarHTML}
-                    <div class="w-link">
-                        <span contenteditable="true">My Portfolio</span>
+                    `;
+                } else if (widget.type === 'link') {
+                    content.className = 'w-link';
+                    content.innerHTML = `
+                        <span contenteditable="true" oninput="updateWidget('${widget.id}', 'label', this.innerText)">${widget.label}</span>
                         <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--muted); font-size:12px;"></i>
-                    </div>
-                `;
+                    `;
+                } else if (widget.type === 'text') {
+                    content.className = 'w-text';
+                    content.innerHTML = `
+                        <div contenteditable="true" oninput="updateWidget('${widget.id}', 'text', this.innerText)">${widget.text || 'Type something...'}</div>
+                    `;
+                } else if (widget.type === 'image') {
+                    content.className = 'w-image';
+                    content.innerHTML = `<div style="width:100%; height:200px; background:var(--border); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12px;">Image Placeholder</div>`;
+                }
+                
+                el.appendChild(content);
+                canvas.appendChild(el);
+            });
+        }
+
+        // ── ACTIONS ──
+        function addWidget(type) {
+            const newWidget = { id: generateId(), type: type };
+            if (type === 'profile') {
+                newWidget.name = 'Your Name';
+                newWidget.bio = 'Short bio...';
+            } else if (type === 'link') {
+                newWidget.label = 'New Link';
+                newWidget.url = '#';
             } else if (type === 'text') {
-                widget.innerHTML = `
-                    ${toolbarHTML}
-                    <div style="font-size:16px; padding: 8px 0; outline:none;" contenteditable="true">Type something...</div>
-                `;
+                newWidget.text = 'Type something...';
+            } else if (type === 'image') {
+                newWidget.url = '';
             }
 
-            canvas.appendChild(widget);
-            saveMock();
-        }
-
-        // ── 3. INLINE EDITING & SAVING ──
-        // Every time a user types in an editable field, show "Saving..."
-        canvas.addEventListener('input', (e) => {
-            if (e.target.isContentEditable) {
-                saveMock();
-            }
-        });
-
-        function saveMock() {
-            statusText.textContent = 'Saving...';
-            statusText.parentElement.style.color = '#fbbf24'; // Yellow
+            layout.push(newWidget);
+            render();
+            toggleMenu(); // Close menu
+            showToast('Widget added');
             
-            clearTimeout(window.saveTimeout);
-            window.saveTimeout = setTimeout(() => {
-                statusText.textContent = 'All changes saved';
-                statusText.parentElement.style.color = 'var(--muted)';
-            }, 800);
+            // Scroll to bottom
+            const wrapper = document.getElementById('canvasWrapper');
+            wrapper.scrollTo({ top: wrapper.scrollHeight, behavior: 'smooth' });
         }
+
+        function deleteWidget(id) {
+            layout = layout.filter(w => w.id !== id);
+            render();
+            showToast('Widget deleted');
+        }
+
+        function updateWidget(id, field, value) {
+            const widget = layout.find(w => w.id === id);
+            if (widget) {
+                widget[field] = value;
+                // Autosave debounce could go here
+                localStorage.setItem('chromaticc_ghost_layout', JSON.stringify(layout));
+            }
+        }
+
+        // ── DOCK ACTIONS ──
+        function toggleMenu() {
+            const menu = document.getElementById('widgetMenu');
+            const btn = document.getElementById('addBtn');
+            menu.classList.toggle('active');
+            btn.classList.toggle('active');
+        }
+
+        function saveLayout() {
+            localStorage.setItem('chromaticc_ghost_layout', JSON.stringify(layout));
+            showToast('Layout saved to local storage');
+        }
+
+        function clearLayout() {
+            if (confirm('Are you sure you want to clear everything?')) {
+                layout = [];
+                render();
+                localStorage.removeItem('chromaticc_ghost_layout');
+                showToast('Layout cleared');
+            }
+        }
+
+        function openSettings() {
+            showToast('Settings panel would slide out here');
+        }
+
+        function toggleWireMode() {
+            showToast('Wire mode toggled (visuals only)');
+        }
+
+        // ── TOAST ──
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // ── INIT ──
+        init();
+
     </script>
 </body>
 </html>
