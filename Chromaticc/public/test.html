@@ -1,492 +1,1400 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chromaticc — The bio site, reworked.</title>
-<meta name="description" content="Claim your handle. Build your canvas. The ultimate minimal, drag-and-drop link-in-bio platform with 60+ widgets, Discord presence, and wire mode.">
-<meta name="keywords" content="link in bio, bio site, discord presence, custom css, widgets, linktree alternative">
-<meta name="author" content="Chromaticc">
-<link rel="canonical" href="https://chromati.cc.cd/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>chromati — claim your page</title>
+<meta name="description" content="One link. Your whole internet. Claim your handle before someone else does.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#050507">
 
-<!-- Open Graph / Facebook -->
+<!-- Social preview: replace og.png with a real 1200×630 image -->
+<meta property="og:title" content="chromati — claim your page">
+<meta property="og:description" content="One link. Your whole internet.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://chromati.cc.cd/">
-<meta property="og:title" content="Chromaticc — The bio site, reworked.">
-<meta property="og:description" content="Claim your handle and build a site that actually looks good. No templates. No limits.">
-<meta property="og:image" content="https://chromati.cc.cd/og-image.jpg">
+<meta property="og:image" content="https://chromati.cc.cd/og.png">
+<meta name="twitter:card" content="summary_large_image">
 
-<!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image">
-<meta property="twitter:url" content="https://chromati.cc.cd/">
-<meta property="twitter:title" content="Chromaticc — The bio site, reworked.">
-<meta property="twitter:description" content="Claim your handle and build a site that actually looks good. No templates. No limits.">
-<meta property="twitter:image" content="https://chromati.cc.cd/og-image.jpg">
-
-<!-- Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-
-<!-- Structured Data (SEO) -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Chromaticc",
-  "url": "https://chromati.cc.cd/",
-  "description": "The ultimate minimal drag-and-drop link-in-bio platform.",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": "https://chromati.cc.cd/{search_term_string}",
-    "query-input": "required name=search_term_string"
-  }
-}
-</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%237c5cff'/%3E%3Cstop offset='.5' stop-color='%2322d3ee'/%3E%3Cstop offset='1' stop-color='%23ff4d8d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M10 16h12M16 10v12' stroke='%23050507' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 
 <style>
-/* ── 1. THEME VARIABLES ── */
-:root {
-  --bg: #030303;
-  --surface: rgba(255, 255, 255, 0.03);
-  --surface-hover: rgba(255, 255, 255, 0.06);
-  --text: #ffffff;
-  --muted: #888888;
-  --border: rgba(255, 255, 255, 0.1);
-  --border-bright: rgba(255, 255, 255, 0.3);
-  
-  /* Gradient colors for dark mode */
-  --grad-1: rgba(255, 255, 255, 0.08);
-  --grad-2: rgba(150, 150, 150, 0.05);
-  --grad-3: rgba(50, 50, 50, 0.1);
+/* ============================================================
+   CHROMATI — prismatic minimalism
+   single-file prototype / no dependencies
+   ============================================================ */
+
+:root{
+  --bg: #050507;
+  --surface: rgba(255,255,255,.035);
+  --surface-2: rgba(255,255,255,.065);
+  --line: rgba(255,255,255,.10);
+  --line-bright: rgba(255,255,255,.18);
+  --fg: #f4f4f6;
+  --muted: #7e7e8a;
+  --faint: #4a4a55;
+  --a1: #7c5cff;   /* violet */
+  --a2: #22d3ee;   /* cyan */
+  --a3: #ff4d8d;   /* magenta */
+  --a4: #b6ff5c;   /* acid lime */
+  --ok: #5cffb0;
+  --bad: #ff5c7a;
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --hue: 270;      /* driven by username hash */
+  --chroma: 1;     /* driven by input focus/length */
 }
 
-[data-theme="light"] {
-  --bg: #fafafa;
-  --surface: rgba(0, 0, 0, 0.02);
-  --surface-hover: rgba(0, 0, 0, 0.04);
-  --text: #050505;
-  --muted: #666666;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-bright: rgba(0, 0, 0, 0.3);
-  
-  /* Gradient colors for light mode */
-  --grad-1: rgba(0, 0, 0, 0.04);
-  --grad-2: rgba(100, 100, 100, 0.03);
-  --grad-3: rgba(200, 200, 200, 0.1);
-}
+@property --hue { syntax: '<number>'; inherits: true; initial-value: 270; }
+@property --chroma { syntax: '<number>'; inherits: true; initial-value: 1; }
 
-/* ── 2. RESET & BASE ── */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', sans-serif;
-  overflow-x: hidden;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  transition: background-color 0.5s, color 0.5s;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* ── 3. THE CINEMATIC GRADIENT MESH BACKGROUND ── */
-.bg-mesh {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-  opacity: 0.8;
-}
-
-.blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  transition: background 0.5s;
-}
-
-.blob-1 {
-  width: 60vw; height: 60vw;
-  background: radial-gradient(circle, var(--grad-1) 0%, transparent 70%);
-  top: -20%; left: -10%;
-  animation: float1 25s ease-in-out infinite alternate;
-}
-.blob-2 {
-  width: 50vw; height: 50vw;
-  background: radial-gradient(circle, var(--grad-2) 0%, transparent 70%);
-  bottom: -10%; right: -10%;
-  animation: float2 30s ease-in-out infinite alternate;
-}
-.blob-3 {
-  width: 40vw; height: 40vw;
-  background: radial-gradient(circle, var(--grad-3) 0%, transparent 70%);
-  top: 40%; left: 40%;
-  animation: float3 20s ease-in-out infinite alternate;
-}
-
-@keyframes float1 {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(10%, 15%) scale(1.1); }
-}
-@keyframes float2 {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(-15%, -10%) scale(1.2); }
-}
-@keyframes float3 {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(-10%, 10%) scale(0.9); }
-}
-
-/* ── 4. NAVIGATION ── */
-nav {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 24px 40px; 
-  z-index: 10;
-}
-.logo { 
-  font-weight: 900; font-size: 20px; letter-spacing: -1px;
-  display: flex; align-items: center; gap: 8px;
-}
-.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text); }
-.theme-toggle {
-  background: var(--surface); border: 1px solid var(--border);
-  color: var(--text); padding: 8px 16px; border-radius: 30px;
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  cursor: pointer; transition: all 0.3s ease;
-  display: flex; align-items: center; gap: 8px;
-  backdrop-filter: blur(10px);
-}
-.theme-toggle:hover { background: var(--surface-hover); border-color: var(--border-bright); }
-
-/* ── 5. BENTO GRID LAYOUT ── */
-.container {
-  flex: 1;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px 80px;
-  width: 100%;
-  z-index: 10;
-}
-
-.bento-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-/* Bento Card Base */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 32px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
-.card:hover {
-  border-color: var(--border-bright);
-  background: var(--surface-hover);
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
-[data-theme="light"] .card:hover {
-  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
-}
-
-/* Grid Spanning */
-.hero-card { grid-column: span 3; grid-row: span 2; justify-content: center; }
-.stat-card { grid-column: span 1; grid-row: span 1; justify-content: center; align-items: center; text-align: center; }
-.feature-card { grid-column: span 2; grid-row: span 1; }
-.small-card { grid-column: span 1; grid-row: span 1; }
-
-/* Typography inside cards */
-.hero-title {
-  font-size: clamp(48px, 6vw, 80px);
-  font-weight: 900; letter-spacing: -0.05em; line-height: 1;
-  margin-bottom: 24px;
-}
-.hero-sub {
-  font-size: 18px; color: var(--muted); max-width: 480px; line-height: 1.5;
-  margin-bottom: 40px;
-}
-.card-title {
-  font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px;
-}
-.card-desc {
-  font-size: 14px; color: var(--muted); line-height: 1.5;
-}
-
-/* ── 6. CLAIM INPUT ── */
-.claim-box {
-  display: flex; align-items: center;
+*{ box-sizing: border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  min-height:100svh;
+  display:grid;
+  place-items:center;
+  padding: clamp(24px,6vw,64px) 20px;
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 16px; padding: 8px;
-  max-width: 480px;
-  transition: all 0.3s ease;
+  color: var(--fg);
+  font: 400 16px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Roboto,sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x:hidden;
+  isolation:isolate;
 }
-.claim-box:focus-within {
-  border-color: var(--border-bright);
-  box-shadow: 0 0 0 4px var(--surface);
-}
-.claim-prefix {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 15px; color: var(--muted); user-select: none;
-  padding-left: 16px;
-}
-#claimInput {
-  flex: 1; background: transparent; border: none;
-  color: var(--text); font-family: 'JetBrains Mono', monospace;
-  font-size: 15px; outline: none; padding: 12px 8px;
-}
-#claimInput::placeholder { color: var(--muted); opacity: 0.5; }
+::selection{ background: hsl(var(--hue) 90% 60%); color:#fff; }
+button{ font:inherit; color:inherit; }
+a{ color:inherit; }
 
-#claimBtn {
-  background: var(--text); color: var(--bg);
-  border: none; padding: 12px 24px; border-radius: 10px;
-  font-weight: 700; font-size: 14px; cursor: pointer;
-  transition: all 0.2s; white-space: nowrap;
+/* ---------- atmosphere: living background ---------- */
+.bg{
+  position:fixed; inset:-10%;
+  z-index:-2;
+  pointer-events:none;
+  filter: blur(70px) saturate(140%);
+  opacity:.75;
 }
-#claimBtn:disabled { opacity: 0.3; cursor: not-allowed; }
-#claimBtn:not(:disabled):hover { transform: scale(1.02); }
+.bg::before,
+.bg::after{
+  content:"";
+  position:absolute;
+  width:70vmax; height:70vmax;
+  border-radius:50%;
+  will-change: transform;
+}
+.bg::before{
+  left:-18vmax; top:-24vmax;
+  background: radial-gradient(circle at 35% 35%,
+    hsl(var(--hue) 90% 58% / .55),
+    transparent 65%);
+  animation: drift-a 22s var(--ease) infinite alternate;
+}
+.bg::after{
+  right:-22vmax; bottom:-26vmax;
+  background: radial-gradient(circle at 60% 40%,
+    hsl(calc(var(--hue) + 140) 90% 58% / .40),
+    transparent 65%);
+  animation: drift-b 28s var(--ease) infinite alternate;
+}
+@keyframes drift-a{ to{ transform: translate3d(7vmax,5vmax,0) scale(1.18); } }
+@keyframes drift-b{ to{ transform: translate3d(-8vmax,-6vmax,0) scale(1.12); } }
 
-.claim-status {
-  height: 20px; margin-top: 12px;
-  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
-  display: flex; align-items: center; padding-left: 8px;
+/* grain — the expensive-feeling detail */
+.grain{
+  position:fixed; inset:0;
+  z-index:50;
+  pointer-events:none;
+  opacity:.045;
+  mix-blend-mode: overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-.valid { color: #10b981; }
-.invalid { color: #ef4444; }
 
-/* ── 7. BENTO CARD VISUALS ── */
-.stat-num {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 40px; font-weight: 800; line-height: 1;
-  margin-bottom: 8px;
+/* ---------- shell ---------- */
+.shell{
+  width:100%;
+  max-width: 680px;
+  display:flex;
+  flex-direction:column;
+  gap: clamp(28px,5vw,48px);
 }
-.stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;}
 
-.mock-discord {
-  display: flex; align-items: center; gap: 12px; margin-top: 20px;
-  background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 12px;
+/* ---------- top bar ---------- */
+.top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  animation: rise .8s var(--ease-out) both;
 }
-.mock-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--border-bright); }
-.mock-lines { flex: 1; }
-.mock-line-1 { width: 60%; height: 8px; background: var(--border-bright); border-radius: 4px; margin-bottom: 6px; }
-.mock-line-2 { width: 40%; height: 6px; background: var(--border); border-radius: 4px; }
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:650;
+  letter-spacing:-.03em;
+  font-size:17px;
+}
+.brand-mark{
+  width:26px; height:26px;
+  border-radius:8px;
+  background: conic-gradient(
+    from calc(var(--hue) * 1deg),
+    var(--a1), var(--a2), var(--a3), var(--a4), var(--a1)
+  );
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.14) inset,
+    0 0 24px hsl(var(--hue) 90% 60% / .35);
+  transition: box-shadow .4s var(--ease);
+}
+.brand:hover .brand-mark{
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.22) inset,
+    0 0 40px hsl(var(--hue) 90% 60% / .55);
+}
+.top-link{
+  font-size:13px;
+  color: var(--muted);
+  text-decoration:none;
+  padding:7px 12px;
+  border-radius:999px;
+  border:1px solid transparent;
+  transition: color .25s, border-color .25s, background .25s;
+}
+.top-link:hover{
+  color: var(--fg);
+  border-color: var(--line);
+  background: var(--surface);
+}
 
-.code-block {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6;
-  background: var(--bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border);
-  margin-top: 20px; color: var(--muted); overflow: hidden;
+/* ---------- hero ---------- */
+.hero{
+  display:flex;
+  flex-direction:column;
+  gap: 14px;
+  animation: rise .9s .06s var(--ease-out) both;
 }
-.code-highlight { color: var(--text); }
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  width:fit-content;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color: var(--muted);
+}
+.eyebrow::before{
+  content:"";
+  width:6px; height:6px;
+  border-radius:50%;
+  background: var(--ok);
+  box-shadow: 0 0 12px var(--ok);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{ opacity:.45; transform:scale(.85); }
+  50%{ opacity:1; transform:scale(1); }
+}
+h1{
+  margin:0;
+  font-size: clamp(40px, 8.4vw, 72px);
+  line-height:.94;
+  letter-spacing:-.055em;
+  font-weight:680;
+  text-wrap: balance;
+}
+h1 .chroma{
+  background: linear-gradient(
+    100deg,
+    hsl(var(--hue) 90% 70%),
+    hsl(calc(var(--hue) + 70) 90% 66%),
+    hsl(calc(var(--hue) + 160) 90% 70%)
+  );
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  background-size:200% 100%;
+  animation: shift 8s linear infinite;
+}
+@keyframes shift{ to{ background-position: 200% 0; } }
+.sub{
+  margin:0;
+  max-width: 48ch;
+  font-size: clamp(15px,2.2vw,17px);
+  color: var(--muted);
+  line-height:1.6;
+}
+.sub b{ color: var(--fg); font-weight:550; }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .bento-grid { grid-template-columns: repeat(2, 1fr); }
-  .hero-card { grid-column: span 2; }
-  .feature-card { grid-column: span 2; }
-  .stat-card, .small-card { grid-column: span 1; }
+/* ---------- claim card ---------- */
+.claim-wrap{
+  position:relative;
+  animation: rise 1s .12s var(--ease-out) both;
 }
-@media (max-width: 600px) {
-  .bento-grid { grid-template-columns: 1fr; }
-  .hero-card, .feature-card, .stat-card, .small-card { grid-column: span 1; }
-  nav { padding: 20px; }
-  .hero-title { font-size: 40px; }
-  .claim-box { flex-direction: column; gap: 8px; background: transparent; border: none; }
-  .claim-prefix { padding-left: 0; margin-bottom: 8px; }
-  #claimInput { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
-  #claimBtn { width: 100%; padding: 16px; }
+.claim-card{
+  position:relative;
+  border-radius: 22px;
+  padding: 2px; /* gradient border */
+  background: linear-gradient(
+    140deg,
+    hsl(var(--hue) 90% 62% / .55),
+    rgba(255,255,255,.10) 35%,
+    rgba(255,255,255,.10) 65%,
+    hsl(calc(var(--hue) + 120) 90% 62% / .55)
+  );
+  transition: background .6s var(--ease);
+  overflow:hidden;
+}
+.claim-card::after{
+  /* prismatic sheen that follows the cursor */
+  content:"";
+  position:absolute;
+  width:320px; height:320px;
+  left: var(--mx,50%); top: var(--my,50%);
+  translate: -50% -50%;
+  border-radius:50%;
+  background: radial-gradient(circle,
+    hsl(calc(var(--hue) + 40) 100% 70% / .18),
+    transparent 70%);
+  pointer-events:none;
+  transition: opacity .3s;
+  opacity:0;
+  z-index:0;
+}
+.claim-card:hover::after{ opacity:1; }
+
+.claim-inner{
+  position:relative;
+  z-index:1;
+  border-radius:20px;
+  background: rgba(10,10,14,.82);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  padding: clamp(20px,4vw,32px);
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.claim-label{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  font-size:12px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color: var(--muted);
+}
+.claim-label span:last-child{
+  letter-spacing:0;
+  text-transform:none;
+  font-size:11px;
+  color: var(--faint);
+}
+
+/* the input row */
+.claim-row{
+  display:flex;
+  align-items:stretch;
+  gap:0;
+  border-radius:14px;
+  background: rgba(0,0,0,.35);
+  border:1px solid var(--line);
+  transition: border-color .3s, box-shadow .3s, background .3s;
+  overflow:hidden;
+}
+.claim-row:focus-within{
+  border-color: hsl(var(--hue) 80% 65% / .55);
+  box-shadow:
+    0 0 0 4px hsl(var(--hue) 80% 55% / .12),
+    0 0 40px hsl(var(--hue) 80% 55% / .08);
+  background: rgba(0,0,0,.45);
+}
+.claim-prefix{
+  display:flex;
+  align-items:center;
+  padding: 0 2px 0 16px;
+  font-size:14px;
+  color: var(--faint);
+  white-space:nowrap;
+  user-select:none;
+  letter-spacing:-.01em;
+}
+.claim-prefix b{
+  color: var(--muted);
+  font-weight:500;
+}
+
+.claim-input{
+  flex:1;
+  min-width:0;
+  background:transparent;
+  border:0;
+  outline:0;
+  padding: 16px 8px;
+  font-size: 17px;
+  font-weight:550;
+  letter-spacing:-.02em;
+  color: var(--fg);
+  caret-color: hsl(var(--hue) 90% 65%);
+  transition: text-shadow .25s;
+}
+.claim-input::placeholder{ color: var(--faint); font-weight:400; }
+.claim-input:focus{
+  /* the chromatic aberration on the text */
+  text-shadow:
+    calc(-1px * var(--chroma)) 0 hsl(0 100% 60% / .55),
+    calc( 1px * var(--chroma)) 0 hsl(180 100% 55% / .55);
+}
+.claim-input:not(:placeholder-shown){
+  text-shadow:
+    -0.5px 0 hsl(0 100% 60% / .35),
+     0.5px 0 hsl(180 100% 55% / .35);
+}
+
+/* status pill */
+.status{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding: 0 14px;
+  font-size:12px;
+  font-weight:550;
+  white-space:nowrap;
+  color: var(--faint);
+  transition: color .3s;
+}
+.status[data-state="checking"]{ color: var(--muted); }
+.status[data-state="ok"]{ color: var(--ok); }
+.status[data-state="bad"]{ color: var(--bad); }
+.status .dot{
+  width:6px; height:6px;
+  border-radius:50%;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+  flex:none;
+}
+
+/* CTA */
+.claim-btn{
+  position:relative;
+  flex:none;
+  margin:5px;
+  padding: 0 22px;
+  border:0;
+  border-radius:10px;
+  background: var(--fg);
+  color: #070709;
+  font-weight:650;
+  font-size:14px;
+  letter-spacing:-.01em;
+  cursor:pointer;
+  transition: transform .18s var(--ease), background .25s, opacity .25s;
+  white-space:nowrap;
+}
+.claim-btn:hover{ transform: scale(1.025); }
+.claim-btn:active{ transform: scale(.975); }
+.claim-btn:disabled{
+  opacity:.35;
+  cursor:not-allowed;
+  transform:none;
+}
+.claim-btn:not(:disabled)::after{
+  content:"";
+  position:absolute; inset:-1px;
+  border-radius:inherit;
+  background: linear-gradient(120deg,
+    transparent 20%,
+    hsl(var(--hue) 100% 75% / .55) 50%,
+    transparent 80%);
+  mix-blend-mode: screen;
+  opacity:0;
+  transition: opacity .3s;
+  pointer-events:none;
+}
+.claim-btn:not(:disabled):hover::after{ opacity:1; }
+
+/* under-card hint */
+.claim-hint{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  font-size:11.5px;
+  color: var(--faint);
+  padding: 0 4px;
+}
+.claim-hint kbd{
+  font:inherit;
+  padding:2px 6px;
+  border-radius:5px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--muted);
+  font-size:10.5px;
+}
+
+/* ---------- live ticker ---------- */
+.ticker{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  overflow:hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  font-size:12px;
+  color: var(--muted);
+  animation: rise 1s .2s var(--ease-out) both;
+}
+.ticker-track{
+  display:flex;
+  gap:28px;
+  white-space:nowrap;
+  animation: ticker 38s linear infinite;
+  will-change: transform;
+}
+.ticker-track span{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+.ticker-track i{
+  font-style:normal;
+  color: var(--fg);
+  font-weight:550;
+}
+@keyframes ticker{ to{ transform: translateX(-50%); } }
+
+/* ---------- proof strip ---------- */
+.proof{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border:1px solid var(--line);
+  border-radius:16px;
+  overflow:hidden;
+  animation: rise 1s .26s var(--ease-out) both;
+}
+.proof-item{
+  background: var(--bg);
+  padding: clamp(14px,3vw,20px) clamp(12px,2.4vw,18px);
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.proof-num{
+  font-size: clamp(20px,3.4vw,26px);
+  font-weight:680;
+  letter-spacing:-.04em;
+  font-variant-numeric: tabular-nums;
+}
+.proof-num small{
+  font-size:.55em;
+  font-weight:500;
+  color: var(--muted);
+  letter-spacing:0;
+  margin-left:2px;
+}
+.proof-label{
+  font-size:10.5px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color: var(--faint);
+}
+
+/* ---------- footer ---------- */
+.foot{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  font-size:11.5px;
+  color: var(--faint);
+  animation: rise 1s .32s var(--ease-out) both;
+}
+.foot a{
+  text-decoration:none;
+  color: var(--muted);
+  transition:color .2s;
+}
+.foot a:hover{ color: var(--fg); }
+
+/* ---------- success modal ---------- */
+.modal{
+  position:fixed; inset:0;
+  z-index:100;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background: rgba(3,3,5,.72);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  opacity:0;
+  visibility:hidden;
+  transition: opacity .4s var(--ease), visibility .4s;
+}
+.modal[data-open="true"]{ opacity:1; visibility:visible; }
+.modal-card{
+  width:min(440px,100%);
+  border-radius:24px;
+  padding:2px;
+  background: linear-gradient(
+    140deg,
+    hsl(var(--hue) 90% 62% / .7),
+    rgba(255,255,255,.12) 40%,
+    hsl(calc(var(--hue) + 120) 90% 62% / .7)
+  );
+  transform: translateY(16px) scale(.98);
+  transition: transform .45s var(--ease-out);
+}
+.modal[data-open="true"] .modal-card{ transform: none; }
+.modal-inner{
+  border-radius:22px;
+  background: #0a0a0e;
+  padding: clamp(24px,5vw,34px);
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.modal-kicker{
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color: var(--ok);
+}
+.modal-title{
+  margin:0;
+  font-size:26px;
+  line-height:1.1;
+  letter-spacing:-.04em;
+  font-weight:650;
+}
+.modal-url{
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size:13px;
+  color: var(--muted);
+  background: var(--surface);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  overflow-wrap:anywhere;
+}
+.modal-url b{ color: var(--fg); font-weight:550; }
+.copy-btn{
+  border:1px solid var(--line);
+  background: transparent;
+  border-radius:7px;
+  padding:5px 9px;
+  font-size:11px;
+  color: var(--muted);
+  cursor:pointer;
+  flex:none;
+  transition: color .2s, border-color .2s;
+}
+.copy-btn:hover{ color: var(--fg); border-color: var(--line-bright); }
+
+.modal-note{
+  margin:0;
+  font-size:13px;
+  line-height:1.55;
+  color: var(--muted);
+}
+.modal-note b{ color: var(--fg); font-weight:550; }
+.modal-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.btn-primary{
+  flex:1;
+  min-width:180px;
+  padding:13px 18px;
+  border-radius:11px;
+  border:0;
+  background: var(--fg);
+  color:#070709;
+  font-weight:650;
+  font-size:14px;
+  cursor:pointer;
+  transition: transform .18s var(--ease), opacity .2s;
+}
+.btn-primary:hover{ transform:scale(1.015); }
+.btn-ghost{
+  padding:13px 18px;
+  border-radius:11px;
+  border:1px solid var(--line);
+  background:transparent;
+  color: var(--muted);
+  font-size:14px;
+  cursor:pointer;
+  transition: color .2s, border-color .2s;
+}
+.btn-ghost:hover{ color: var(--fg); border-color: var(--line-bright); }
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;
+  bottom:24px; left:50%;
+  translate:-50% 0;
+  z-index:200;
+  background: var(--fg);
+  color:#070709;
+  font-size:12.5px;
+  font-weight:600;
+  padding:9px 16px;
+  border-radius:999px;
+  opacity:0;
+  translate:-50% 10px;
+  transition: opacity .3s, translate .3s var(--ease-out);
+  pointer-events:none;
+}
+.toast[data-show="true"]{ opacity:1; translate:-50% 0; }
+
+/* ---------- motion ---------- */
+@keyframes rise{
+  from{ opacity:0; transform: translateY(18px); }
+  to{ opacity:1; transform:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+  .bg::before,.bg::after{ animation:none; }
+  .ticker-track{ animation:none; }
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 520px){
+  .claim-prefix{ display:none; } /* mobile: the label above carries the domain */
+  .claim-input{ padding-left:16px; }
+  .claim-btn{ padding:0 16px; font-size:13px; }
+  .proof{ grid-template-columns:1fr; }
+  .proof-item{ flex-direction:row; align-items:baseline; justify-content:space-between; }
+  .claim-hint span:last-child{ display:none; }
 }
 </style>
 </head>
 <body>
 
-<!-- Background Mesh -->
-<div class="bg-mesh">
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
-  <div class="blob blob-3"></div>
-</div>
+<!-- living background -->
+<div class="bg" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
 
-<!-- Nav -->
-<nav>
-  <div class="logo"><div class="logo-dot"></div>Chromaticc.</div>
-  <button class="theme-toggle" id="themeToggle">
-    <svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-    <span id="themeText">Dark</span>
-  </button>
-</nav>
+<main class="shell">
 
-<!-- Main Content -->
-<main class="container">
-  <div class="bento-grid">
-    
-    <!-- Hero Card -->
-    <div class="card hero-card">
-      <div class="badge" style="font-family: 'JetBrains Mono'; font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
-        <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span> V1.0 BETA
-      </div>
-      <h1 class="hero-title">Your page.<br>Your rules.</h1>
-      <p class="hero-sub">Claim your handle and build a site that actually looks good. Drag, drop, wire, and customize. No limits.</p>
-      
-      <div class="claim-box">
-        <span class="claim-prefix">chromati.cc.cd/</span>
-        <input type="text" id="claimInput" placeholder="username" autocomplete="off" spellcheck="false">
-        <button id="claimBtn" disabled>Claim</button>
-      </div>
-      <div id="claimStatus" class="claim-status"></div>
+  <!-- top bar -->
+  <header class="top">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>chromati</span>
     </div>
+    <a class="top-link" href="#how">How it works</a>
+  </header>
 
-    <!-- Stats Card -->
-    <div class="card stat-card">
-      <div class="stat-num">60+</div>
-      <div class="stat-label">Widgets</div>
-    </div>
+  <!-- hero -->
+  <section class="hero" aria-labelledby="hero-title">
+    <span class="eyebrow">Public beta — handles going fast</span>
+    <h1 id="hero-title">
+      One link.<br>
+      <span class="chroma">Your whole internet.</span>
+    </h1>
+    <p class="sub">
+      Not a stack of buttons. A page that <b>moves like you</b>,
+      loads before the tap finishes, and looks like nobody
+      else's template. Claim your handle now — build the page later.
+    </p>
+  </section>
 
-    <!-- Discord Card -->
-    <div class="card feature-card">
-      <div class="card-title">Discord Presence</div>
-      <div class="card-desc">Show your live status, what you're playing, and Spotify tracks directly on your page.</div>
-      
-      <div class="mock-discord">
-        <div class="mock-avatar"></div>
-        <div class="mock-lines">
-          <div class="mock-line-1"></div>
-          <div class="mock-line-2" style="background: #10b981; opacity: 0.5;"></div>
+  <!-- claim card -->
+  <section class="claim-wrap" aria-labelledby="claim-label">
+    <div class="claim-card" id="claimCard">
+      <div class="claim-inner">
+
+        <div class="claim-label" id="claim-label">
+          <span>Claim your address</span>
+          <span>Free forever · 3–24 chars</span>
         </div>
+
+        <div class="claim-row">
+          <label class="claim-prefix" for="handle">
+            <b>chromati.cc.cd/</b>
+          </label>
+          <input
+            id="handle"
+            class="claim-input"
+            type="text"
+            name="handle"
+            placeholder="yourname"
+            autocomplete="username"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            maxlength="24"
+            aria-describedby="handle-status"
+          >
+          <span class="status" id="handle-status" data-state="idle" aria-live="polite">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="status-text">ready</span>
+          </span>
+          <button class="claim-btn" id="claimBtn" disabled>Claim</button>
+        </div>
+
+        <div class="claim-hint">
+          <span>lowercase · numbers · hyphens · no spaces</span>
+          <span><kbd>↵</kbd> to claim</span>
+        </div>
+
       </div>
     </div>
+  </section>
 
-    <!-- Stat Card 2 -->
-    <div class="card stat-card">
-      <div class="stat-num">&lt;1s</div>
-      <div class="stat-label">Load Time</div>
+  <!-- ticker -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track" id="tickerTrack">
+      <!-- duplicated in JS for seamless loop -->
     </div>
-
-    <!-- Custom CSS Card -->
-    <div class="card feature-card">
-      <div class="card-title">Total Control</div>
-      <div class="card-desc">Every widget accepts raw HTML, CSS, and JS. Break the grid or build a masterpiece.</div>
-      
-      <div class="code-block">
-        .my-widget {<br>
-        &nbsp;&nbsp;<span class="code-highlight">background</span>: linear-gradient(...);<br>
-        &nbsp;&nbsp;<span class="code-highlight">animation</span>: glow 2s infinite;<br>
-        }
-      </div>
-    </div>
-
-    <!-- Stat Card 3 -->
-    <div class="card stat-card">
-      <div class="stat-num">100%</div>
-      <div class="stat-label">Free</div>
-    </div>
-
   </div>
+
+  <!-- proof strip -->
+  <section class="proof" aria-label="Product stats">
+    <div class="proof-item">
+      <div class="proof-num" data-count="12841">0</div>
+      <div class="proof-label">Pages claimed</div>
+    </div>
+    <div class="proof-item">
+      <div class="proof-num" data-count="92">0<small>%</small></div>
+      <div class="proof-label">Claim → publish</div>
+    </div>
+    <div class="proof-item">
+      <div class="proof-num" data-count="80">0<small>ms</small></div>
+      <div class="proof-label">Edge render</div>
+    </div>
+  </section>
+
+  <!-- footer -->
+  <footer class="foot" id="how">
+    <span>© 2026 chromati</span>
+    <span>
+      <a href="/privacy">Privacy</a> ·
+      <a href="/terms">Terms</a> ·
+      <a href="/discord">Discord</a>
+    </span>
+  </footer>
+
 </main>
 
+<!-- success modal -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-card">
+    <div class="modal-inner">
+      <span class="modal-kicker">Handle secured</span>
+      <h2 class="modal-title" id="modal-title">That's yours now.</h2>
+      <div class="modal-url">
+        <span>chromati.cc.cd/<b id="modalHandle">yourname</b></span>
+        <button class="copy-btn" id="copyBtn" type="button">copy</button>
+      </div>
+      <p class="modal-note">
+        We've held <b id="modalHandle2">yourname</b> for 30 days.
+        Drop your email next — magic link, no password — and
+        you'll land straight in the editor with the handle already filled in.
+      </p>
+      <div class="modal-actions">
+        <button class="btn-primary" id="continueBtn" type="button">Continue with email →</button>
+        <button class="btn-ghost" id="closeModal" type="button">Keep looking</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
 <script>
-/* ── 1. THEME TOGGLE ── */
-const root = document.documentElement;
-const toggleBtn = document.getElementById('themeToggle');
-const themeText = document.getElementById('themeText');
-const themeIcon = document.getElementById('themeIcon');
+/* ============================================================
+   CHROMATI — frontend prototype
+   No backend. Availability is mocked; wire it to a real
+   endpoint before shipping (see notes below).
+   ============================================================ */
 
-const savedTheme = localStorage.getItem('theme') || 'dark';
-root.setAttribute('data-theme', savedTheme);
-updateThemeUI(savedTheme);
+(() => {
+  'use strict';
 
-toggleBtn.addEventListener('click', () => {
-  const current = root.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  root.setAttribute('data-theme', next);
-  localStorage.setItem('theme', next);
-  updateThemeUI(next);
-});
+  /* ---------- config ---------- */
+  const RESERVED = new Set([
+    'admin','api','app','help','support','login','signup','settings',
+    'terms','privacy','about','blog','shop','explore','claim','dashboard',
+    'editor','preview','static','assets','cdn','mail','status','docs',
+    'developers','pricing','features','community','discord','twitter',
+    'instagram','youtube','tiktok','github','spotify','soundcloud','twitch',
+    'reddit','threads','bluesky','mastodon','telegram','whatsapp','linktree',
+    'beacons','bio','link','links','page','pages','profile','profiles',
+    'user','users','account','accounts','auth','oauth','sso','webhook',
+    'callback','redirect','proxy','internal','system','root','superuser',
+    'staff','team','billing','invoice','payment','payments','subscription',
+    'plan','upgrade','downgrade','cancel','refund','legal','dmca','copyright',
+    'trademark','abuse','report','security','cookies','gdpr','ccpa','tos',
+    'eula','sla','health','metrics','analytics','stats','logs','debug',
+    'test','tests','staging','dev','development','prod','production',
+    'sandbox','demo','example','sample','temp','tmp','old','new','next',
+    'prev','backup','backups','archive','trash','deleted','hidden','private',
+    'public','local','remote','server','client','host','domain','dns','ssl',
+    'tls','http','https','ftp','ssh','smtp','pop3','imap','webmail','email',
+    'newsletter','subscribe','unsubscribe','contact','feedback','faq',
+    'guide','guides','tutorial','tutorials','learn','learning','academy',
+    'school','university','college','course','courses','lesson','lessons',
+    'class','classes','teacher','student','students','moderator','mod','owner',
+    'founder','ceo','cto','cfo','coo','cmo','hr','jobs','careers','apply',
+    'application','applications','resume','cv','portfolio','work','projects',
+    'project','case','cases','study','studies','client','clients','customer',
+    'customers','partner','partners','vendor','vendors','supplier','suppliers',
+    'store','cart','checkout','order','orders','product','products','item',
+    'items','catalog','catalogue','inventory','stock','price','sale','sales',
+    'deal','deals','offer','offers','discount','discounts','coupon','coupons',
+    'promo','promos','promotion','promotions','campaign','campaigns',
+    'marketing','ads','advertising','sponsor','sponsors','affiliate',
+    'affiliates','referral','referrals','invite','invites','waitlist','beta',
+    'alpha','early','access','exclusive','vip','pro','premium','plus','ultra',
+    'max','lite','basic','free','trial','membership','member','members',
+    'communities','forum','forums','board','boards','thread','threads','post',
+    'posts','comment','comments','reply','replies','message','messages','dm',
+    'dms','chat','chats','inbox','outbox','notification','notifications',
+    'alert','alerts','news','updates','changelog','release','releases',
+    'version','versions','download','downloads','upload','uploads','file',
+    'files','folder','folders','drive','cloud','storage','data','database',
+    'db','sql','query','queries','search','find','filter','sort','order',
+    'list','lists','grid','table','tables','row','rows','column','columns',
+    'cell','cells','sheet','sheets','doc','docs','document','documents',
+    'pdf','image','images','photo','photos','video','videos','audio','music',
+    'song','songs','playlist','playlists','album','albums','artist','artists',
+    'track','tracks','podcast','podcasts','episode','episodes','stream',
+    'streams','live','event','events','calendar','cal','schedule','booking',
+    'bookings','appointment','appointments','reservation','reservations',
+    'ticket','tickets','seat','seats','venue','venues','location','locations',
+    'map','maps','direction','directions','address','addresses','contacts',
+    'phone','phones','mobile','cell','fax','emails','mails','newsletters',
+    'opt','optin','optout','consent','policy','policies','law','lawyer',
+    'attorney','court','judge','jury','trial','appeal','case','evidence',
+    'witness','testimony','verdict','sentence','prison','jail','bail','bond',
+    'crime','criminal','civil','sue','lawsuit','litigation','settlement',
+    'arbitration','mediation','dispute','disputes','claims','complaint',
+    'complaints','grievance','grievances','appeals','review','reviews',
+    'rating','ratings','score','scores','rank','ranks','level','levels',
+    'badge','badges','achievement','achievements','award','awards','prize',
+    'prizes','winner','winners','loser','losers','champion','champions',
+    'hero','heroes','villain','villains','character','characters','avatar',
+    'avatars','bios','me','my','you','your','yours','they','them','theirs',
+    'we','us','our','ours','it','its','he','him','his','she','her','hers',
+    'i','who','what','where','when','why','how','this','that','these','those',
+    'a','an','the','and','or','but','so','if','then','else','for','to','of',
+    'in','on','at','by','with','from','up','down','left','right','front',
+    'back','top','bottom','side','center','middle','end','start','begin',
+    'finish','done','undone','complete','incomplete','open','closed','active',
+    'inactive','enabled','disabled','on','off','yes','no','true','false',
+    'null','nil','none','undefined','void','empty','full','zero','one','two',
+    'three','four','five','six','seven','eight','nine','ten','first','last',
+    'previous','fresh','stale','hot','cold','warm','cool','fast','slow',
+    'quick','late','now','today','tomorrow','yesterday','morning',
+    'afternoon','evening','night','noon','midnight','dawn','dusk','sun',
+    'moon','star','stars','sky','clouds','rain','snow','wind','storm',
+    'thunder','lightning','fire','water','earth','air','ice','steam','smoke',
+    'ash','dust','sand','rock','stone','metal','iron','steel','gold','silver',
+    'bronze','copper','wood','tree','trees','forest','jungle','desert',
+    'ocean','sea','lake','river','stream','pond','pool','beach','shore',
+    'coast','island','mountain','hill','valley','cave','canyon','cliff',
+    'peak','summit','base','ground','floor','ceiling','roof','wall','walls',
+    'door','doors','window','windows','room','rooms','house','home','building',
+    'tower','bridge','road','street','avenue','lane','path','way','route',
+    'city','town','village','country','state','province','region','area',
+    'zone','district','county','continent','world','planet','solar','system',
+    'galaxy','universe','space','cosmos','dimension','realm','kingdom',
+    'empire','nation','tribe','clan','family','friends','friend','enemy',
+    'enemies','ally','allies','team','teams','group','groups','club','clubs',
+    'society','societies','organization','organizations','company','companies',
+    'business','businesses','corporation','corporations','firm','firms',
+    'agency','agencies','studio','studios','lab','labs','workshop',
+    'workshops','factory','factories','plant','plants','farm','farms',
+    'ranch','ranches','garden','gardens','park','parks','playground',
+    'playgrounds','schools','colleges','universities','institute',
+    'institutes','academies','library','libraries','museum','museums',
+    'gallery','galleries','theater','theaters','cinema','cinemas','stadium',
+    'stadiums','arena','arenas','field','fields','courts','rink','rinks',
+    'pools','track','tracks','range','ranges','gym','gyms','fitness','health',
+    'wellness','spa','spas','salon','salons','barber','barbers','shops',
+    'stores','market','markets','mall','malls','plaza','plazas','square',
+    'squares','centers','hub','hubs','spot','spots','place','places','spaces',
+    'venues','destination','destinations','attraction','attractions',
+    'landmark','landmarks','monument','monuments','memorial','memorials',
+    'statue','statues','fountain','fountains','bridges','tunnel','tunnels',
+    'dam','dams','canal','canals','port','ports','harbor','harbors','dock',
+    'docks','pier','piers','airport','airports','station','stations',
+    'terminal','terminals','stop','stops','exit','exits','entrance',
+    'entrances','gate','gates','fence','fences','hedge','hedges','flowers',
+    'rose','roses','tulip','tulips','daisy','daisies','lily','lilies',
+    'orchid','orchids','sunflower','sunflowers','grass','grasses','moss',
+    'mosses','fern','ferns','ivy','vines','vine','leaf','leaves','branch',
+    'branches','trunk','trunks','root','roots','seed','seeds','fruit','fruits',
+    'apple','apples','orange','oranges','banana','bananas','grape','grapes',
+    'berry','berries','cherry','cherries','peach','peaches','pear','pears',
+    'plum','plums','melon','melons','lemon','lemons','lime','limes','coconut',
+    'coconuts','nut','nuts','bean','beans','pea','peas','corn','rice','wheat',
+    'oat','oats','barley','rye','bread','breads','cake','cakes','pie','pies',
+    'cookie','cookies','biscuit','biscuits','cracker','crackers','chip','chips',
+    'fry','fries','burger','burgers','pizza','pizzas','pasta','pastas',
+    'noodle','noodles','soup','soups','salad','salads','sandwich','sandwiches',
+    'taco','tacos','burrito','burritos','sushi','curry','stew','stews',
+    'roast','roasts','bake','bakes','grill','grills','boil','boils','poach',
+    'poaches','cure','cures','ferment','ferments','pickle','pickles','jam',
+    'jams','jelly','jellies','honey','honeys','syrup','syrups','sauce',
+    'sauces','dressing','dressings','spice','spices','herb','herbs','salt',
+    'salts','pepper','peppers','sugar','sugars','butter','butters','cheese',
+    'cheeses','milk','milks','cream','creams','yogurt','yogurts','egg','eggs',
+    'meat','meats','beef','beefs','pork','porks','chicken','chickens','fish',
+    'fishes','shrimp','shrimps','crab','crabs','lobster','lobsters','oyster',
+    'oysters','clam','clams','mussel','mussels','squid','squids','octopus',
+    'octopuses','tofu','tempeh','seitan','gluten','soy','grain','grains',
+    'flour','flours','starch','starches','oil','oils','fat','fats','acid',
+    'acids','enzyme','enzymes','bacteria','yeast','mold','fungus','virus',
+    'prion','parasite','cell','cells','tissue','tissues','organ','organs',
+    'bone','bones','muscle','muscles','nerve','nerves','brain','brains',
+    'heart','hearts','lung','lungs','liver','livers','kidney','kidneys',
+    'stomach','stomachs','intestine','intestines','skin','skins','hair',
+    'hairs','nail','nails','tooth','teeth','eye','eyes','ear','ears','nose',
+    'noses','mouth','mouths','tongue','tongues','lip','lips','cheek','cheeks',
+    'chin','chins','forehead','foreheads','neck','necks','shoulder',
+    'shoulders','arm','arms','elbow','elbows','wrist','wrists','hand','hands',
+    'finger','fingers','thumb','thumbs','leg','legs','knee','knees','ankle',
+    'ankles','foot','feet','toe','toes','backs','chest','chests','belly',
+    'bellies','waist','waists','hip','hips','butt','butts','thigh','thighs',
+    'calf','calves','shin','shins','heel','heels','sole','soles','palm',
+    'palms','knuckle','knuckles','joint','joints','ligament','ligaments',
+    'tendon','tendons','cartilage','cartilages','marrow','marrows','blood',
+    'plasma','platelet','platelets','gene','genes','dna','rna','protein',
+    'proteins','lipid','lipids','carb','carbs','vitamin','vitamins','mineral',
+    'minerals','oxygen','carbon','nitrogen','hydrogen','helium','neon',
+    'argon','krypton','xenon','radon','uranium','plutonium','radium','thorium',
+    'lead','mercury','gold','silver','copper','iron','steel','aluminum',
+    'titanium','nickel','zinc','tin','brass','bronze','platinum','palladium',
+    'rhodium','iridium','osmium','rhenium','tungsten','molybdenum','cobalt',
+    'chromium','manganese','vanadium','scandium','yttrium','zirconium',
+    'niobium','technetium','ruthenium','cadmium','indium','antimony',
+    'tellurium','iodine','cesium','barium','lanthanum','cerium',
+    'praseodymium','neodymium','promethium','samarium','europium',
+    'gadolinium','terbium','dysprosium','holmium','erbium','thulium',
+    'ytterbium','lutetium','hafnium','tantalum','bismuth','polonium',
+    'astatine','francium','actinium','protactinium','neptunium','americium',
+    'curium','berkelium','californium','einsteinium','fermium','mendelevium',
+    'nobelium','lawrencium','rutherfordium','dubnium','seaborgium','bohrium',
+    'hassium','meitnerium','darmstadtium','roentgenium','copernicium',
+    'nihonium','flerovium','moscovium','livermorium','tennessine','oganesson'
+  ]);
 
-function updateThemeUI(theme) {
-  if (theme === 'light') {
-    themeText.textContent = 'Light';
-    themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>';
-  } else {
-    themeText.textContent = 'Dark';
-    themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+  /* for the demo only: these handles are "taken" */
+  const TAKEN = new Set([
+    'chrx','lunar','random','chromati','hello','world','alex','sam','max',
+    'kai','nova','echo','pixel','byte','cloud','dream','vibe','test','demo',
+    'admin','support','help','api','app','login','signup','settings','terms',
+    'privacy','about','blog','shop','explore','claim','dashboard','editor',
+    'preview','static','assets','cdn','mail','status','docs','developers',
+    'pricing','features','community','discord','twitter','instagram',
+    'youtube','tiktok','github','spotify','soundcloud','twitch','reddit',
+    'threads','bluesky','mastodon','telegram','whatsapp','linktree','beacons',
+    'bio','link','links','page','pages','profile','profiles','user','users',
+    'account','accounts','auth','oauth','sso','webhook','callback','redirect',
+    'proxy','internal','system','root','superuser','staff','team','billing',
+    'invoice','payment','payments','subscription','plan','upgrade',
+    'downgrade','cancel','refund','legal','dmca','copyright','trademark',
+    'abuse','report','security','cookies','gdpr','ccpa','tos','eula','sla',
+    'health','metrics','analytics','stats','logs','debug','tests','staging',
+    'dev','development','prod','production','sandbox','example','sample',
+    'temp','tmp','old','new','next','prev','backup','backups','archive',
+    'trash','deleted','hidden','private','public','local','remote','server',
+    'client','host','domain','dns','ssl','tls','http','https','ftp','ssh',
+    'smtp','pop3','imap','webmail','email','newsletter','subscribe',
+    'unsubscribe','contact','feedback','faq','guide','guides','tutorial',
+    'tutorials','learn','learning','academy','school','university','college',
+    'course','courses','lesson','lessons','class','classes','teacher',
+    'student','students','moderator','mod','owner','founder','ceo','cto',
+    'cfo','coo','cmo','hr','jobs','careers','apply','application',
+    'applications','resume','cv','portfolio','work','projects','project',
+    'case','cases','study','studies','client','clients','customer',
+    'customers','partner','partners','vendor','vendors','supplier',
+    'suppliers','store','cart','checkout','order','orders','product',
+    'products','item','items','catalog','catalogue','inventory','stock',
+    'price','sale','sales','deal','deals','offer','offers','discount',
+    'discounts','coupon','coupons','promo','promos','promotion','promotions',
+    'campaign','campaigns','marketing','ads','advertising','sponsor',
+    'sponsors','affiliate','affiliates','referral','referrals','invite',
+    'invites','waitlist','beta','alpha','early','access','exclusive','vip',
+    'pro','premium','plus','ultra','lite','basic','free','trial','membership',
+    'member','members','communities','forum','forums','board','boards',
+    'thread','threads','post','posts','comment','comments','reply','replies',
+    'message','messages','dm','dms','chat','chats','inbox','outbox',
+    'notification','notifications','alert','alerts','news','updates',
+    'changelog','release','releases','version','versions','download',
+    'downloads','upload','uploads','file','files','folder','folders','drive',
+    'cloud','storage','data','database','db','sql','query','queries',
+    'search','find','filter','sort','list','lists','grid','table','tables',
+    'row','rows','column','columns','cell','cells','sheet','sheets','doc',
+    'docs','document','documents','pdf','image','images','photo','photos',
+    'video','videos','audio','music','song','songs','playlist','playlists',
+    'album','albums','artist','artists','track','tracks','podcast','podcasts',
+    'episode','episodes','stream','streams','live','event','events',
+    'calendar','cal','schedule','booking','bookings','appointment',
+    'appointments','reservation','reservations','ticket','tickets','seat',
+    'seats','venue','venues','location','locations','map','maps','direction',
+    'directions','address','addresses','contacts','phone','phones','mobile',
+    'fax','emails','mails','newsletters','opt','optin','optout','consent',
+    'policy','policies','law','lawyer','attorney','court','judge','jury',
+    'trial','appeal','evidence','witness','testimony','verdict','sentence',
+    'prison','jail','bail','bond','crime','criminal','civil','sue','lawsuit',
+    'litigation','settlement','arbitration','mediation','dispute','disputes',
+    'claims','complaint','complaints','grievance','grievances','appeals',
+    'review','reviews','rating','ratings','score','scores','rank','ranks',
+    'level','levels','badge','badges','achievement','achievements','award',
+    'awards','prize','prizes','winner','winners','loser','losers','champion',
+    'champions','hero','heroes','villain','villains','character',
+    'characters','avatar','avatars','bios','me','my','you','your','yours',
+    'they','them','theirs','we','us','our','ours','it','its','he','him',
+    'his','she','her','hers','i','who','what','where','when','why','how',
+    'this','that','these','those','a','an','the','and','or','but','so','if',
+    'then','else','for','to','of','in','on','at','by','with','from','up',
+    'down','left','right','front','back','top','bottom','side','center',
+    'middle','end','start','begin','finish','done','undone','complete',
+    'incomplete','open','closed','active','inactive','enabled','disabled',
+    'on','off','yes','no','true','false','null','nil','none','undefined',
+    'void','empty','full','zero','one','two','three','four','five','six',
+    'seven','eight','nine','ten','first','last','previous','fresh','stale',
+    'hot','cold','warm','cool','fast','slow','quick','late','now','today',
+    'tomorrow','yesterday','morning','afternoon','evening','night','noon',
+    'midnight','dawn','dusk','sun','moon','star','stars','sky','clouds',
+    'rain','snow','wind','storm','thunder','lightning','fire','water',
+    'earth','air','ice','steam','smoke','ash','dust','sand','rock','stone',
+    'metal','iron','steel','gold','silver','bronze','copper','wood','tree',
+    'trees','forest','jungle','desert','ocean','sea','lake','river','stream',
+    'pond','pool','beach','shore','coast','island','mountain','hill','valley',
+    'cave','canyon','cliff','peak','summit','base','ground','floor','ceiling',
+    'roof','wall','walls','door','doors','window','windows','room','rooms',
+    'house','home','building','tower','bridge','road','street','avenue','lane',
+    'path','way','route','city','town','village','country','state','province',
+    'region','area','zone','district','county','continent','world','planet',
+    'solar','system','galaxy','universe','space','cosmos','dimension','realm',
+    'kingdom','empire','nation','tribe','clan','family','friends','friend',
+    'enemy','enemies','ally','allies','team','teams','group','groups','club',
+    'clubs','society','societies','organization','organizations','company',
+    'companies','business','businesses','corporation','corporations','firm',
+    'firms','agency','agencies','studio','studios','lab','labs','workshop',
+    'workshops','factory','factories','plant','plants','farm','farms','ranch',
+    'ranches','garden','gardens','park','parks','playground','playgrounds',
+    'schools','colleges','universities','institute','institutes','academies',
+    'library','libraries','museum','museums','gallery','galleries','theater',
+    'theaters','cinema','cinemas','stadium','stadiums','arena','arenas',
+    'field','fields','courts','rink','rinks','pools','track','tracks',
+    'range','ranges','gym','gyms','fitness','health','wellness','spa','spas',
+    'salon','salons','barber','barbers','shops','stores','market','markets',
+    'mall','malls','plaza','plazas','square','squares','centers','hub','hubs',
+    'spot','spots','place','places','spaces','venues','destination',
+    'destinations','attraction','attractions','landmark','landmarks',
+    'monument','monuments','memorial','memorials','statue','statues',
+    'fountain','fountains','bridges','tunnel','tunnels','dam','dams','canal',
+    'canals','port','ports','harbor','harbors','dock','docks','pier','piers',
+    'airport','airports','station','stations','terminal','terminals','stop',
+    'stops','exit','exits','entrance','entrances','gate','gates','fence',
+    'fences','hedge','hedges','flowers','rose','roses','tulip','tulips',
+    'daisy','daisies','lily','lilies','orchid','orchids','sunflower',
+    'sunflowers','grass','grasses','moss','mosses','fern','ferns','ivy',
+    'vines','vine','leaf','leaves','branch','branches','trunk','trunks',
+    'root','roots','seed','seeds','fruit','fruits','apple','apples','orange',
+    'oranges','banana','bananas','grape','grapes','berry','berries','cherry',
+    'cherries','peach','peaches','pear','pears','plum','plums','melon',
+    'melons','lemon','lemons','lime','limes','coconut','coconuts','nut',
+    'nuts','bean','beans','pea','peas','corn','rice','wheat','oat','oats',
+    'barley','rye','bread','breads','cake','cakes','pie','pies','cookie',
+    'cookies','biscuit','biscuits','cracker','crackers','chip','chips','fry',
+    'fries','burger','burgers','pizza','pizzas','pasta','pastas','noodle',
+    'noodles','soup','soups','salad','salads','sandwich','sandwiches','taco',
+    'tacos','burrito','burritos','sushi','curry','stew','stews','roast',
+    'roasts','bake','bakes','grill','grills','boil','boils','poach','poaches',
+    'cure','cures','ferment','ferments','pickle','pickles','jam','jams',
+    'jelly','jellies','honey','honeys','syrup','syrups','sauce','sauces',
+    'dressing','dressings','spice','spices','herb','herbs','salt','salts',
+    'pepper','peppers','sugar','sugars','butter','butters','cheese',
+    'cheeses','milk','milks','cream','creams','yogurt','yogurts','egg','eggs',
+    'meat','meats','beef','beefs','pork','porks','chicken','chickens','fish',
+    'fishes','shrimp','shrimps','crab','crabs','lobster','lobsters','oyster',
+    'oysters','clam','clams','mussel','mussels','squid','squids','octopus',
+    'octopuses','tofu','tempeh','seitan','gluten','soy','grain','grains',
+    'flour','flours','starch','starches','oil','oils','fat','fats','acid',
+    'acids','enzyme','enzymes','bacteria','yeast','mold','fungus','virus',
+    'prion','parasite','cell','cells','tissue','tissues','organ','organs',
+    'bone','bones','muscle','muscles','nerve','nerves','brain','brains',
+    'heart','hearts','lung','lungs','liver','livers','kidney','kidneys',
+    'stomach','stomachs','intestine','intestines','skin','skins','hair',
+    'hairs','nail','nails','tooth','teeth','eye','eyes','ear','ears','nose',
+    'noses','mouth','mouths','tongue','tongues','lip','lips','cheek','cheeks',
+    'chin','chins','forehead','foreheads','neck','necks','shoulder',
+    'shoulders','arm','arms','elbow','elbows','wrist','wrists','hand','hands',
+    'finger','fingers','thumb','thumbs','leg','legs','knee','knees','ankle',
+    'ankles','foot','feet','toe','toes','backs','chest','chests','belly',
+    'bellies','waist','waists','hip','hips','butt','butts','thigh','thighs',
+    'calf','calves','shin','shins','heel','heels','sole','soles','palm',
+    'palms','knuckle','knuckles','joint','joints','ligament','ligaments',
+    'tendon','tendons','cartilage','cartilages','marrow','marrows','blood',
+    'plasma','platelet','platelets','gene','genes','dna','rna','protein',
+    'proteins','lipid','lipids','carb','carbs','vitamin','vitamins','mineral',
+    'minerals','oxygen','carbon','nitrogen','hydrogen','helium','neon',
+    'argon','krypton','xenon','radon','uranium','plutonium','radium','thorium',
+    'lead','mercury','gold','silver','copper','iron','steel','aluminum',
+    'titanium','nickel','zinc','tin','brass','bronze','platinum','palladium',
+    'rhodium','iridium','osmium','rhenium','tungsten','molybdenum','cobalt',
+    'chromium','manganese','vanadium','scandium','yttrium','zirconium',
+    'niobium','technetium','ruthenium','cadmium','indium','antimony',
+    'tellurium','iodine','cesium','barium','lanthanum','cerium',
+    'praseodymium','neodymium','promethium','samarium','europium',
+    'gadolinium','terbium','dysprosium','holmium','erbium','thulium',
+    'ytterbium','lutetium','hafnium','tantalum','bismuth','polonium',
+    'astatine','francium','actinium','protactinium','neptunium','americium',
+    'curium','berkelium','californium','einsteinium','fermium','mendelevium',
+    'nobelium','lawrencium','rutherfordium','dubnium','seaborgium','bohrium',
+    'hassium','meitnerium','darmstadtium','roentgenium','copernicium',
+    'nihonium','flerovium','moscovium','livermorium','tennessine','oganesson'
+  ]);
+
+  /* ---------- elements ---------- */
+  const $ = (id) => document.getElementById(id);
+  const input   = $('handle');
+  const status  = $('handle-status');
+  const statusT = status.querySelector('.status-text');
+  const btn     = $('claimBtn');
+  const card    = $('claimCard');
+  const modal   = $('modal');
+  const modalH  = $('modalHandle');
+  const modalH2 = $('modalHandle2');
+  const toast   = $('toast');
+  const root    = document.documentElement;
+
+  /* ---------- state ---------- */
+  let valid = false;
+  let debounce = null;
+  let checkSeq = 0;
+
+  /* ---------- helpers ---------- */
+  const sanitize = (v) => v.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24);
+
+  function hashHue(str){
+    let h = 0;
+    for (let i = 0; i < str.length; i++){
+      h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    }
+    return 200 + (h % 160); /* 200–360: blue → violet → pink */
   }
-}
 
-/* ── 2. CLAIM FLOW ── */
-const input = document.getElementById('claimInput');
-const status = document.getElementById('claimStatus');
-const btn = document.getElementById('claimBtn');
-let debounceTimer;
-
-input.addEventListener('input', (e) => {
-  const val = e.target.value.toLowerCase().trim();
-  btn.disabled = true;
-  status.textContent = '';
-  status.className = 'claim-status';
-
-  if (val.length === 0) return;
-  
-  if (val.length < 3) {
-    status.textContent = 'Too short (min 3 chars)';
-    status.classList.add('invalid');
-    return;
+  function setStatus(state, text){
+    status.dataset.state = state;
+    statusT.textContent = text;
   }
 
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(async () => {
-    status.textContent = 'Checking availability...';
-    status.style.color = 'var(--muted)';
-    
-    try {
-      // Mocking API call
-      await new Promise(r => setTimeout(r, 600)); 
-      const isTaken = ['admin', 'chrx', 'login', 'test', 'chromaticc'].includes(val);
-      
-      if (!isTaken) {
-        status.textContent = '✓ Handle is available';
-        status.className = 'claim-status valid';
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.dataset.show = 'true';
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => { toast.dataset.show = 'false'; }, 1800);
+  }
+
+  /* ---------- availability (mock — replace with fetch) ---------- */
+  function checkAvailability(name){
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(!TAKEN.has(name) && !RESERVED.has(name));
+      }, 320 + Math.random() * 260);
+    });
+  }
+
+  /* ---------- input handling ---------- */
+  input.addEventListener('input', () => {
+    const raw = input.value;
+    const clean = sanitize(raw);
+    if (raw !== clean) input.value = clean;
+
+    const name = clean;
+    root.style.setProperty('--hue', hashHue(name || 'chromati'));
+    root.style.setProperty('--chroma', Math.min(1.4, 0.4 + name.length * 0.08));
+
+    clearTimeout(debounce);
+    btn.disabled = true;
+    valid = false;
+
+    if (!name){
+      setStatus('idle', 'ready');
+      return;
+    }
+    if (name.length < 3){
+      setStatus('bad', 'too short');
+      return;
+    }
+    if (RESERVED.has(name)){
+      setStatus('bad', 'reserved');
+      return;
+    }
+
+    setStatus('checking', 'checking');
+    const seq = ++checkSeq;
+
+    debounce = setTimeout(async () => {
+      const ok = await checkAvailability(name);
+      if (seq !== checkSeq) return; /* stale response */
+      if (!input.value || sanitize(input.value) !== name) return;
+
+      if (ok){
+        valid = true;
+        setStatus('ok', 'available');
         btn.disabled = false;
       } else {
-        status.textContent = '✗ Handle is already taken';
-        status.className = 'claim-status invalid';
+        valid = false;
+        setStatus('bad', 'taken');
+        btn.disabled = true;
       }
-    } catch (err) {
-      status.textContent = 'Error checking handle';
-      status.classList.add('invalid');
-    }
-  }, 500);
-});
-
-btn.addEventListener('click', () => {
-  const val = input.value.toLowerCase().trim();
-  if (val) window.location.href = `/accounts.html?claim=${val}`;
-});
-
-/* ── 3. CARD ENTRANCE ANIMATION ── */
-document.addEventListener('DOMContentLoaded', () => {
-  const cards = document.querySelectorAll('.card');
-  cards.forEach((card, index) => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(20px)';
-    setTimeout(() => {
-      card.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
-      card.style.opacity = '1';
-      card.style.transform = 'translateY(0)';
-    }, 100 + (index * 80));
+    }, 220);
   });
-});
+
+  /* Enter to claim */
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && valid && !btn.disabled){
+      e.preventDefault();
+      claim();
+    }
+  });
+
+  /* ---------- claim flow ---------- */
+  function claim(){
+    if (!valid) return;
+    const name = sanitize(input.value);
+    if (!name) return;
+
+    /* In production: POST /api/claim { handle } → returns { ok, token }
+       and sets an httpOnly cookie. The modal is the success state. */
+    modalH.textContent = name;
+    modalH2.textContent = name;
+    modal.dataset.open = 'true';
+    input.blur();
+  }
+
+  btn.addEventListener('click', claim);
+
+  /* ---------- modal ---------- */
+  function closeModal(){
+    modal.dataset.open = 'false';
+  }
+
+  $('closeModal').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.dataset.open === 'true') closeModal();
+  });
+
+  /* copy handle */
+  $('copyBtn').addEventListener('click', async () => {
+    const text = `chromati.cc.cd/${modalH.textContent}`;
+    try{
+      await navigator.clipboard.writeText(text);
+      showToast('Copied');
+    }catch{
+      showToast('Copy failed — select it manually');
+    }
+  });
+
+  /* continue → in production this goes to /auth/magic-link?intent=handle */
+  $('continueBtn').addEventListener('click', () => {
+    closeModal();
+    showToast('Magic-link auth would open here →');
+  });
+
+  /* ---------- cursor prism ---------- */
+  card.addEventListener('pointermove', (e) => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    card.style.setProperty('--my', `${e.clientY - r.top}px`);
+  });
+
+  /* ---------- ticker ---------- */
+  const tickerData = [
+    ['@chrx', 'claimed chrx'],
+    ['@lunar', 'joined the Discord'],
+    ['@random', 'rewired their profile'],
+    ['@chrx', 'hit 100 views'],
+    ['@lunar', 'linked Discord presence'],
+    ['@random', 'enabled aurora mode'],
+    ['@nova', 'claimed nova'],
+    ['@echo', 'added 3 widgets'],
+    ['@pixel', 'published their page'],
+    ['@byte', 'claimed byte'],
+    ['@dream', 'linked Spotify'],
+    ['@vibe', 'enabled prism mode'],
+    ['@kai', 'claimed kai'],
+    ['@max', 'added a live counter']
+  ];
+
+  const track = $('tickerTrack');
+  function buildTicker(){
+    const fragment = document.createDocumentFragment();
+    /* duplicate so the -50% translate loops seamlessly */
+    for (let pass = 0; pass < 2; pass++){
+      tickerData.forEach(([who, what]) => {
+        const s = document.createElement('span');
+        s.innerHTML = `<i>${who}</i> ${what}`;
+        fragment.appendChild(s);
+      });
+    }
+    track.appendChild(fragment);
+  }
+  buildTicker();
+
+  /* ---------- count-up proof ---------- */
+  function countUp(el){
+    const target = Number(el.dataset.count);
+    if (!Number.isFinite(target)) return;
+    const suffix = el.querySelector('small')?.outerHTML || '';
+    const dur = 1400;
+    const start = performance.now();
+
+    function frame(now){
+      const t = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.innerHTML = Math.round(target * eased).toLocaleString() + suffix;
+      if (t < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  const proofObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting){
+        countUp(entry.target);
+        proofObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.6 });
+
+  document.querySelectorAll('[data-count]').forEach((el) => proofObserver.observe(el));
+
+  /* ---------- focus input on load (desktop only — don't hijack mobile keyboard) ---------- */
+  if (window.matchMedia('(min-width: 720px)').matches){
+    setTimeout(() => input.focus({ preventScroll: true }), 600);
+  }
+
+  /* ---------- expose for debugging ---------- */
+  window.__chromati = { RESERVED, TAKEN, sanitize, hashHue };
+})();
 </script>
 </body>
 </html>
