@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chromaticc Builder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chromaticc — Editor</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -20,77 +20,70 @@
             --font: 'Poppins', sans-serif;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body {
             background: var(--bg);
             color: var(--text);
             font-family: var(--font);
-            overflow: hidden; /* App-like feel */
-            -webkit-font-smoothing: antialiased;
-            display: flex;
-            flex-direction: column;
+            overflow: hidden;
             height: 100vh;
+            width: 100vw;
         }
 
-        /* ── THE CANVAS ── */
-        .canvas-wrapper {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            justify-content: center;
-            padding: 100px 20px 200px 20px; /* Space for dock */
+        /* ── THE INFINITE CANVAS ── */
+        #viewport {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            cursor: grab;
+            background: var(--bg);
         }
+        #viewport:active { cursor: grabbing; }
 
-        .canvas {
-            width: 100%;
-            max-width: 600px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        #canvas {
+            position: absolute;
+            width: 10000px;
+            height: 10000px;
+            transform-origin: 0 0;
+            /* The grid background */
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center center;
         }
 
         /* ── WIDGETS ── */
         .widget {
-            position: relative;
-            border-radius: 12px;
+            position: absolute;
             padding: 8px;
+            border-radius: 12px;
             outline: 1px solid transparent;
-            transition: outline 0.2s, background 0.2s;
-            group: widget;
+            cursor: grab;
+            transition: outline 0.1s, background 0.1s, box-shadow 0.2s;
+            transform: translate(-50%, -50%); /* Center based on x/y */
         }
 
         .widget:hover {
-            outline: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.02);
+            outline: 1px dashed rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.02);
         }
 
-        /* Invisible drag handle that sits on the left */
-        .drag-handle {
-            position: absolute;
-            left: -24px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 24px;
-            height: 100%;
-            cursor: grab;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--border);
-            opacity: 0;
-            transition: opacity 0.2s;
+        .widget.active {
+            outline: 1px solid var(--accent);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+            z-index: 100;
         }
 
-        .widget:hover .drag-handle { opacity: 1; }
-        .drag-handle:active { cursor: grabbing; }
+        .widget:active { cursor: grabbing; }
 
-        /* Floating Toolbar inside widget */
-        .widget-toolbar {
+        /* Floating Toolbar */
+        .widget-tools {
             position: absolute;
-            top: -40px;
-            right: 0;
+            top: -44px;
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
             display: flex;
             gap: 4px;
             background: var(--surface);
@@ -99,16 +92,15 @@
             padding: 4px;
             opacity: 0;
             pointer-events: none;
-            transform: translateY(4px);
             transition: all 0.2s var(--ease);
-            z-index: 50;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 200;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
 
-        .widget:hover .widget-toolbar {
+        .widget:hover .widget-tools, .widget.active .widget-tools {
             opacity: 1;
             pointer-events: auto;
-            transform: translateY(0);
+            transform: translateX(-50%) translateY(0);
         }
 
         .tool-btn {
@@ -131,27 +123,36 @@
         /* ── EDITABLE CONTENT ── */
         [contenteditable] {
             outline: none;
-            transition: background 0.2s;
+            cursor: text;
+            user-select: text;
             border-radius: 4px;
+            padding: 4px;
+            min-width: 20px;
+            display: inline-block;
         }
         [contenteditable]:focus {
-            background: rgba(255,255,255,0.05);
-            box-shadow: 0 0 0 2px var(--border);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 1px var(--border);
         }
 
         /* Specific Widget Styles */
-        .w-profile { display: flex; align-items: center; gap: 16px; padding: 12px; }
-        .w-avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #333, #111); border: 1px solid var(--border); }
-        .w-name { font-size: 22px; font-weight: 600; }
+        .w-profile { display: flex; align-items: center; gap: 16px; padding: 12px; min-width: 260px; }
+        .w-avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #333, #111); border: 1px solid var(--border); flex-shrink: 0; }
+        .w-name { font-size: 22px; font-weight: 600; line-height: 1.2; }
         .w-bio { font-size: 14px; color: var(--muted); }
 
         .w-link { 
             display: flex; justify-content: space-between; align-items: center;
             padding: 16px 20px; background: var(--surface); border: 1px solid var(--border);
             border-radius: 10px; text-decoration: none; color: var(--text); font-size: 14px;
+            min-width: 250px; transition: background 0.2s;
         }
         .w-link:hover { background: #18181b; }
-        .w-text { font-size: 16px; line-height: 1.5; padding: 8px 12px; }
+        .w-text { font-size: 16px; line-height: 1.5; padding: 8px 12px; max-width: 400px; }
+        
+        .w-image img { width: 300px; height: auto; border-radius: 10px; display: block; }
+        
+        .w-embed iframe { border-radius: 10px; border: none; display: block; }
 
         /* ── THE BOTTOM DOCK ── */
         .dock-wrapper {
@@ -159,57 +160,22 @@
             bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
+            z-index: 1000;
             display: flex;
             flex-direction: column;
             align-items: center;
-            z-index: 1000;
+            gap: 12px;
         }
 
-        /* The Widget Menu that pops UP */
-        .widget-menu {
-            background: rgba(18, 18, 20, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            margin-bottom: 16px;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(10px) scale(0.95);
-            transition: all 0.3s var(--ease);
-            width: 220px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-        }
-
-        .widget-menu.active {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0) scale(1);
-        }
-
-        .menu-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px 12px; border-radius: 8px;
-            color: var(--muted); font-size: 13px; cursor: pointer;
-            transition: all 0.15s;
-        }
-        .menu-item:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-        .menu-item i { width: 16px; text-align: center; }
-
-        /* The Dock itself */
         .dock {
             display: flex;
             align-items: center;
-            gap: 8px;
             background: rgba(18, 18, 20, 0.85);
             backdrop-filter: blur(20px);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
         }
 
         .dock-btn {
@@ -221,251 +187,526 @@
             border-radius: 12px;
             cursor: pointer;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             transition: all 0.2s var(--ease);
             font-size: 16px;
+            flex-shrink: 0;
         }
-        .dock-btn span { font-size: 9px; font-weight: 500; margin-top: 2px; opacity: 0; transform: translateY(4px); transition: all 0.2s; position: absolute; bottom: 4px; }
         .dock-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-        
-        /* The Center Add Button (Highlighted) */
-        .dock-btn.add-btn {
-            background: var(--text);
-            color: var(--bg);
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
-            font-size: 20px;
-            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        .dock-btn.active { background: var(--text); color: var(--bg); }
+
+        .dock-divider { width: 1px; height: 24px; background: var(--border); margin: 0 8px; flex-shrink: 0; }
+
+        /* Horizontal Scroll Area for Widgets */
+        .dock-scroll {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            overflow-x: auto;
+            max-width: 400px;
+            scroll-behavior: smooth;
+            padding: 0 4px;
+            scrollbar-width: none; /* Hide scrollbar Firefox */
         }
-        .dock-btn.add-btn:hover { transform: scale(1.05); }
-        .dock-btn.add-btn.active { transform: rotate(45deg); background: var(--muted); color: var(--bg); }
+        .dock-scroll::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome */
 
-        .dock-divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+        .dock-scroll-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 8px;
+            transition: color 0.2s;
+        }
+        .dock-scroll-btn:hover { color: var(--text); }
 
-        /* ── TOAST ── */
-        .toast {
+        /* ── SLASH MENU ── */
+        .slash-menu {
             position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: var(--text);
-            color: var(--bg);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            opacity: 0;
-            transition: all 0.3s var(--ease);
-            pointer-events: none;
+            width: 240px;
+            background: rgba(18, 18, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            padding: 6px;
             z-index: 2000;
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+            transform-origin: top left;
         }
-        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .slash-menu.active { display: flex; animation: popIn 0.2s var(--ease); }
 
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .slash-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; border-radius: 6px;
+            color: var(--muted); font-size: 13px; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .slash-item:hover, .slash-item.active {
+            background: rgba(255,255,255,0.08); color: var(--text);
+        }
+        .slash-item i { width: 16px; text-align: center; font-size: 14px; }
+        
+        .slash-search {
+            width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border);
+            color: var(--text); font-family: var(--font); font-size: 13px; padding: 8px 12px;
+            outline: none; margin-bottom: 4px;
+        }
     </style>
 </head>
 <body>
 
-    <!-- The Actual Canvas -->
-    <div class="canvas-wrapper" id="canvasWrapper">
-        <div class="canvas" id="canvas">
-            <!-- Widgets render here -->
+    <!-- The Canvas -->
+    <div id="viewport">
+        <div id="canvas">
+            <!-- Widgets get injected here -->
+        </div>
+    </div>
+
+    <!-- The Slash Menu -->
+    <div class="slash-menu" id="slashMenu">
+        <input type="text" class="slash-search" id="slashInput" placeholder="Search widgets..." autocomplete="off">
+        <div class="slash-list" id="slashList">
+            <!-- Injected via JS -->
         </div>
     </div>
 
     <!-- Bottom Dock -->
     <div class="dock-wrapper">
-        
-        <!-- Widget Menu (Pops up above dock) -->
-        <div class="widget-menu" id="widgetMenu">
-            <div class="menu-item" onclick="addWidget('profile')"><i class="fa-solid fa-user"></i> Profile Card</div>
-            <div class="menu-item" onclick="addWidget('link')"><i class="fa-solid fa-link"></i> Link Button</div>
-            <div class="menu-item" onclick="addWidget('text')"><i class="fa-solid fa-font"></i> Text Block</div>
-            <div class="menu-item" onclick="addWidget('image')"><i class="fa-solid fa-image"></i> Image</div>
-        </div>
-
-        <!-- Dock Buttons -->
         <div class="dock">
-            <button class="dock-btn" onclick="openSettings()"><i class="fa-solid fa-sliders"></i></button>
-            <button class="dock-btn" onclick="toggleWireMode()"><i class="fa-solid fa-circle-nodes"></i></button>
-            
-            <div class="dock-divider"></div>
-            
-            <!-- Center Add Button -->
-            <button class="dock-btn add-btn" id="addBtn" onclick="toggleMenu()"><i class="fa-solid fa-plus"></i></button>
+            <!-- Settings / System -->
+            <button class="dock-btn" onclick="saveLayout()" title="Save Layout"><i class="fa-solid fa-cloud-arrow-up"></i></button>
+            <button class="dock-btn" onclick="clearLayout()" title="Clear Canvas"><i class="fa-solid fa-trash" style="color:var(--danger)"></i></button>
             
             <div class="dock-divider"></div>
 
-            <button class="dock-btn" onclick="saveLayout()"><i class="fa-solid fa-cloud-arrow-up"></i></button>
-            <button class="dock-btn" onclick="clearLayout()"><i class="fa-solid fa-trash"></i></button>
+            <!-- Horizontal Widget Scroll -->
+            <button class="dock-scroll-btn" onclick="scrollDock(-100)"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="dock-scroll" id="dockScroll">
+                <!-- Widget Buttons Injected via JS -->
+            </div>
+            <button class="dock-scroll-btn" onclick="scrollDock(100)"><i class="fa-solid fa-chevron-right"></i></button>
+
+            <div class="dock-divider"></div>
+
+            <!-- Slash Command Trigger -->
+            <button class="dock-btn" onclick="triggerSlashCommand(window.innerWidth/2, window.innerHeight/2)" title="Add Widget"><i class="fa-solid fa-plus"></i></button>
         </div>
     </div>
 
-    <div class="toast" id="toast">Saved</div>
-
     <script>
-        // ── STATE ──
-        let layout = [];
-        let selectedId = null;
+        // ── CONFIG & STATE ──
+        const WIDGET_TYPES = [
+            { type: 'text', name: 'Text Block', icon: 'fa-font' },
+            { type: 'profile', name: 'Profile Card', icon: 'fa-user' },
+            { type: 'link', name: 'Link Button', icon: 'fa-link' },
+            { type: 'image', name: 'Image', icon: 'fa-image' },
+            { type: 'youtube', name: 'YouTube', icon: 'fa-youtube' },
+            { type: 'spotify', name: 'Spotify', icon: 'fa-spotify' },
+            { type: 'github', name: 'GitHub Stats', icon: 'fa-github' },
+            { type: 'code', name: 'Custom Code', icon: 'fa-code' }
+        ];
 
-        // ── INIT ──
+        let canvasState = {
+            widgets: [],
+            pan: { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+        };
+        
+        let selectedId = null;
+        let isDraggingCanvas = false;
+        let startPan = { x: 0, y: 0 };
+        let startMouse = { x: 0, y: 0 };
+
+        // ── INITIALIZATION ──
         function init() {
-            const saved = localStorage.getItem('chromaticc_ghost_layout');
+            buildDock();
+            buildSlashMenu();
+            
+            const saved = localStorage.getItem('chroma_editor_state');
             if (saved) {
-                layout = JSON.parse(saved);
+                canvasState = JSON.parse(saved);
+                if(!canvasState.widgets) canvasState.widgets = [];
+                if(!canvasState.pan) canvasState.pan = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
             } else {
                 // Default starting layout
-                layout = [
-                    { id: generateId(), type: 'profile', name: 'Alex', bio: 'Designer & Builder' },
-                    { id: generateId(), type: 'link', label: 'My Portfolio', url: '#' },
-                    { id: generateId(), type: 'link', label: 'Twitter / X', url: '#' }
-                ];
+                spawnWidget('profile', 0, 0);
+                spawnWidget('link', 0, 120);
             }
-            render();
+
+            updateCanvasTransform();
+            renderWidgets();
+            setupEvents();
         }
 
-        function generateId() {
-            return Math.random().toString(36).substr(2, 9);
-        }
-
-        // ── RENDER ──
-        function render() {
-            const canvas = document.getElementById('canvas');
-            canvas.innerHTML = '';
-
-            layout.forEach(widget => {
-                const el = document.createElement('div');
-                el.className = 'widget';
-                el.dataset.id = widget.id;
-                
-                // Draggable handle (invisible, left side)
-                const handle = document.createElement('div');
-                handle.className = 'drag-handle';
-                handle.innerHTML = '<i class="fa-solid fa-grip-vertical"></i>';
-                el.appendChild(handle);
-
-                // Floating Toolbar
-                const toolbar = document.createElement('div');
-                toolbar.className = 'widget-toolbar';
-                toolbar.innerHTML = `
-                    <button class="tool-btn" onclick="selectWidget('${widget.id}')"><i class="fa-solid fa-pen"></i></button>
-                    <button class="tool-btn delete" onclick="deleteWidget('${widget.id}')"><i class="fa-solid fa-trash"></i></button>
-                `;
-                el.appendChild(toolbar);
-
-                // Widget Content
-                const content = document.createElement('div');
-                if (widget.type === 'profile') {
-                    content.className = 'w-profile';
-                    content.innerHTML = `
-                        <div class="w-avatar"></div>
-                        <div>
-                            <div class="w-name" contenteditable="true" oninput="updateWidget('${widget.id}', 'name', this.innerText)">${widget.name}</div>
-                            <div class="w-bio" contenteditable="true" oninput="updateWidget('${widget.id}', 'bio', this.innerText)">${widget.bio}</div>
-                        </div>
-                    `;
-                } else if (widget.type === 'link') {
-                    content.className = 'w-link';
-                    content.innerHTML = `
-                        <span contenteditable="true" oninput="updateWidget('${widget.id}', 'label', this.innerText)">${widget.label}</span>
-                        <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--muted); font-size:12px;"></i>
-                    `;
-                } else if (widget.type === 'text') {
-                    content.className = 'w-text';
-                    content.innerHTML = `
-                        <div contenteditable="true" oninput="updateWidget('${widget.id}', 'text', this.innerText)">${widget.text || 'Type something...'}</div>
-                    `;
-                } else if (widget.type === 'image') {
-                    content.className = 'w-image';
-                    content.innerHTML = `<div style="width:100%; height:200px; background:var(--border); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12px;">Image Placeholder</div>`;
-                }
-                
-                el.appendChild(content);
-                canvas.appendChild(el);
+        // ── DOCK LOGIC ──
+        function buildDock() {
+            const container = document.getElementById('dockScroll');
+            WIDGET_TYPES.forEach(w => {
+                const btn = document.createElement('button');
+                btn.className = 'dock-btn';
+                btn.innerHTML = `<i class="fa-solid ${w.icon}"></i>`;
+                btn.title = `Add ${w.name}`;
+                // Add at center of screen
+                btn.onclick = () => spawnWidget(w.type, 0, 0);
+                container.appendChild(btn);
             });
         }
 
-        // ── ACTIONS ──
-        function addWidget(type) {
-            const newWidget = { id: generateId(), type: type };
-            if (type === 'profile') {
-                newWidget.name = 'Your Name';
-                newWidget.bio = 'Short bio...';
-            } else if (type === 'link') {
-                newWidget.label = 'New Link';
-                newWidget.url = '#';
-            } else if (type === 'text') {
-                newWidget.text = 'Type something...';
-            } else if (type === 'image') {
-                newWidget.url = '';
+        function scrollDock(amount) {
+            document.getElementById('dockScroll').scrollBy({ left: amount, behavior: 'smooth' });
+        }
+
+        // ── SLASH MENU LOGIC ──
+        let slashMenuPos = { x: 0, y: 0 };
+
+        function buildSlashMenu() {
+            const list = document.getElementById('slashList');
+            list.innerHTML = WIDGET_TYPES.map(w => `
+                <div class="slash-item" data-type="${w.type}">
+                    <i class="fa-solid ${w.icon}"></i> ${w.name}
+                </div>
+            `).join('');
+
+            // Handle clicks
+            list.querySelectorAll('.slash-item').forEach(item => {
+                item.onclick = () => {
+                    spawnWidget(item.dataset.type, slashMenuPos.x, slashMenuPos.y);
+                    closeSlashMenu();
+                };
+            });
+        }
+
+        function triggerSlashCommand(clientX, clientY) {
+            const menu = document.getElementById('slashMenu');
+            const input = document.getElementById('slashInput');
+            
+            // Convert screen coords to canvas coords
+            slashMenuPos = {
+                x: clientX - canvasState.pan.x,
+                y: clientY - canvasState.pan.y
+            };
+
+            menu.style.left = `${clientX}px`;
+            menu.style.top = `${clientY}px`;
+            menu.classList.add('active');
+            
+            input.value = '';
+            filterSlashMenu('');
+            setTimeout(() => input.focus(), 50);
+        }
+
+        function closeSlashMenu() {
+            document.getElementById('slashMenu').classList.remove('active');
+        }
+
+        function filterSlashMenu(query) {
+            const items = document.querySelectorAll('.slash-item');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(query.toLowerCase()) ? 'flex' : 'none';
+            });
+        }
+
+        // ── CANVAS PAN & ZOOM ──
+        function updateCanvasTransform() {
+            const canvas = document.getElementById('canvas');
+            // Offset by half the canvas size to center the origin (0,0)
+            const offsetX = 5000;
+            const offsetY = 5000;
+            
+            // We use translate3d for GPU acceleration
+            canvas.style.transform = `translate3d(${canvasState.pan.x - offsetX}px, ${canvasState.pan.y - offsetY}px, 0)`;
+        }
+
+        function setupEvents() {
+            const viewport = document.getElementById('viewport');
+
+            // ── 1. Pan Canvas ──
+            viewport.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.widget')) return; // Ignore if clicking a widget
+                if (e.target.closest('.dock-wrapper')) return; // Ignore if clicking dock
+                
+                isDraggingCanvas = true;
+                startMouse = { x: e.clientX, y: e.clientY };
+                startPan = { ...canvasState.pan };
+                viewport.style.cursor = 'grabbing';
+                closeSlashMenu();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDraggingCanvas) return;
+                const dx = e.clientX - startMouse.x;
+                const dy = e.clientY - startMouse.y;
+                canvasState.pan.x = startPan.x + dx;
+                canvasState.pan.y = startPan.y + dy;
+                updateCanvasTransform();
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDraggingCanvas = false;
+                viewport.style.cursor = 'grab';
+            });
+
+            // ── 2. Keyboard Shortcuts (Slash Command) ──
+            window.addEventListener('keydown', (e) => {
+                // If typing in an input or contenteditable, ignore global slash
+                if (e.target.tagName === 'INPUT' || e.target.isContentEditable) {
+                    // Allow Escape to close menu
+                    if (e.key === 'Escape') closeSlashMenu();
+                    return;
+                }
+
+                if (e.key === '/') {
+                    e.preventDefault();
+                    // Trigger menu at mouse position
+                    triggerSlashCommand(e.clientX, e.clientY);
+                }
+            });
+
+            // Slash Menu Filtering & Navigation
+            const slashInput = document.getElementById('slashInput');
+            slashInput.addEventListener('input', (e) => filterSlashMenu(e.target.value));
+            
+            slashInput.addEventListener('keydown', (e) => {
+                const visibleItems = Array.from(document.querySelectorAll('.slash-item')).filter(i => i.style.display !== 'none');
+                if (visibleItems.length === 0) return;
+
+                let currentIdx = visibleItems.findIndex(i => i.classList.contains('active'));
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    visibleItems.forEach(i => i.classList.remove('active'));
+                    currentIdx = (currentIdx + 1) % visibleItems.length;
+                    visibleItems[currentIdx].classList.add('active');
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    visibleItems.forEach(i => i.classList.remove('active'));
+                    currentIdx = (currentIdx - 1 + visibleItems.length) % visibleItems.length;
+                    visibleItems[currentIdx].classList.add('active');
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (currentIdx >= 0) visibleItems[currentIdx].click();
+                } else if (e.key === 'Escape') {
+                    closeSlashMenu();
+                }
+            });
+
+            // Hide menu on outside click
+            document.addEventListener('mousedown', (e) => {
+                if (!e.target.closest('.slash-menu') && !e.target.closest('.dock-wrapper')) {
+                    closeSlashMenu();
+                }
+            });
+        }
+
+        // ── WIDGET LOGIC ──
+        function spawnWidget(type, x, y) {
+            // Offset for default center spawn
+            if (x === 0 && y === 0) {
+                x = (window.innerWidth / 2) - canvasState.pan.x;
+                y = (window.innerHeight / 2) - canvasState.pan.y;
             }
 
-            layout.push(newWidget);
-            render();
-            toggleMenu(); // Close menu
-            showToast('Widget added');
+            const id = Date.now().toString(36);
+            const widget = {
+                id,
+                type,
+                x,
+                y,
+                content: getDefaultContent(type)
+            };
+
+            canvasState.widgets.push(widget);
+            renderWidgets();
+            saveLayout();
             
-            // Scroll to bottom
-            const wrapper = document.getElementById('canvasWrapper');
-            wrapper.scrollTo({ top: wrapper.scrollHeight, behavior: 'smooth' });
+            // Select new widget
+            setTimeout(() => selectWidget(id), 50);
+        }
+
+        function getDefaultContent(type) {
+            switch(type) {
+                case 'profile': return { name: 'Alex', bio: 'Designer & Builder' };
+                case 'link': return { label: 'My Link', url: '#' };
+                case 'text': return { text: 'Type something amazing...' };
+                case 'image': return { url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop' };
+                case 'youtube': return { videoId: 'dQw4w9WgXcQ' };
+                case 'spotify': return { uri: '4uLU6hMCjMI75M1A2tKUQC' };
+                case 'github': return { username: 'torvalds' };
+                case 'code': return { html: '<div style="color:#38bdf8; font-size:20px; padding:10px;">Hello World</div>' };
+                default: return {};
+            }
+        }
+
+        function renderWidgets() {
+            const canvas = document.getElementById('canvas');
+            
+            // Remove deleted widgets
+            const currentIds = canvasState.widgets.map(w => w.id);
+            Array.from(canvas.children).forEach(el => {
+                if (!currentIds.includes(el.dataset.id)) el.remove();
+            });
+
+            // Add or update existing
+            canvasState.widgets.forEach(w => {
+                let el = canvas.querySelector(`[data-id="${w.id}"]`);
+                if (!el) {
+                    el = document.createElement('div');
+                    el.className = 'widget';
+                    el.dataset.id = w.id;
+                    
+                    // Build Toolbar
+                    const tools = document.createElement('div');
+                    tools.className = 'widget-tools';
+                    tools.innerHTML = `
+                        <button class="tool-btn" onclick="selectWidget('${w.id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="tool-btn delete" onclick="deleteWidget('${w.id}')"><i class="fa-solid fa-trash"></i></button>
+                    `;
+                    el.appendChild(tools);
+                    
+                    // Build Content Container
+                    const content = document.createElement('div');
+                    content.className = 'w-content';
+                    el.appendChild(content);
+                    
+                    canvas.appendChild(el);
+                    setupWidgetDrag(el, w.id);
+                }
+
+                // Update position (relative to center 0,0)
+                el.style.left = `calc(50% + ${w.x}px)`;
+                el.style.top = `calc(50% + ${w.y}px)`;
+                
+                // Render specific content
+                const contentContainer = el.querySelector('.w-content');
+                contentContainer.innerHTML = renderWidgetHTML(w);
+            });
+        }
+
+        function renderWidgetHTML(w) {
+            const c = w.content;
+            const update = (field) => `oninput="updateWidgetContent('${w.id}', '${field}', this.innerText)"`;
+
+            switch(w.type) {
+                case 'profile':
+                    return `<div class="w-profile">
+                        <div class="w-avatar"></div>
+                        <div>
+                            <div class="w-name" contenteditable="true" ${update('name')}>${c.name}</div>
+                            <div class="w-bio" contenteditable="true" ${update('bio')}>${c.bio}</div>
+                        </div>
+                    </div>`;
+                case 'link':
+                    return `<a href="${c.url}" class="w-link" onclick="event.preventDefault()">
+                        <span contenteditable="true" ${update('label')}>${c.label}</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--muted); font-size:12px;"></i>
+                    </a>`;
+                case 'text':
+                    return `<div class="w-text" contenteditable="true" ${update('text')}>${c.text}</div>`;
+                case 'image':
+                    return `<div class="w-image"><img src="${c.url}" alt="Image"></div>`;
+                case 'youtube':
+                    return `<div class="w-embed"><iframe width="400" height="225" src="https://www.youtube.com/embed/${c.videoId}" allowfullscreen></iframe></div>`;
+                case 'spotify':
+                    return `<div class="w-embed"><iframe src="https://open.spotify.com/embed/track/${c.uri}" width="300" height="80" allowtransparency="true" allow="encrypted-media"></iframe></div>`;
+                case 'github':
+                    return `<div class="w-link" style="min-width:200px;">
+                        <i class="fa-brands fa-github" style="font-size:24px;"></i>
+                        <span contenteditable="true" ${update('username')}>${c.username}</span>
+                    </div>`;
+                case 'code':
+                    return `<div>${c.html}</div>`;
+                default:
+                    return `<div>Unknown Widget</div>`;
+            }
+        }
+
+        // ── WIDGET INTERACTIONS ──
+        function setupWidgetDrag(el, id) {
+            let isDragging = false;
+            let startMouse = { x: 0, y: 0 };
+            let startWidgetPos = { x: 0, y: 0 };
+
+            el.addEventListener('mousedown', (e) => {
+                // Don't drag if clicking toolbar or editing text
+                if (e.target.closest('.widget-tools') || e.target.isContentEditable) return;
+                
+                e.stopPropagation(); // Prevent canvas pan
+                selectWidget(id);
+                
+                isDragging = true;
+                startMouse = { x: e.clientX, y: e.clientY };
+                
+                const w = canvasState.widgets.find(w => w.id === id);
+                startWidgetPos = { x: w.x, y: w.y };
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const dx = e.clientX - startMouse.x;
+                const dy = e.clientY - startMouse.y;
+                
+                const w = canvasState.widgets.find(w => w.id === id);
+                w.x = startWidgetPos.x + dx;
+                w.y = startWidgetPos.y + dy;
+                
+                el.style.left = `calc(50% + ${w.x}px)`;
+                el.style.top = `calc(50% + ${w.y}px)`;
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    saveLayout();
+                }
+            });
+        }
+
+        function updateWidgetContent(id, field, value) {
+            const w = canvasState.widgets.find(w => w.id === id);
+            if (w) {
+                w.content[field] = value;
+                saveLayout();
+            }
+        }
+
+        function selectWidget(id) {
+            selectedId = id;
+            document.querySelectorAll('.widget').forEach(el => el.classList.remove('active'));
+            const el = document.querySelector(`.widget[data-id="${id}"]`);
+            if (el) el.classList.add('active');
         }
 
         function deleteWidget(id) {
-            layout = layout.filter(w => w.id !== id);
-            render();
-            showToast('Widget deleted');
+            canvasState.widgets = canvasState.widgets.filter(w => w.id !== id);
+            renderWidgets();
+            saveLayout();
         }
 
-        function updateWidget(id, field, value) {
-            const widget = layout.find(w => w.id === id);
-            if (widget) {
-                widget[field] = value;
-                // Autosave debounce could go here
-                localStorage.setItem('chromaticc_ghost_layout', JSON.stringify(layout));
-            }
-        }
-
-        // ── DOCK ACTIONS ──
-        function toggleMenu() {
-            const menu = document.getElementById('widgetMenu');
-            const btn = document.getElementById('addBtn');
-            menu.classList.toggle('active');
-            btn.classList.toggle('active');
-        }
-
+        // ── PERSISTENCE ──
         function saveLayout() {
-            localStorage.setItem('chromaticc_ghost_layout', JSON.stringify(layout));
-            showToast('Layout saved to local storage');
+            localStorage.setItem('chroma_editor_state', JSON.stringify(canvasState));
         }
 
         function clearLayout() {
-            if (confirm('Are you sure you want to clear everything?')) {
-                layout = [];
-                render();
-                localStorage.removeItem('chromaticc_ghost_layout');
-                showToast('Layout cleared');
+            if (confirm('Clear the entire canvas?')) {
+                canvasState.widgets = [];
+                canvasState.pan = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+                renderWidgets();
+                saveLayout();
             }
         }
 
-        function openSettings() {
-            showToast('Settings panel would slide out here');
-        }
-
-        function toggleWireMode() {
-            showToast('Wire mode toggled (visuals only)');
-        }
-
-        // ── TOAST ──
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
-
-        // ── INIT ──
+        // ── BOOT ──
         init();
 
     </script>
