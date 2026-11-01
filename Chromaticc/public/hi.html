@@ -8,12 +8,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Globe.gl and Three.js CDN -->
+    <!-- Three.js and Globe.gl -->
     <script src="//unpkg.com/three"></script>
     <script src="//unpkg.com/globe.gl"></script>
 
     <script>
+        // Prevent theme flash on load
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (savedTheme === 'light' || (!savedTheme && !prefersDark)) {
@@ -26,22 +28,18 @@
             --bg: #000000;
             --text: #ffffff;
             --muted: #a1a1aa;
-            --globe-color: #09090b;
-            --atmosphere: #ffffff;
-            --arc-color: #ffffff;
             --gradient-start: rgba(0,0,0,0);
             --gradient-end: #000000;
+            --globe-glow: #062056;
         }
 
         :root[data-theme="light"] {
             --bg: #ffffff;
             --text: #09090b;
             --muted: #52525b;
-            --globe-color: #f4f4f5;
-            --atmosphere: #09090b;
-            --arc-color: #09090b;
             --gradient-start: rgba(255,255,255,0);
             --gradient-end: #ffffff;
+            --globe-glow: #e4e4e7;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,8 +48,8 @@
             background-color: var(--bg);
             color: var(--text);
             font-family: 'Poppins', sans-serif;
-            overflow: hidden; /* Prevent scrolling for this specific section */
-            transition: background-color 0.4s ease, color 0.4s ease;
+            overflow: hidden;
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
 
         /* ── MAIN SECTION ── */
@@ -62,18 +60,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            padding-top: 15vh;
-            overflow: hidden;
+            padding-top: 12vh;
         }
 
-        /* ── ANIMATED TEXT (Framer Motion equivalent) ── */
+        /* ── ANIMATED TEXT ── */
         .text-container {
             position: relative;
             z-index: 10;
             text-align: center;
-            max-width: 48rem; /* max-w-3xl */
-            padding: 0 16px;
+            max-width: 48rem;
+            padding: 0 24px;
             opacity: 0;
             transform: translateY(20px);
             animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -84,25 +80,25 @@
         }
 
         .text-container h2 {
-            font-size: clamp(24px, 4vw, 36px); /* md:text-4xl */
-            font-weight: 700;
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 600;
             letter-spacing: -0.02em;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
 
         .text-container p {
-            font-size: clamp(16px, 2vw, 18px); /* md:text-lg */
-            font-weight: 400;
+            font-size: clamp(16px, 2vw, 18px);
+            font-weight: 300;
             color: var(--muted);
-            max-width: 28rem;
+            max-width: 32rem;
             margin: 0 auto;
             line-height: 1.6;
         }
 
-        /* ── THE GLOBE CONTAINER ── */
+        /* ── GLOBE CONTAINER ── */
         .globe-container {
             position: absolute;
-            bottom: -20%; /* Offset to show top half of globe */
+            bottom: -10%;
             width: 100%;
             height: 100vh;
             z-index: 1;
@@ -113,19 +109,19 @@
             cursor: grabbing;
         }
 
-        /* ── GRADIENT FADE OVERLAY ── */
+        /* ── GRADIENT FADE ── */
         .gradient-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 160px; /* h-40 */
+            height: 180px;
             background: linear-gradient(to bottom, var(--gradient-start), var(--gradient-end));
             z-index: 5;
-            pointer-events: none; /* Let clicks pass through to the globe */
+            pointer-events: none;
         }
 
-        /* ── THEME TOGGLE BUTTON ── */
+        /* ── THEME TOGGLE ── */
         .theme-toggle {
             position: absolute;
             top: 24px;
@@ -141,74 +137,70 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
         .theme-toggle:hover {
             background: var(--text);
             color: var(--bg);
         }
-
-        /* Utility for Font Awesome icons */
         .fa-solid { font-size: 18px; }
     </style>
-    <!-- Font Awesome for the toggle icon -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- Theme Toggle -->
     <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme">
         <i class="fa-solid fa-moon" id="themeIcon"></i>
     </button>
 
     <div class="globe-section">
         <div class="text-container">
-            <h2>Your whole internet. Worldwide.</h2>
-            <p>This globe is interactive and customizable. Have fun with it, and don't forget to share it. :)</p>
+            <h2>Users worldwide.</h2>
+            <p>Get it? Because we're worldwide.</p>
         </div>
 
-        <!-- Gradient fade to hide the bottom of the globe -->
         <div class="gradient-overlay"></div>
-
-        <!-- The 3D Globe goes here -->
         <div class="globe-container" id="globeViz"></div>
     </div>
 
     <script>
-        // ── 1. THE DATA FROM YOUR REACT COMPONENT ──
-        const colors = ["#06b6d4", "#3b82f6", "#6366f1"];
+        // ── 1. DATA ──
+        const arcColors = ["#06b6d4", "#3b82f6", "#6366f1"];
         
-        // I've included a shortened version of the massive arcs array you provided
-        // to keep the file size reasonable, but you can paste the whole thing here.
-        const sampleArcs = [
-            { startLat: -19.885592, startLng: -43.951191, endLat: -22.9068, endLng: -43.1729, arcAlt: 0.1, color: colors[0] },
-            { startLat: 28.6139, startLng: 77.209, endLat: 3.139, endLng: 101.6869, arcAlt: 0.2, color: colors[1] },
-            { startLat: -19.885592, startLng: -43.951191, endLat: -1.303396, endLng: 36.852443, arcAlt: 0.5, color: colors[2] },
-            { startLat: 1.3521, startLng: 103.8198, endLat: 35.6762, endLng: 139.6503, arcAlt: 0.2, color: colors[0] },
-            { startLat: 51.5072, startLng: -0.1276, endLat: 3.139, endLng: 101.6869, arcAlt: 0.3, color: colors[1] },
-            { startLat: 34.0522, startLng: -118.2437, endLat: 48.8566, endLng: -2.3522, arcAlt: 0.2, color: colors[2] },
-            { startLat: 22.3193, startLng: 114.1694, endLat: 51.5072, endLng: -0.1276, arcAlt: 0.3, color: colors[0] },
-            { startLat: -33.8688, startLng: 151.2093, endLat: 22.3193, endLng: 114.1694, arcAlt: 0.3, color: colors[1] },
-            { startLat: 21.3099, startLng: -157.8581, endLat: 40.7128, endLng: -74.006, arcAlt: 0.3, color: colors[2] },
-            { startLat: -6.2088, startLng: 106.8456, endLat: 51.5072, endLng: -0.1276, arcAlt: 0.3, color: colors[0] },
-            // Add more from your massive list if you want it to look even crazier
+        // Mock aggregated user locations (No names/IPs for privacy)
+        const userLocations = [
+            { lat: 40.7128, lng: -74.0060, count: 14, city: "New York" },
+            { lat: 51.5072, lng: -0.1276, count: 22, city: "London" },
+            { lat: 35.6762, lng: 139.6503, count: 18, city: "Tokyo" },
+            { lat: -33.8688, lng: 151.2093, count: 7, city: "Sydney" },
+            { lat: 48.8566, lng: 2.3522, count: 11, city: "Paris" },
+            { lat: 37.7749, lng: -122.4194, count: 9, city: "San Francisco" },
+            { lat: 19.0760, lng: 72.8777, count: 15, city: "Mumbai" },
+            { lat: -23.5505, lng: -46.6333, count: 8, city: "São Paulo" },
+            { lat: 55.7558, lng: 37.6173, count: 6, city: "Moscow" },
+            { lat: -1.2921, lng: 36.8219, count: 4, city: "Nairobi" }
         ];
 
-        // ── 2. INITIALIZE GLOBE.GL ──
+        const sampleArcs = [
+            { startLat: 40.7128, startLng: -74.0060, endLat: 51.5072, endLng: -0.1276, arcAlt: 0.2, color: arcColors[0] },
+            { startLat: 35.6762, startLng: 139.6503, endLat: 37.7749, endLng: -122.4194, arcAlt: 0.3, color: arcColors[1] },
+            { startLat: 19.0760, startLng: 72.8777, endLat: -33.8688, endLng: 151.2093, arcAlt: 0.2, color: arcColors[2] },
+            { startLat: 48.8566, startLng: 2.3522, endLat: 40.7128, endLng: -74.0060, arcAlt: 0.4, color: arcColors[0] },
+            { startLat: -23.5505, startLng: -46.6333, endLat: 55.7558, endLng: 37.6173, arcAlt: 0.3, color: arcColors[1] },
+            { startLat: -1.2921, startLng: 36.8219, endLat: 48.8566, endLng: 2.3522, arcAlt: 0.2, color: arcColors[2] }
+        ];
+
+        // ── 2. SETUP GLOBE ──
         let world;
         const globeEl = document.getElementById('globeViz');
 
         function initGlobe() {
             world = Globe()
                 (globeEl)
-                // Base globe configuration
-                .backgroundColor('rgba(0,0,0,0)') // Transparent background
-                .globeImageUrl(null)              // No texture, just solid color
+                .backgroundColor('rgba(0,0,0,0)') // Transparent to show body bg
                 .showAtmosphere(true)
-                .atmosphereAltitude(0.15)         // Slightly larger atmosphere
+                .atmosphereAltitude(0.15)
                 
-                // Arc configuration (The flight paths)
+                // ── ARCS (Flight paths) ──
                 .arcsData(sampleArcs)
                 .arcStartLat(d => d.startLat)
                 .arcStartLng(d => d.startLng)
@@ -216,59 +208,90 @@
                 .arcEndLng(d => d.endLng)
                 .arcColor(d => d.color)
                 .arcAltitude(d => d.arcAlt)
-                .arcDashLength(0.9)               // Long dashes
+                .arcDashLength(0.9)
                 .arcDashGap(0.2)
-                .arcDashAnimateTime(1500)         // Speed of the arc animation
-                .arcsTransitionDuration(0)        // Keep arcs always visible
+                .arcDashAnimateTime(1500)
+                .arcsTransitionDuration(0)
 
-                // Controls
-                .enableZoom(false)                // Disable zoom so it doesn't break page
+                // ── POINTS (The Dots) ──
+                .pointsData(userLocations)
+                .pointLat('lat')
+                .pointLng('lng')
+                .pointColor(() => '#38bdf8') // Cyan
+                .pointAltitude(0.01) 
+                .pointRadius(d => Math.min(0.6, 0.15 + (d.count * 0.02))) // Scale by user count
+
+                // ── RINGS (The Radar Pings) ──
+                .ringsData(userLocations)
+                .ringLat('lat')
+                .ringLng('lng')
+                .ringColor(() => t => `rgba(56, 189, 248, ${1 - t})`) // Cyan fade
+                .ringMaxRadius(2.5)
+                .ringPropagationSpeed(1.5)
+                .ringRepeatPeriod(2000)
+
+                // ── CONTROLS ──
+                .enableZoom(false)
                 .enablePan(false)
                 .autoRotate(true)
-                .autoRotateSpeed(0.5);
+                .autoRotateSpeed(0.6);
 
-            // Apply specific colors based on current theme
+            // Apply Theme (Textures & Colors)
             updateGlobeTheme();
 
-            // Resize listener
+            // Handle Resize
             window.addEventListener('resize', () => {
                 world.width(globeEl.clientWidth);
                 world.height(globeEl.clientHeight);
             });
-            
-            // Set initial size
             world.width(globeEl.clientWidth);
             world.height(globeEl.clientHeight);
+
+            // Hover Tooltip (Optional visual feedback without doxxing)
+            world.onPointHover((point) => {
+                if (point) {
+                    globeEl.style.cursor = 'pointer';
+                    globeEl.title = `${point.count} users active in ${point.city}`;
+                } else {
+                    globeEl.style.cursor = 'grab';
+                    globeEl.title = '';
+                }
+            });
         }
 
-        // ── 3. THEME HANDLING ──
+        // ── 3. THEME LOGIC ──
         const root = document.documentElement;
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = document.getElementById('themeIcon');
 
         function updateGlobeTheme() {
+            if (!world) return;
             const isDark = root.getAttribute('data-theme') === 'dark';
             
-            if (world) {
-                const globeMaterial = world.globeMaterial();
-                
-                // Update globe sphere color
-                globeMaterial.color = new THREE.Color(isDark ? '#09090b' : '#f4f4f5');
-                globeMaterial.emissive = new THREE.Color(isDark ? '#062056' : '#e4e4e7');
-                globeMaterial.emissiveIntensity = 0.1;
-                globeMaterial.shininess = 0.9;
-
-                // Update atmosphere
-                world.atmosphereColor(isDark ? '#ffffff' : '#09090b');
-                
-                // Update arc colors if you want them to flip
-                // (I'll keep them colorful for both modes so it pops)
-            }
+            // Swap Textures
+            world.globeImageUrl(isDark 
+                ? '//unpkg.com/three-globe/example/img/earth-dark.jpg' 
+                : '//unpkg.com/three-globe/example/img/earth-day.jpg'
+            );
+            
+            // Always use topography for 3D depth
+            world.bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
+            
+            // Atmosphere
+            world.atmosphereColor(isDark ? '#ffffff' : '#a1a1aa');
+            
+            // Material Tweaks
+            const globeMaterial = world.globeMaterial();
+            globeMaterial.color = new THREE.Color('#ffffff'); // White tint to show texture
+            globeMaterial.emissive = new THREE.Color(isDark ? '#062056' : '#000000');
+            globeMaterial.emissiveIntensity = isDark ? 0.1 : 0;
+            globeMaterial.shininess = 0.9;
         }
 
         themeToggle.addEventListener('click', () => {
             const current = root.getAttribute('data-theme');
             const next = current === 'dark' ? 'light' : 'dark';
+            
             root.setAttribute('data-theme', next);
             localStorage.setItem('theme', next);
             
@@ -279,17 +302,16 @@
                 themeIcon.classList.replace('fa-moon', 'fa-sun');
             }
             
-            // Update Globe
+            // Update 3D Globe
             updateGlobeTheme();
         });
 
-        // Set initial icon
+        // Set initial icon state
         if (root.getAttribute('data-theme') === 'light') {
             themeIcon.classList.replace('fa-moon', 'fa-sun');
         }
 
         // ── 4. BOOT ──
-        // Wait for DOM to load before initializing the heavy WebGL scene
         window.addEventListener('DOMContentLoaded', () => {
             initGlobe();
         });
