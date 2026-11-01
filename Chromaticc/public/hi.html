@@ -193,9 +193,9 @@
                 (globeEl)
                 .backgroundColor('rgba(0,0,0,0)') 
                 .showAtmosphere(true)
-                .atmosphereAltitude(0.15)
+                .atmosphereAltitude(0.1)
                 
-                // Set the bump map (topography) immediately for realistic mountains
+                // Load the geography bump map for realistic 3D mountains/valleys
                 .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
                 
                 // ── ARCS (Flight paths) ──
@@ -234,10 +234,6 @@
                 .autoRotate(true)
                 .autoRotateSpeed(0.6);
 
-            // Force the lighting to be pure white so it doesn't tint the earth blue
-            world.scene().children[0].color = new THREE.Color('#ffffff');
-            world.scene().children[0].intensity = 1.5;
-
             // Apply Theme (Textures & Colors)
             updateGlobeTheme();
 
@@ -270,21 +266,21 @@
             if (!world) return;
             const isDark = root.getAttribute('data-theme') === 'dark';
             
-            // Swap Textures between Night Lights and Daytime Satellite
+            // 1. Swap Textures
             world.globeImageUrl(isDark 
                 ? 'https://unpkg.com/three-globe/example/img/earth-night.jpg' 
-                : 'https://unpkg.com/three-globe/example/img/earth-day.jpg'
+                : 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg'
             );
             
-            // Atmosphere (Thin white line on dark, subtle grey on light)
-            world.atmosphereColor(isDark ? '#ffffff' : '#a1a1aa');
+            // 2. Atmosphere
+            world.atmosphereColor(isDark ? '#ffffff' : '#000000');
             
-            // Remove all artificial blue glowing from the material
+            // 3. Material overrides to remove the default "plastic/blue" look
             const globeMaterial = world.globeMaterial();
-            globeMaterial.color = new THREE.Color('#ffffff'); 
-            globeMaterial.emissive = new THREE.Color('#000000'); // No glow
+            globeMaterial.color = new THREE.Color('#ffffff'); // Pure white base
+            globeMaterial.emissive = new THREE.Color('#000000'); // Kill artificial glow
             globeMaterial.emissiveIntensity = 0;
-            globeMaterial.shininess = 0.1; // Dull the reflection so it looks like a photo, not plastic
+            globeMaterial.shininess = 0; // Matte finish, no shiny ocean glare
             
             globeMaterial.needsUpdate = true;
         }
