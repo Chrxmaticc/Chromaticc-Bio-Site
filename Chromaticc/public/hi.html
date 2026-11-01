@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chromaticc — Canvas Editor</title>
+    <title>Chromaticc — Canvas Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Interact.js for Real Drag & Resize -->
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
     <style>
         :root {
-            --bg: #f4f4f5;
-            --page: #ffffff;
-            --surface: #f4f4f5;
-            --border: #e4e4e7;
-            --text: #09090b;
-            --muted: #71717a;
-            --accent: #18181b;
-            --danger: #ef4444;
+            --bg: #09090b;
+            --surface: #121214;
+            --surface-hover: #18181b;
+            --border: #27272a;
+            --text: #ffffff;
+            --muted: #a1a1aa;
+            --accent: #38bdf8;
             --font: 'Poppins', sans-serif;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -30,92 +29,94 @@
             font-family: var(--font);
             overflow: hidden;
             height: 100vh;
-        }
-
-        /* ── THE CANVAS ── */
-        .canvas-container {
-            position: absolute;
-            inset: 0;
-            overflow: auto;
             display: flex;
-            justify-content: center;
-            padding: 60px;
         }
 
-        .canvas {
-            width: 100%;
-            max-width: 900px;
-            min-height: 2000px;
-            background: var(--page);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        /* ── MAIN CANVAS AREA ── */
+        .workspace {
+            flex: 1;
             position: relative;
-            background-image: radial-gradient(var(--border) 1px, transparent 1px);
-            background-size: 20px 20px;
-            /* We don't want the grid to be too loud */
-            background-position: center center;
+            overflow: auto;
+            background-image: 
+                radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0);
+            background-size: 40px 40px;
+            cursor: default;
+            transition: padding-right 0.3s var(--ease);
         }
 
-        /* ── BLOCKS ── */
-        .block {
+        .workspace.settings-open { padding-right: 320px; }
+
+        /* The actual infinite page */
+        .page {
+            position: relative;
+            width: 2000px;
+            height: 2000px;
+            /* Center it roughly */
+            margin: 100px auto;
+        }
+
+        /* ── WIDGETS ── */
+        .widget {
             position: absolute;
-            padding: 8px;
+            padding: 4px;
             border-radius: 8px;
             border: 1px solid transparent;
-            cursor: grab;
-            touch-action: none; /* Important for interact.js */
-            transition: border-color 0.1s;
+            cursor: default;
+            touch-action: none; /* Crucial for interact.js */
+            transition: border-color 0.1s, box-shadow 0.1s;
         }
 
-        .block:hover {
-            border-color: var(--border);
+        /* Only show outline on hover */
+        .widget:hover {
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
-        .block.selected {
+        /* Selected state */
+        .widget.selected {
             border-color: var(--accent);
-            border-style: dashed;
+            box-shadow: 0 0 0 1px var(--accent), 0 10px 30px rgba(0,0,0,0.5);
             z-index: 100;
         }
 
-        /* The Resize Handle */
+        /* Drag handle (the whole widget is draggable, but we show a grab cursor) */
+        .widget:not(.selected) { cursor: grab; }
+        .widget:not(.selected):active { cursor: grabbing; }
+
+        /* Resize Handle */
         .resize-handle {
             position: absolute;
-            right: -6px;
-            bottom: -6px;
-            width: 12px;
-            height: 12px;
+            right: -5px;
+            bottom: -5px;
+            width: 14px;
+            height: 14px;
             background: var(--accent);
+            border: 2px solid var(--bg);
             border-radius: 50%;
             opacity: 0;
-            transition: opacity 0.2s;
             cursor: se-resize;
+            transition: opacity 0.2s;
+            z-index: 10;
         }
+        .widget.selected .resize-handle { opacity: 1; }
 
-        .block:hover .resize-handle,
-        .block.selected .resize-handle {
-            opacity: 1;
-        }
-
-        /* Block Toolbar */
-        .block-toolbar {
+        /* Toolbar */
+        .widget-toolbar {
             position: absolute;
-            top: -36px;
-            right: 0;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             gap: 2px;
-            background: var(--page);
+            background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 4px;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            cursor: default;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-
-        .block:hover .block-toolbar,
-        .block.selected .block-toolbar {
+        .widget.selected .widget-toolbar {
             opacity: 1;
             pointer-events: auto;
         }
@@ -129,22 +130,21 @@
             cursor: pointer;
             display: flex; align-items: center; justify-content: center;
         }
-        .tool-btn:hover { background: var(--surface); color: var(--text); }
-        .tool-btn.delete:hover { color: var(--danger); background: #fee2e2; }
+        .tool-btn:hover { background: var(--surface-hover); color: var(--text); }
+        .tool-btn.delete:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
 
         /* ── EDITABLE CONTENT ── */
         [contenteditable] {
             outline: none;
             cursor: text;
-            width: 100%;
-            height: 100%;
-            border-radius: 4px;
+            padding: 4px;
             min-width: 20px;
-            min-height: 24px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            border-radius: 4px;
         }
-
+        [contenteditable]:focus {
+            background: rgba(255,255,255,0.05);
+            box-shadow: 0 0 0 1px var(--border);
+        }
         [contenteditable]:empty:before {
             content: attr(data-placeholder);
             color: var(--muted);
@@ -155,26 +155,23 @@
         .w-text { font-size: 18px; line-height: 1.5; width: 100%; height: 100%; }
         .w-link { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; width: 100%; height: 100%; text-decoration: none; color: var(--text); }
         .w-profile { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: 100%; height: 100%; }
-        .w-avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--border); flex-shrink: 0; object-fit: cover; }
+        .w-avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
         .w-name { font-size: 20px; font-weight: 600; }
         .w-bio { font-size: 14px; color: var(--muted); }
-        .w-image img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
 
-        /* ── SETTINGS PANEL ── */
+        /* ── RIGHT SETTINGS PANEL ── */
         .settings-panel {
             width: 320px;
-            background: var(--page);
+            background: var(--surface);
             border-left: 1px solid var(--border);
             position: fixed;
             top: 0; right: 0; bottom: 0;
             transform: translateX(100%);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s var(--ease);
             z-index: 1000;
             display: flex;
             flex-direction: column;
-            box-shadow: -10px 0 30px rgba(0,0,0,0.03);
         }
-
         .settings-panel.open { transform: translateX(0); }
 
         .settings-header {
@@ -183,6 +180,7 @@
         }
         .settings-header h2 { font-size: 15px; font-weight: 600; }
         .close-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; }
+        .close-btn:hover { color: var(--text); }
 
         .settings-body {
             padding: 20px;
@@ -198,36 +196,32 @@
         
         .setting-group input, .setting-group textarea {
             width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
-            background: var(--surface); font-family: var(--font); font-size: 13px; color: var(--text);
+            background: var(--bg); font-family: var(--font); font-size: 13px; color: var(--text);
             outline: none;
         }
-        .setting-group input:focus, .setting-group textarea:focus { border-color: var(--accent); background: var(--page); }
-
-        .delete-btn {
-            margin-top: auto; padding: 10px; border-radius: 6px; border: 1px solid #fecaca;
-            background: #fef2f2; color: var(--danger); font-weight: 600; font-size: 13px;
-            cursor: pointer;
-        }
+        .setting-group input:focus, .setting-group textarea:focus { border-color: var(--accent); }
 
         /* ── SLASH MENU ── */
         .slash-menu {
             position: fixed;
             width: 220px;
-            background: var(--page);
+            background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 10px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
             padding: 6px;
             z-index: 2000;
             display: none;
             flex-direction: column; gap: 2px;
         }
-        .slash-menu.active { display: flex; }
+        .slash-menu.active { display: flex; animation: popIn 0.15s var(--ease); }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.95) translateY(-5px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
         .slash-item {
             display: flex; align-items: center; gap: 10px; padding: 10px 12px;
             border-radius: 6px; color: var(--text); font-size: 13px; cursor: pointer;
         }
-        .slash-item:hover, .slash-item.active { background: var(--surface); }
+        .slash-item:hover, .slash-item.active { background: var(--surface-hover); }
         .slash-item i { width: 16px; text-align: center; color: var(--muted); }
 
         /* ── DOCK ── */
@@ -236,9 +230,9 @@
             z-index: 900; display: flex; align-items: center; gap: 8px;
         }
         .dock {
-            display: flex; align-items: center; background: var(--page);
+            display: flex; align-items: center; background: var(--surface);
             border: 1px solid var(--border); border-radius: 12px;
-            padding: 6px; box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            padding: 6px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
         .dock-btn {
             background: transparent; border: none; color: var(--muted);
@@ -246,7 +240,7 @@
             display: flex; align-items: center; justify-content: center;
             transition: all 0.2s; font-size: 15px;
         }
-        .dock-btn:hover { background: var(--surface); color: var(--text); }
+        .dock-btn:hover { background: var(--surface-hover); color: var(--text); }
         
         .dock-scroll {
             display: flex; gap: 4px; overflow-x: auto; max-width: 250px; scrollbar-width: none;
@@ -258,21 +252,21 @@
 </head>
 <body>
 
-    <!-- Canvas Area -->
-    <div class="canvas-container">
-        <div class="canvas" id="canvas">
-            <!-- Blocks injected here -->
+    <!-- Main Canvas -->
+    <div class="workspace" id="workspace">
+        <div class="page" id="page">
+            <!-- Widgets go here -->
         </div>
     </div>
 
     <!-- Settings Panel -->
     <div class="settings-panel" id="settingsPanel">
         <div class="settings-header">
-            <h2 id="settingsTitle">Block Settings</h2>
+            <h2 id="settingsTitle">Widget Settings</h2>
             <button class="close-btn" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="settings-body" id="settingsBody">
-            <!-- Injected via JS -->
+            <!-- Dynamic -->
         </div>
     </div>
 
@@ -286,7 +280,7 @@
         <div class="dock">
             <button class="dock-btn" onclick="scrollDock(-100)"><i class="fa-solid fa-chevron-left"></i></button>
             <div class="dock-scroll" id="dockScroll">
-                <!-- Widget buttons injected here -->
+                <!-- Widget buttons -->
             </div>
             <button class="dock-btn" onclick="scrollDock(100)"><i class="fa-solid fa-chevron-right"></i></button>
             <div style="width:1px; height:20px; background:var(--border); margin:0 4px;"></div>
@@ -304,76 +298,79 @@
 
         let layout = [];
         let selectedId = null;
+        let snapGrid = 20; // Snap to 20px grid
 
         // ── INIT ──
         function init() {
             buildDock();
             buildSlashMenu();
 
-            const saved = localStorage.getItem('chroma_real_canvas');
+            const saved = localStorage.getItem('chroma_pro_canvas');
             if (saved) {
                 layout = JSON.parse(saved);
             } else {
                 // Default layout
                 layout = [
-                    { id: '1', type: 'profile', x: 50, y: 50, w: 300, h: 100, data: { name: 'Alex', bio: 'Designer & Builder' } },
-                    { id: '2', type: 'link', x: 50, y: 180, w: 300, h: 60, data: { label: 'My Portfolio', url: '#' } },
-                    { id: '3', type: 'text', x: 50, y: 280, w: 400, h: 50, data: { text: 'Welcome to my page. Click the background to spawn text, or press / to add a widget.' } }
+                    { id: '1', type: 'profile', x: 400, y: 200, w: 320, h: 100, data: { name: 'Alex', bio: 'Designer & Builder' } },
+                    { id: '2', type: 'link', x: 400, y: 320, w: 320, h: 60, data: { label: 'My Portfolio', url: '#' } }
                 ];
             }
-            render();
+            renderAll();
         }
 
         function generateId() { return Math.random().toString(36).substr(2, 9); }
 
-        // ── RENDER ──
-        function render() {
-            const canvas = document.getElementById('canvas');
-            canvas.innerHTML = ''; // Clear everything
+        // ── RENDER (Only runs once on load, then we update DOM directly) ──
+        function renderAll() {
+            const page = document.getElementById('page');
+            page.innerHTML = ''; // Clear
 
             layout.forEach(block => {
-                const el = document.createElement('div');
-                el.className = 'block';
-                if (block.id === selectedId) el.classList.add('selected');
-                el.dataset.id = block.id;
-                
-                // Apply position and size
-                el.style.left = `${block.x}px`;
-                el.style.top = `${block.y}px`;
-                el.style.width = `${block.w}px`;
-                el.style.height = `${block.h}px`;
+                createWidgetDOM(block);
+            });
+        }
 
-                // Toolbar & Resize Handle
-                el.innerHTML = `
-                    <div class="block-toolbar">
-                        <button class="tool-btn" onclick="event.stopPropagation(); openSettings('${block.id}')"><i class="fa-solid fa-sliders"></i></button>
-                        <button class="tool-btn delete" onclick="event.stopPropagation(); deleteBlock('${block.id}')"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                    <div class="resize-handle"></div>
-                `;
+        function createWidgetDOM(block) {
+            const page = document.getElementById('page');
+            const el = document.createElement('div');
+            el.className = 'widget';
+            el.id = `widget-${block.id}`;
+            el.dataset.id = block.id;
 
-                // Content
-                const content = document.createElement('div');
-                content.className = 'block-content';
-                content.innerHTML = getBlockHTML(block);
-                el.appendChild(content);
+            // Set position & size
+            el.style.left = `${block.x}px`;
+            el.style.top = `${block.y}px`;
+            el.style.width = `${block.w}px`;
+            el.style.height = `${block.h}px`;
 
-                // Apply Interact.js
-                makeInteractable(el, block);
+            // Content and Toolbar
+            el.innerHTML = `
+                <div class="widget-toolbar">
+                    <button class="tool-btn" onclick="openSettings('${block.id}')"><i class="fa-solid fa-sliders"></i></button>
+                    <button class="tool-btn delete" onclick="deleteWidget('${block.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <div class="resize-handle"></div>
+                <div class="w-content" style="width:100%; height:100%;">
+                    ${getWidgetHTML(block)}
+                </div>
+            `;
 
-                // Click to select
-                el.addEventListener('mousedown', (e) => {
-                    if (!e.target.closest('.block-toolbar') && !e.target.closest('.resize-handle') && !e.target.isContentEditable) {
-                        selectBlock(block.id);
-                    }
-                });
+            page.appendChild(el);
 
-                canvas.appendChild(el);
+            // Make it draggable/resizable
+            makeInteractable(el, block);
+
+            // Click to select
+            el.addEventListener('mousedown', (e) => {
+                // Only select if we aren't clicking a button, handle, or contenteditable
+                if (!e.target.closest('.widget-toolbar') && !e.target.closest('.resize-handle') && !e.target.isContentEditable) {
+                    selectWidget(block.id);
+                }
             });
         }
 
         // ── HTML GENERATOR ──
-        function getBlockHTML(block) {
+        function getWidgetHTML(block) {
             const d = block.data;
             const update = (field) => `oninput="updateData('${block.id}', '${field}', this.innerText)"`;
 
@@ -382,7 +379,7 @@
                     return `<div class="w-text" contenteditable="true" data-placeholder="Type something..." ${update('text')}>${d.text || ''}</div>`;
                 case 'profile':
                     return `<div class="w-profile">
-                        <img class="w-avatar" src="${d.avatar || 'https://api.dicebear.com/7.x/initials/svg?seed=' + (d.name || 'A')}" alt="Avatar">
+                        <div class="w-avatar" style="background-image:url(${d.avatar || 'https://api.dicebear.com/7.x/initials/svg?seed=' + (d.name || 'A')}); background-size:cover;"></div>
                         <div>
                             <div class="w-name" ${update('name')} contenteditable="true">${d.name || 'Your Name'}</div>
                             <div class="w-bio" ${update('bio')} contenteditable="true">${d.bio || 'Your bio'}</div>
@@ -394,18 +391,25 @@
                         <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--muted); font-size:12px;"></i>
                     </a>`;
                 case 'image':
-                    return `<div class="w-image"><img src="${d.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop'}" alt="Image"></div>`;
+                    return `<div class="w-image" style="width:100%; height:100%; border-radius:8px; overflow:hidden;">
+                        <img src="${d.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop'}" style="width:100%; height:100%; object-fit:cover;">
+                    </div>`;
                 default: return '';
             }
         }
 
-        // ── INTERACT.JS (DRAG & RESIZE) ──
+        // ── INTERACT.JS (THE MAGIC) ──
         function makeInteractable(el, block) {
             interact(el)
                 .draggable({
-                    ignoreFrom: '.block-toolbar, .resize-handle, [contenteditable]',
+                    ignoreFrom: '.widget-toolbar, .resize-handle, [contenteditable]',
                     inertia: true,
                     modifiers: [
+                        interact.modifiers.snap({
+                            targets: [interact.snappers.grid({ x: snapGrid, y: snapGrid })],
+                            range: Infinity,
+                            relativePoints: [ { x: 0, y: 0 } ]
+                        }),
                         interact.modifiers.restrictRect({
                             restriction: 'parent',
                             endOnly: false
@@ -414,27 +418,34 @@
                     listeners: {
                         move(event) {
                             const target = event.target;
-                            let x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-                            let y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-
-                            target.style.transform = `translate(${x}px, ${y}px)`;
-                            target.setAttribute('data-x', x);
-                            target.setAttribute('data-y', y);
                             
-                            // Update state
-                            block.x = block.x + event.dx;
-                            block.y = block.y + event.dy;
+                            // Calculate new position based on starting position + drag delta
+                            let newX = block.x + event.dx;
+                            let newY = block.y + event.dy;
+
+                            // Apply visually via transform for buttery smoothness
+                            target.style.transform = `translate(${newX - block.x}px, ${newY - block.y}px)`;
+
+                            // Live-update the settings panel if it's open
+                            if (selectedId === block.id) {
+                                const xInput = document.getElementById('s-x');
+                                const yInput = document.getElementById('s-y');
+                                if(xInput) xInput.value = Math.round(newX);
+                                if(yInput) yInput.value = Math.round(newY);
+                            }
                         },
                         end(event) {
                             const target = event.target;
+                            
+                            // Commit the final position to state
+                            block.x = Math.round((block.x + event.dx) / snapGrid) * snapGrid;
+                            block.y = Math.round((block.y + event.dy) / snapGrid) * snapGrid;
+
+                            // Reset transform and apply absolute left/top
                             target.style.transform = 'none';
                             target.style.left = `${block.x}px`;
                             target.style.top = `${block.y}px`;
-                            target.setAttribute('data-x', 0);
-                            target.setAttribute('data-y', 0);
-                            
-                            // Update settings panel if open
-                            if (selectedId === block.id) updateSettingsInputs(block);
+
                             saveLayout();
                         }
                     }
@@ -444,19 +455,23 @@
                     listeners: {
                         move(event) {
                             const target = event.target;
-                            let x = parseFloat(target.style.left) || block.x;
-                            let y = parseFloat(target.style.top) || block.y;
-
+                            
+                            // Apply new size visually
                             target.style.width = `${event.rect.width}px`;
                             target.style.height = `${event.rect.height}px`;
-
+                            
+                            // Live-update the settings panel
+                            if (selectedId === block.id) {
+                                const wInput = document.getElementById('s-w');
+                                const hInput = document.getElementById('s-h');
+                                if(wInput) wInput.value = Math.round(event.rect.width);
+                                if(hInput) hInput.value = Math.round(event.rect.height);
+                            }
+                        },
+                        end(event) {
+                            // Commit final size to state
                             block.w = event.rect.width;
                             block.h = event.rect.height;
-                            
-                            // Update settings panel if open
-                            if (selectedId === block.id) updateSettingsInputs(block);
-                        },
-                        end() {
                             saveLayout();
                         }
                     },
@@ -468,9 +483,9 @@
                 });
         }
 
-        // ── SPAWNING BLOCKS ──
-        function spawnBlock(type, x, y) {
-            const defaultSize = type === 'profile' ? { w: 300, h: 100 } : type === 'link' ? { w: 300, h: 60 } : { w: 200, h: 50 };
+        // ── SPAWNING WIDGETS ──
+        function spawnWidget(type, x, y) {
+            const defaultSize = type === 'profile' ? { w: 320, h: 100 } : type === 'link' ? { w: 320, h: 60 } : { w: 200, h: 50 };
             
             const newBlock = {
                 id: generateId(),
@@ -483,15 +498,17 @@
             };
 
             layout.push(newBlock);
-            selectedId = newBlock.id;
-            render();
+            createWidgetDOM(newBlock);
+            selectWidget(newBlock.id);
             saveLayout();
             
             // Focus text if it's a text block
-            setTimeout(() => {
-                const el = document.querySelector(`.block[data-id="${newBlock.id}"] [contenteditable]`);
-                if (el) el.focus();
-            }, 50);
+            if (type === 'text') {
+                setTimeout(() => {
+                    const el = document.querySelector(`#widget-${newBlock.id} [contenteditable]`);
+                    if (el) el.focus();
+                }, 50);
+            }
         }
 
         function getDefaultData(type) {
@@ -504,13 +521,21 @@
             }
         }
 
-        // Click background to spawn text
-        document.getElementById('canvas').addEventListener('dblclick', (e) => {
-            if (e.target.id === 'canvas') {
-                const rect = e.target.getBoundingClientRect();
+        // Double click workspace to spawn
+        document.getElementById('workspace').addEventListener('dblclick', (e) => {
+            if (e.target.id === 'workspace' || e.target.id === 'page') {
+                const page = document.getElementById('page');
+                const rect = page.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-                spawnBlock('text', x, y);
+                spawnWidget('text', x, y);
+            }
+        });
+
+        // Click workspace to deselect
+        document.getElementById('workspace').addEventListener('mousedown', (e) => {
+            if (e.target.id === 'workspace' || e.target.id === 'page') {
+                selectWidget(null); // Deselect
             }
         });
 
@@ -525,9 +550,7 @@
 
             list.querySelectorAll('.slash-item').forEach(item => {
                 item.onclick = () => {
-                    const x = window.slashX || 100;
-                    const y = window.slashY || 100;
-                    spawnBlock(item.dataset.type, x, y);
+                    spawnWidget(item.dataset.type, window.slashX, window.slashY);
                     closeSlashMenu();
                 };
             });
@@ -535,27 +558,32 @@
 
         document.addEventListener('keydown', (e) => {
             if (e.key === '/' && !e.target.closest('.slash-menu')) {
-                // If we aren't typing in an input
                 if (!e.target.isContentEditable && e.target.tagName !== 'INPUT') {
                     e.preventDefault();
                     
-                    // Save mouse position relative to canvas
-                    const canvas = document.getElementById('canvas');
-                    const rect = canvas.getBoundingClientRect();
+                    const page = document.getElementById('page');
+                    const rect = page.getBoundingClientRect();
                     
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    
-                    window.slashX = x;
-                    window.slashY = y;
+                    // Get mouse pos relative to page
+                    window.slashX = Math.round((window.lastMouseX - rect.left) / snapGrid) * snapGrid;
+                    window.slashY = Math.round((window.lastMouseY - rect.top) / snapGrid) * snapGrid;
                     
                     const menu = document.getElementById('slashMenu');
-                    menu.style.left = `${e.clientX}px`;
-                    menu.style.top = `${e.clientY + 20}px`;
+                    menu.style.left = `${window.lastMouseX}px`;
+                    menu.style.top = `${window.lastMouseY + 20}px`;
                     menu.classList.add('active');
                 }
             }
-            if (e.key === 'Escape') closeSlashMenu();
+            if (e.key === 'Escape') {
+                closeSlashMenu();
+                selectWidget(null);
+            }
+        });
+
+        // Track mouse for slash command
+        window.addEventListener('mousemove', (e) => {
+            window.lastMouseX = e.clientX;
+            window.lastMouseY = e.clientY;
         });
 
         function closeSlashMenu() {
@@ -563,23 +591,38 @@
         }
 
         // ── SETTINGS PANEL ──
-        function openSettings(id) {
+        function selectWidget(id) {
             selectedId = id;
+            
+            // Remove selected class from all
+            document.querySelectorAll('.widget').forEach(w => w.classList.remove('selected'));
+            
+            if (id) {
+                const el = document.getElementById(`widget-${id}`);
+                if (el) el.classList.add('selected');
+                openSettings(id);
+            } else {
+                closeSettings();
+            }
+        }
+
+        function openSettings(id) {
             const block = layout.find(b => b.id === id);
             if(!block) return;
 
+            document.getElementById('workspace').classList.add('settings-open');
             document.getElementById('settingsPanel').classList.add('open');
             document.getElementById('settingsTitle').innerText = `Edit ${block.type.toUpperCase()}`;
             
             const body = document.getElementById('settingsBody');
             body.innerHTML = `
                 <div class="setting-row">
-                    <div class="setting-group"><label>X Pos</label><input type="number" id="s-x" value="${Math.round(block.x)}" oninput="changeProp('${id}', 'x', this.value)"></div>
-                    <div class="setting-group"><label>Y Pos</label><input type="number" id="s-y" value="${Math.round(block.y)}" oninput="changeProp('${id}', 'y', this.value)"></div>
+                    <div class="setting-group"><label>X Pos</label><input type="number" id="s-x" value="${Math.round(block.x)}" onchange="changeProp('${id}', 'x', this.value)"></div>
+                    <div class="setting-group"><label>Y Pos</label><input type="number" id="s-y" value="${Math.round(block.y)}" onchange="changeProp('${id}', 'y', this.value)"></div>
                 </div>
                 <div class="setting-row">
-                    <div class="setting-group"><label>Width</label><input type="number" id="s-w" value="${Math.round(block.w)}" oninput="changeProp('${id}', 'w', this.value)"></div>
-                    <div class="setting-group"><label>Height</label><input type="number" id="s-h" value="${Math.round(block.h)}" oninput="changeProp('${id}', 'h', this.value)"></div>
+                    <div class="setting-group"><label>Width</label><input type="number" id="s-w" value="${Math.round(block.w)}" onchange="changeProp('${id}', 'w', this.value)"></div>
+                    <div class="setting-group"><label>Height</label><input type="number" id="s-h" value="${Math.round(block.h)}" onchange="changeProp('${id}', 'h', this.value)"></div>
                 </div>
                 <hr style="border:none; border-top:1px solid var(--border); margin: 10px 0;">
             `;
@@ -601,32 +644,19 @@
             } else if (block.type === 'image') {
                 body.innerHTML += `<div class="setting-group"><label>Image URL</label><input type="text" value="${block.data.url || ''}" oninput="updateData('${id}', 'url', this.value)"></div>`;
             }
-
-            body.innerHTML += `<button class="delete-btn" onclick="deleteBlock('${id}')">Delete Block</button>`;
-        }
-
-        function updateSettingsInputs(block) {
-            const x = document.getElementById('s-x');
-            const y = document.getElementById('s-y');
-            const w = document.getElementById('s-w');
-            const h = document.getElementById('s-h');
-            if(x) x.value = Math.round(block.x);
-            if(y) y.value = Math.round(block.y);
-            if(w) w.value = Math.round(block.w);
-            if(h) h.value = Math.round(block.h);
         }
 
         function closeSettings() {
+            document.getElementById('workspace').classList.remove('settings-open');
             document.getElementById('settingsPanel').classList.remove('open');
             selectedId = null;
-            render(); // Remove active highlights
         }
 
         function changeProp(id, prop, val) {
             const block = layout.find(b => b.id === id);
             if(block) {
                 block[prop] = parseFloat(val);
-                const el = document.querySelector(`.block[data-id="${id}"]`);
+                const el = document.getElementById(`widget-${id}`);
                 if(el) {
                     if(prop === 'x') el.style.left = `${val}px`;
                     if(prop === 'y') el.style.top = `${val}px`;
@@ -644,31 +674,25 @@
                 saveLayout();
                 
                 // Live update DOM
-                const el = document.querySelector(`.block[data-id="${id}"]`);
+                const el = document.querySelector(`#widget-${id}`);
                 if (el) {
                     if (field === 'text') el.querySelector('[contenteditable]').innerText = value;
                     if (field === 'name') el.querySelector('.w-name').innerText = value;
                     if (field === 'bio') el.querySelector('.w-bio').innerText = value;
                     if (field === 'label') el.querySelector('.w-link span').innerText = value;
-                    if (field === 'avatar') el.querySelector('.w-avatar').src = value;
+                    if (field === 'avatar') el.querySelector('.w-avatar').style.backgroundImage = `url(${value})`;
                     if (field === 'url' && block.type === 'link') el.querySelector('a').href = value;
                     if (field === 'url' && block.type === 'image') el.querySelector('img').src = value;
                 }
             }
         }
 
-        function deleteBlock(id) {
+        function deleteWidget(id) {
             layout = layout.filter(b => b.id !== id);
+            const el = document.getElementById(`widget-${id}`);
+            if (el) el.remove();
             saveLayout();
-            render();
             closeSettings();
-        }
-
-        function selectBlock(id) {
-            selectedId = id;
-            document.querySelectorAll('.block').forEach(b => b.classList.remove('selected'));
-            const el = document.querySelector(`.block[data-id="${id}"]`);
-            if (el) el.classList.add('selected');
         }
 
         // ── DOCK ──
@@ -680,11 +704,11 @@
                 btn.innerHTML = `<i class="fa-solid ${w.icon}"></i>`;
                 btn.title = w.name;
                 btn.onclick = () => {
-                    // Spawn in center of canvas
-                    const canvas = document.getElementById('canvas');
-                    const x = canvas.clientWidth / 2 - 100;
-                    const y = canvas.clientHeight / 2 - 50;
-                    spawnBlock(w.type, x, y);
+                    // Spawn in center of the visible workspace
+                    const workspace = document.getElementById('workspace');
+                    const x = workspace.scrollLeft + (workspace.clientWidth / 2) - 100;
+                    const y = workspace.scrollTop + (workspace.clientHeight / 2) - 50;
+                    spawnWidget(w.type, x, y);
                 };
                 scroll.appendChild(btn);
             });
@@ -696,7 +720,7 @@
 
         // ── SAVE ──
         function saveLayout() {
-            localStorage.setItem('chroma_real_canvas', JSON.stringify(layout));
+            localStorage.setItem('chroma_pro_canvas', JSON.stringify(layout));
         }
 
         // Start
