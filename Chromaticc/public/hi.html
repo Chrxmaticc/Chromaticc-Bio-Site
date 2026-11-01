@@ -6,470 +6,447 @@
     <title>Chromaticc — Editor</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SortableJS for buttery smooth drag and drop -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- Interact.js for REAL drag and drop -->
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
     <style>
         :root {
-            --bg: #ffffff;
+            --bg-ui: #e4e4e7;
+            --page: #ffffff;
             --surface: #f4f4f5;
-            --surface-hover: #e4e4e7;
             --border: #e4e4e7;
             --text: #09090b;
             --muted: #71717a;
-            --accent: #09090b;
+            --accent: #18181b;
             --danger: #ef4444;
-            --ease: cubic-bezier(0.16, 1, 0.3, 1);
             --font: 'Poppins', sans-serif;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body {
-            background: var(--bg);
+            background: var(--bg-ui);
             color: var(--text);
             font-family: var(--font);
-            overflow-y: auto;
-            overflow-x: hidden;
-            min-height: 100vh;
+            overflow: hidden;
+            height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* ── THE CANVAS (Google Docs Style) ── */
-        .canvas {
-            width: 100%;
-            max-width: 650px;
-            padding: 120px 20px 200px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            position: relative;
-        }
-
-        /* ── BLOCKS ── */
-        .block-wrapper {
-            position: relative;
-            display: flex;
-            align-items: flex-start;
-        }
-
-        /* The Drag Handle */
-        .drag-handle {
-            position: absolute;
-            left: -32px;
-            top: 6px;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            color: var(--muted);
-            cursor: grab;
-            opacity: 0;
-            transition: opacity 0.2s, background 0.2s;
-            border-radius: 4px;
         }
-        .drag-handle:hover { background: var(--surface); color: var(--text); }
-        .block-wrapper:hover .drag-handle { opacity: 1; }
 
-        .block-content {
+        /* ── THE GOOGLE DOC PAGE ── */
+        .page-container {
             flex: 1;
-            min-width: 0;
-            border-radius: 8px;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px 120px 20px;
             position: relative;
-            transition: background 0.2s;
         }
 
-        /* Hover Toolbar */
-        .block-toolbar {
+        .page {
+            width: 100%;
+            max-width: 800px;
+            min-height: 1000px;
+            background: var(--page);
+            border-radius: 8px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Clickable void background */
+        .page-void {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            cursor: text;
+        }
+
+        /* ── BLOCKS (Absolute positioned & Draggable) ── */
+        .block {
+            position: absolute;
+            z-index: 10;
+            padding: 8px;
+            border-radius: 8px;
+            outline: 1px dashed transparent;
+            transition: outline 0.2s, background 0.2s;
+            touch-action: none; /* Required for interact.js */
+        }
+
+        .block:hover {
+            outline: 1px dashed var(--muted);
+        }
+
+        .block.active {
+            outline: 2px solid var(--accent);
+            background: rgba(0,0,0,0.02);
+        }
+
+        .block:active { cursor: grabbing; }
+
+        /* Toolbar */
+        .block-tools {
             position: absolute;
             top: -36px;
-            right: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
             display: flex;
             gap: 2px;
-            background: var(--bg);
+            background: var(--page);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 4px;
             opacity: 0;
             pointer-events: none;
-            transform: translateY(4px);
             transition: all 0.2s var(--ease);
-            z-index: 100;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
-        .block-wrapper:hover .block-toolbar {
+
+        .block:hover .block-tools, .block.active .block-tools {
             opacity: 1;
             pointer-events: auto;
-            transform: translateY(0);
+            transform: translateX(-50%) translateY(0);
         }
 
         .tool-btn {
-            background: transparent;
-            border: none;
-            color: var(--muted);
-            width: 24px; height: 24px;
-            border-radius: 4px;
-            cursor: pointer;
+            background: transparent; border: none; color: var(--muted);
+            width: 24px; height: 24px; border-radius: 4px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
         }
         .tool-btn:hover { background: var(--surface); color: var(--text); }
         .tool-btn.delete:hover { color: var(--danger); background: #fee2e2; }
 
-        /* Editable Text */
+        /* ── EDITABLE CONTENT ── */
         [contenteditable] {
-            outline: none;
-            cursor: text;
-            padding: 8px 12px;
-            border-radius: 6px;
-            min-height: 40px;
-            font-size: 15px;
-            line-height: 1.6;
-            transition: box-shadow 0.2s;
-        }
-        [contenteditable]:focus {
-            background: var(--bg);
-            box-shadow: 0 0 0 2px var(--border);
+            outline: none; cursor: text; border-radius: 4px; padding: 4px;
+            min-width: 20px; display: inline-block;
         }
         [contenteditable]:empty:before {
-            content: attr(data-placeholder);
-            color: var(--muted);
-            pointer-events: none;
-            display: block;
+            content: attr(data-placeholder); color: var(--muted); pointer-events: none;
         }
 
-        /* Sortable Ghost */
-        .sortable-ghost { opacity: 0.4; background: var(--surface); border-radius: 8px; }
-        .sortable-drag { cursor: grabbing; }
+        /* ── SPECIFIC WIDGET STYLES ── */
+        .w-text { font-size: 18px; line-height: 1.6; max-width: 400px; color: #000; }
+        .w-link { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--page); border: 1px solid var(--border); border-radius: 10px; width: 300px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .w-profile { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--page); border: 1px solid var(--border); border-radius: 12px; width: 320px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .w-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); flex-shrink: 0; }
+        .w-name { font-size: 18px; font-weight: 600; }
+        .w-bio { font-size: 13px; color: var(--muted); }
+        .w-image img { width: 300px; border-radius: 10px; border: 1px solid var(--border); display: block; }
+        .w-embed { width: 300px; height: 80px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); }
 
-        /* ── WIDGET STYLES ── */
-        .w-profile { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; }
-        .w-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); flex-shrink: 0; }
-        .w-name { font-size: 20px; font-weight: 600; padding: 0; min-height: auto; }
-        .w-bio { font-size: 14px; color: var(--muted); padding: 0; min-height: auto; }
-
-        .w-link { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: background 0.2s; }
-        .w-link:hover { background: var(--surface); }
-        
-        .w-image img { width: 100%; border-radius: 12px; border: 1px solid var(--border); display: block; }
-        .w-embed { border-radius: 12px; border: 1px solid var(--border); overflow: hidden; background: var(--surface); padding: 12px; text-align: center; font-size: 13px; color: var(--muted); }
-
-        /* ── SLASH MENU ── */
-        .slash-menu {
-            position: fixed;
-            width: 240px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-            padding: 6px;
-            z-index: 2000;
-            display: none;
+        /* ── SIDEBAR SETTINGS ── */
+        .settings-panel {
+            width: 320px;
+            background: var(--page);
+            border-left: 1px solid var(--border);
+            padding: 24px;
+            display: flex;
             flex-direction: column;
-            gap: 2px;
-        }
-        .slash-menu.active { display: flex; animation: popIn 0.15s var(--ease); }
-
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(0.98) translateY(-5px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .slash-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 8px 10px; border-radius: 6px;
-            color: var(--text); font-size: 13px; cursor: pointer;
-            transition: all 0.15s;
-        }
-        .slash-item:hover, .slash-item.active {
-            background: var(--surface);
-        }
-        .slash-item i { width: 20px; text-align: center; font-size: 14px; color: var(--muted); }
-        
-        .slash-search {
-            width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border);
-            color: var(--text); font-family: var(--font); font-size: 13px; padding: 8px 10px;
-            outline: none; margin-bottom: 4px;
-        }
-
-        /* ── THE BOTTOM DOCK ── */
-        .dock-wrapper {
+            gap: 20px;
+            transform: translateX(100%);
+            transition: transform 0.3s var(--ease);
             position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 0;
+            top: 0;
+            bottom: 0;
             z-index: 1000;
+            box-shadow: -4px 0 24px rgba(0,0,0,0.05);
+        }
+
+        .settings-panel.open {
+            transform: translateX(0);
+        }
+
+        .settings-header {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
         }
 
-        /* Settings Menu (Pops up above dock) */
-        .settings-menu {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 6px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            margin-bottom: 8px;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(10px);
-            transition: all 0.2s var(--ease);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        .settings-menu.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
-        .settings-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; color: var(--text); }
-        .settings-item:hover { background: var(--surface); }
-        .settings-item i { color: var(--muted); }
+        .settings-header h3 { font-size: 16px; font-weight: 600; }
+        .close-settings { cursor: pointer; color: var(--muted); border: none; background: none; font-size: 18px; }
+        .close-settings:hover { color: var(--text); }
 
-        /* Dock */
+        .setting-group { display: flex; flex-direction: column; gap: 6px; }
+        .setting-group label { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .setting-group input, .setting-group select, .setting-group textarea {
+            width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--surface); font-family: var(--font); font-size: 14px; color: var(--text);
+            outline: none; transition: border-color 0.2s;
+        }
+        .setting-group input:focus { border-color: var(--accent); background: var(--page); }
+        .setting-group input[type="color"] { padding: 2px; height: 40px; cursor: pointer; }
+
+        /* ── DOCK ── */
+        .dock-wrapper {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; display: flex; flex-direction: column; align-items: center;
+        }
         .dock {
-            display: flex;
-            align-items: center;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 8px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            display: flex; align-items: center; background: var(--page);
+            border: 1px solid var(--border); border-radius: 16px; padding: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
         }
-
         .dock-btn {
-            background: transparent;
-            border: none;
-            color: var(--muted);
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            font-size: 16px;
-            flex-shrink: 0;
+            background: transparent; border: none; color: var(--muted);
+            width: 44px; height: 44px; border-radius: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; font-size: 16px; flex-shrink: 0;
         }
         .dock-btn:hover { background: var(--surface); color: var(--text); }
-        .dock-btn.active { background: var(--text); color: var(--bg); }
-
-        .dock-divider { width: 1px; height: 24px; background: var(--border); margin: 0 8px; flex-shrink: 0; }
-
-        /* Horizontal Scroll Area for Widgets */
+        .dock-btn.active { background: var(--text); color: var(--page); }
+        .dock-divider { width: 1px; height: 24px; background: var(--border); margin: 0 8px; }
+        
         .dock-scroll {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            overflow-x: auto;
-            max-width: 300px;
-            scroll-behavior: smooth;
-            padding: 0 4px;
-            scrollbar-width: none;
+            display: flex; align-items: center; gap: 4px; overflow-x: auto;
+            max-width: 300px; scroll-behavior: smooth; padding: 0 4px; scrollbar-width: none;
         }
         .dock-scroll::-webkit-scrollbar { display: none; }
 
-        .dock-scroll-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 8px; }
-        .dock-scroll-btn:hover { color: var(--text); }
-
+        /* ── SLASH MENU ── */
+        .slash-menu {
+            position: fixed; width: 220px; background: var(--page);
+            border: 1px solid var(--border); border-radius: 10px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1); padding: 6px;
+            z-index: 2000; display: none; flex-direction: column; gap: 2px;
+        }
+        .slash-menu.active { display: flex; }
+        .slash-item {
+            display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+            border-radius: 6px; color: var(--text); font-size: 13px; cursor: pointer;
+        }
+        .slash-item:hover, .slash-item.active { background: var(--surface); }
+        .slash-item i { width: 16px; text-align: center; color: var(--muted); }
+        
     </style>
 </head>
 <body>
 
-    <!-- The Canvas -->
-    <div class="canvas" id="canvas">
-        <!-- Blocks get injected here -->
+    <!-- The Page Container -->
+    <div class="page-container" id="pageContainer">
+        <div class="page" id="page">
+            <div class="page-void" id="pageVoid"></div>
+            <!-- Blocks get injected here -->
+        </div>
+    </div>
+
+    <!-- Settings Panel (Right Side) -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <h3>Block Settings</h3>
+            <button class="close-settings" onclick="closeSettings()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="settingsContent">
+            <p style="font-size:13px; color:var(--muted);">Select a block to edit its settings.</p>
+        </div>
     </div>
 
     <!-- Slash Menu -->
     <div class="slash-menu" id="slashMenu">
-        <input type="text" class="slash-search" id="slashInput" placeholder="Search blocks..." autocomplete="off">
         <div id="slashList"></div>
     </div>
 
     <!-- Bottom Dock -->
     <div class="dock-wrapper">
-        <!-- Settings Menu -->
-        <div class="settings-menu" id="settingsMenu">
-            <div class="settings-item" onclick="saveLayout()"><i class="fa-solid fa-check"></i> Save Layout</div>
-            <div class="settings-item" onclick="exportLayout()"><i class="fa-solid fa-download"></i> Export JSON</div>
-            <div class="settings-item" onclick="clearLayout()" style="color:var(--danger)"><i class="fa-solid fa-trash"></i> Clear Canvas</div>
-        </div>
-
         <div class="dock">
-            <button class="dock-btn" onclick="toggleSettings()" id="settingsBtn"><i class="fa-solid fa-sliders"></i></button>
-            
+            <button class="dock-btn" onclick="saveLayout()"><i class="fa-solid fa-check"></i></button>
+            <button class="dock-btn" onclick="clearLayout()"><i class="fa-solid fa-trash" style="color:var(--danger)"></i></button>
             <div class="dock-divider"></div>
-
-            <button class="dock-scroll-btn" onclick="scrollDock(-100)"><i class="fa-solid fa-chevron-left"></i></button>
-            <div class="dock-scroll" id="dockScroll">
-                <!-- Widgets injected here -->
-            </div>
-            <button class="dock-scroll-btn" onclick="scrollDock(100)"><i class="fa-solid fa-chevron-right"></i></button>
-
+            <div class="dock-scroll" id="dockScroll"></div>
             <div class="dock-divider"></div>
-
-            <button class="dock-btn active" onclick="addBlock('text')"><i class="fa-solid fa-plus"></i></button>
+            <button class="dock-btn active" onclick="addBlock('text', 400, 100)"><i class="fa-solid fa-plus"></i></button>
         </div>
     </div>
 
     <script>
         const WIDGET_TYPES = [
-            { type: 'text', name: 'Text Block', icon: 'fa-font' },
-            { type: 'profile', name: 'Profile Card', icon: 'fa-user' },
-            { type: 'link', name: 'Link Button', icon: 'fa-link' },
+            { type: 'text', name: 'Text', icon: 'fa-font' },
+            { type: 'profile', name: 'Profile', icon: 'fa-user' },
+            { type: 'link', name: 'Link', icon: 'fa-link' },
             { type: 'image', name: 'Image', icon: 'fa-image' },
-            { type: 'youtube', name: 'YouTube', icon: 'fa-youtube' },
-            { type: 'spotify', name: 'Spotify', icon: 'fa-spotify' }
+            { type: 'spotify', name: 'Spotify', icon: 'fa-spotify' },
+            { type: 'youtube', name: 'YouTube', icon: 'fa-youtube' }
         ];
 
         let layout = [];
-        let sortableInstance = null;
-        let activeBlockIndex = -1;
-        let slashPos = { x: 0, y: 0 };
+        let selectedId = null;
 
         // ── INIT ──
         function init() {
             buildDock();
             buildSlashMenu();
 
-            const saved = localStorage.getItem('chroma_light_layout');
+            const saved = localStorage.getItem('chroma_real_layout');
             if (saved) {
                 layout = JSON.parse(saved);
             } else {
+                // Default layout
                 layout = [
-                    { id: generateId(), type: 'profile', data: { name: 'Alex', bio: 'Designer & Builder' } },
-                    { id: generateId(), type: 'link', data: { label: 'My Portfolio', url: '#' } }
+                    { id: '1', type: 'profile', x: 200, y: 150, data: { name: 'Alex', bio: 'Designer & Builder' } },
+                    { id: '2', type: 'link', x: 200, y: 280, data: { label: 'My Portfolio', url: '#' } }
                 ];
             }
             render();
         }
 
-        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
+        function generateId() { return Math.random().toString(36).substr(2, 9); }
 
-        // ── RENDER ──
+        // ── RENDER BLOCKS ──
         function render() {
-            const canvas = document.getElementById('canvas');
-            canvas.innerHTML = '';
+            const page = document.getElementById('page');
+            // Remove all blocks but keep the void
+            Array.from(page.children).forEach(c => { if(c.id !== 'pageVoid') c.remove(); });
 
-            layout.forEach((block, index) => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'block-wrapper';
-                wrapper.dataset.id = block.id;
-                wrapper.dataset.index = index;
+            layout.forEach(block => {
+                const el = document.createElement('div');
+                el.className = 'block';
+                el.dataset.id = block.id;
+                el.style.left = `${block.x}px`;
+                el.style.top = `${block.y}px`;
 
-                // Drag Handle
-                wrapper.innerHTML += `<div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>`;
-
-                // Content Area
-                const content = document.createElement('div');
-                content.className = 'block-content';
-                content.innerHTML = getBlockHTML(block);
-                
                 // Toolbar
-                content.innerHTML += `
-                    <div class="block-toolbar">
+                el.innerHTML += `
+                    <div class="block-tools">
+                        <button class="tool-btn" onclick="openSettings('${block.id}')"><i class="fa-solid fa-sliders"></i></button>
                         <button class="tool-btn delete" onclick="deleteBlock('${block.id}')"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 `;
 
-                wrapper.appendChild(content);
-                canvas.appendChild(wrapper);
-            });
+                // Content
+                const content = document.createElement('div');
+                content.className = 'block-content';
+                content.innerHTML = getBlockHTML(block);
+                el.appendChild(content);
 
-            // Initialize SortableJS for drag-and-drop reordering
-            if (!sortableInstance) {
-                sortableInstance = new Sortable(canvas, {
-                    handle: '.drag-handle',
-                    animation: 150,
-                    ghostClass: 'sortable-ghost',
-                    onEnd: function (evt) {
-                        const [movedItem] = layout.splice(evt.oldIndex, 1);
-                        layout.splice(evt.newIndex, 0, movedItem);
-                        saveLayout();
-                        render(); // Re-render to update indexes
+                // Apply Drag
+                makeDraggable(el, block.id);
+
+                // Select on click
+                el.addEventListener('mousedown', (e) => {
+                    if (!e.target.closest('.block-tools') && !e.target.isContentEditable) {
+                        selectBlock(block.id);
                     }
                 });
-            }
+
+                page.appendChild(el);
+            });
         }
 
         // ── HTML GENERATOR ──
         function getBlockHTML(block) {
-            const update = (field) => `oninput="updateData('${block.id}', '${field}', this.innerText)"`;
             const d = block.data;
+            const update = (field) => `oninput="updateData('${block.id}', '${field}', this.innerText)"`;
 
             switch (block.type) {
                 case 'text':
-                    return `<div contenteditable="true" data-placeholder="Type '/' for commands..." ${update('text')}>${d.text || ''}</div>`;
-                
+                    return `<div class="w-text" contenteditable="true" data-placeholder="Type something..." ${update('text')}>${d.text || ''}</div>`;
                 case 'profile':
                     return `<div class="w-profile">
                         <div class="w-avatar"></div>
                         <div>
-                            <div class="w-name" contenteditable="true" ${update('name')} data-placeholder="Name">${d.name || ''}</div>
-                            <div class="w-bio" contenteditable="true" ${update('bio')} data-placeholder="Bio">${d.bio || ''}</div>
+                            <div class="w-name" contenteditable="true" ${update('name')}>${d.name}</div>
+                            <div class="w-bio" contenteditable="true" ${update('bio')}>${d.bio}</div>
                         </div>
                     </div>`;
-                
                 case 'link':
-                    return `<div class="w-link">
-                        <span contenteditable="true" ${update('label')} style="padding:0;min-height:auto;font-weight:500;">${d.label || 'Link Label'}</span>
+                    return `<a class="w-link" href="${d.url}" onclick="event.preventDefault()">
+                        <span contenteditable="true" ${update('label')} style="font-weight:500;">${d.label}</span>
                         <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--muted); font-size:12px;"></i>
-                    </div>`;
-                
+                    </a>`;
                 case 'image':
                     return `<div class="w-image"><img src="${d.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop'}" alt="Image"></div>`;
-                
-                case 'youtube':
-                    return `<div class="w-embed"><i class="fa-brands fa-youtube" style="color:#ef4444;font-size:24px;margin-bottom:8px;display:block;"></i> YouTube Video Embed</div>`;
-                
                 case 'spotify':
-                    return `<div class="w-embed"><i class="fa-brands fa-spotify" style="color:#1db954;font-size:24px;margin-bottom:8px;display:block;"></i> Spotify Embed</div>`;
-                
+                    return `<div class="w-embed"><i class="fa-brands fa-spotify" style="color:#1db954; font-size:20px; margin-right:8px;"></i> Spotify Embed</div>`;
+                case 'youtube':
+                    return `<div class="w-embed"><i class="fa-brands fa-youtube" style="color:#ef4444; font-size:20px; margin-right:8px;"></i> YouTube Embed</div>`;
                 default: return '';
             }
         }
 
-        // ── STATE MUTATIONS ──
-        function addBlock(type, insertIndex = -1) {
+        // ── REAL DRAG AND DROP (Interact.js) ──
+        function makeDraggable(el, id) {
+            interact(el)
+                .draggable({
+                    ignoreFrom: '.block-tools, [contenteditable]', // Don't drag when clicking text/toolbar
+                    inertia: true,
+                    modifiers: [
+                        interact.modifiers.restrictRect({
+                            restriction: 'parent',
+                            endOnly: true
+                        })
+                    ],
+                    listeners: {
+                        move(event) {
+                            const target = event.target;
+                            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                            target.style.transform = `translate(${x}px, ${y}px)`;
+                            target.setAttribute('data-x', x);
+                            target.setAttribute('data-y', y);
+
+                            // Update state instantly
+                            const block = layout.find(b => b.id === id);
+                            if (block) {
+                                block.x = (parseFloat(target.style.left) || 0) + x;
+                                block.y = (parseFloat(target.style.top) || 0) + y;
+                            }
+                        },
+                        end(event) {
+                            // Commit to permanent left/top
+                            const target = event.target;
+                            const x = parseFloat(target.getAttribute('data-x')) || 0;
+                            const y = parseFloat(target.getAttribute('data-y')) || 0;
+                            
+                            target.style.left = (parseFloat(target.style.left) || 0) + x + 'px';
+                            target.style.top = (parseFloat(target.style.top) || 0) + y + 'px';
+                            target.style.transform = 'none';
+                            target.setAttribute('data-x', 0);
+                            target.setAttribute('data-y', 0);
+                            
+                            saveLayout();
+                        }
+                    }
+                });
+        }
+
+        // ── CLICK BACKGROUND TO TYPE ──
+        document.getElementById('pageVoid').addEventListener('mousedown', (e) => {
+            if (e.target.id === 'pageVoid') {
+                const rect = document.getElementById('page').getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Create a text block exactly where you clicked
+                addBlock('text', x, y);
+            }
+        });
+
+        // ── ADD BLOCK ──
+        function addBlock(type, x = 400, y = 200) {
             const newBlock = {
                 id: generateId(),
                 type: type,
+                x: x,
+                y: y,
                 data: getDefaultData(type)
             };
 
-            if (insertIndex >= 0) {
-                layout.splice(insertIndex, 0, newBlock);
-            } else {
-                layout.push(newBlock);
-            }
-
+            layout.push(newBlock);
             saveLayout();
             render();
-            
+
             // Focus the new block
             setTimeout(() => {
                 const el = document.querySelector(`[data-id="${newBlock.id}"] [contenteditable]`);
                 if (el) el.focus();
+                selectBlock(newBlock.id);
             }, 50);
-        }
-
-        function deleteBlock(id) {
-            layout = layout.filter(b => b.id !== id);
-            saveLayout();
-            render();
-        }
-
-        function updateData(id, field, value) {
-            const block = layout.find(b => b.id === id);
-            if (block) {
-                block.data[field] = value;
-                saveLayout();
-            }
         }
 
         function getDefaultData(type) {
@@ -482,7 +459,82 @@
             }
         }
 
-        // ── DOCK & SETTINGS ──
+        // ── SETTINGS PANEL ──
+        function selectBlock(id) {
+            selectedId = id;
+            document.querySelectorAll('.block').forEach(b => b.classList.remove('active'));
+            const el = document.querySelector(`.block[data-id="${id}"]`);
+            if (el) el.classList.add('active');
+        }
+
+        function openSettings(id) {
+            selectedId = id;
+            selectBlock(id);
+            
+            const block = layout.find(b => b.id === id);
+            const panel = document.getElementById('settingsPanel');
+            const content = document.getElementById('settingsContent');
+            
+            panel.classList.add('open');
+            
+            // Build settings UI based on block type
+            let html = '';
+            
+            if (block.type === 'text') {
+                html += `<div class="setting-group"><label>Content</label><textarea id="s-text" rows="4" oninput="updateData('${id}', 'text', this.value)">${block.data.text || ''}</textarea></div>`;
+            } else if (block.type === 'profile') {
+                html += `<div class="setting-group"><label>Name</label><input id="s-name" type="text" value="${block.data.name || ''}" oninput="updateData('${id}', 'name', this.value)"></div>`;
+                html += `<div class="setting-group"><label>Bio</label><input id="s-bio" type="text" value="${block.data.bio || ''}" oninput="updateData('${id}', 'bio', this.value)"></div>`;
+            } else if (block.type === 'link') {
+                html += `<div class="setting-group"><label>Label</label><input id="s-label" type="text" value="${block.data.label || ''}" oninput="updateData('${id}', 'label', this.value)"></div>`;
+                html += `<div class="setting-group"><label>URL</label><input id="s-url" type="text" value="${block.data.url || ''}" oninput="updateData('${id}', 'url', this.value)"></div>`;
+            } else if (block.type === 'image') {
+                html += `<div class="setting-group"><label>Image URL</label><input id="s-url" type="text" value="${block.data.url || ''}" oninput="updateData('${id}', 'url', this.value)"></div>`;
+            }
+            
+            html += `<button class="btn" style="margin-top:20px; width:100%; padding:10px; background:#ef4444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600;" onclick="deleteBlock('${id}')">Delete Block</button>`;
+            
+            content.innerHTML = html;
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsPanel').classList.remove('open');
+        }
+
+        function updateData(id, field, value) {
+            const block = layout.find(b => b.id === id);
+            if (block) {
+                block.data[field] = value;
+                saveLayout();
+                
+                // Live update the text in the DOM without full re-render
+                const el = document.querySelector(`.block[data-id="${id}"]`);
+                if (el) {
+                    const editables = el.querySelectorAll('[contenteditable]');
+                    // Simple map for text, name, label, bio
+                    if (field === 'text') editables[0].innerText = value;
+                    if (field === 'name') editables[0].innerText = value;
+                    if (field === 'bio') editables[1].innerText = value;
+                    if (field === 'label') editables[0].innerText = value;
+                    
+                    if (field === 'url' && block.type === 'link') {
+                        el.querySelector('a').href = value;
+                    }
+                    if (field === 'url' && block.type === 'image') {
+                        el.querySelector('img').src = value;
+                    }
+                }
+            }
+        }
+
+        function deleteBlock(id) {
+            layout = layout.filter(b => b.id !== id);
+            closeSettings();
+            saveLayout();
+            render();
+        }
+
+        // ── DOCK ──
         function buildDock() {
             const scroll = document.getElementById('dockScroll');
             WIDGET_TYPES.forEach(w => {
@@ -495,115 +547,9 @@
             });
         }
 
-        function scrollDock(amount) {
-            document.getElementById('dockScroll').scrollBy({ left: amount, behavior: 'smooth' });
-        }
-
-        function toggleSettings() {
-            document.getElementById('settingsMenu').classList.toggle('active');
-            document.getElementById('settingsBtn').classList.toggle('active');
-        }
-
-        // ── SLASH MENU ──
-        function buildSlashMenu() {
-            const list = document.getElementById('slashList');
-            list.innerHTML = WIDGET_TYPES.map(w => `
-                <div class="slash-item" data-type="${w.type}">
-                    <i class="fa-solid ${w.icon}"></i> ${w.name}
-                </div>
-            `).join('');
-
-            list.querySelectorAll('.slash-item').forEach(item => {
-                item.onclick = () => {
-                    addBlock(item.dataset.type, activeBlockIndex);
-                    closeSlashMenu();
-                };
-            });
-        }
-
-        function openSlashMenu(x, y, index) {
-            activeBlockIndex = index;
-            const menu = document.getElementById('slashMenu');
-            const input = document.getElementById('slashInput');
-            
-            menu.style.left = `${x}px`;
-            menu.style.top = `${y + 20}px`;
-            menu.classList.add('active');
-            
-            input.value = '';
-            filterSlash('');
-            setTimeout(() => input.focus(), 50);
-        }
-
-        function closeSlashMenu() {
-            document.getElementById('slashMenu').classList.remove('active');
-            activeBlockIndex = -1;
-        }
-
-        function filterSlash(query) {
-            document.querySelectorAll('.slash-item').forEach(item => {
-                const text = item.textContent.toLowerCase();
-                item.style.display = text.includes(query.toLowerCase()) ? 'flex' : 'none';
-            });
-        }
-
-        // ── EVENTS ──
-        document.addEventListener('keydown', (e) => {
-            // Slash command trigger
-            if (e.key === '/' && !e.target.closest('.slash-menu')) {
-                const activeEl = document.activeElement;
-                if (activeEl.isContentEditable) {
-                    // If typing in a block, get its index
-                    const wrapper = activeEl.closest('.block-wrapper');
-                    if (wrapper) {
-                        const idx = parseInt(wrapper.dataset.index);
-                        const rect = activeEl.getBoundingClientRect();
-                        e.preventDefault();
-                        openSlashMenu(rect.left, rect.bottom, idx + 1);
-                    }
-                }
-            }
-            
-            if (e.key === 'Escape') closeSlashMenu();
-        });
-
-        document.getElementById('slashInput').addEventListener('input', (e) => filterSlash(e.target.value));
-        
-        // Slash Menu Keyboard Nav
-        document.getElementById('slashInput').addEventListener('keydown', (e) => {
-            const visible = Array.from(document.querySelectorAll('.slash-item')).filter(i => i.style.display !== 'none');
-            if (visible.length === 0) return;
-            
-            let idx = visible.findIndex(i => i.classList.contains('active'));
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                visible.forEach(i => i.classList.remove('active'));
-                idx = (idx + 1) % visible.length;
-                visible[idx].classList.add('active');
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                visible.forEach(i => i.classList.remove('active'));
-                idx = (idx - 1 + visible.length) % visible.length;
-                visible[idx].classList.add('active');
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                if (idx >= 0) visible[idx].click();
-            }
-        });
-
-        // Click outside to close
-        document.addEventListener('mousedown', (e) => {
-            if (!e.target.closest('.slash-menu') && !e.target.closest('.dock-wrapper')) {
-                closeSlashMenu();
-                document.getElementById('settingsMenu').classList.remove('active');
-                document.getElementById('settingsBtn').classList.remove('active');
-            }
-        });
-
-        // ── PERSISTENCE ──
+        // ── SAVE / CLEAR ──
         function saveLayout() {
-            localStorage.setItem('chroma_light_layout', JSON.stringify(layout));
+            localStorage.setItem('chroma_real_layout', JSON.stringify(layout));
         }
 
         function clearLayout() {
@@ -611,13 +557,8 @@
                 layout = [];
                 saveLayout();
                 render();
+                closeSettings();
             }
-        }
-
-        function exportLayout() {
-            const json = JSON.stringify(layout, null, 2);
-            navigator.clipboard.writeText(json);
-            alert('Layout JSON copied to clipboard!');
         }
 
         // Start
