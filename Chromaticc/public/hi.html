@@ -166,7 +166,6 @@
         // ── 1. DATA ──
         const arcColors = ["#06b6d4", "#3b82f6", "#6366f1"];
         
-        // Mock aggregated user locations (No names/IPs for privacy)
         const userLocations = [
             { lat: 40.7128, lng: -74.0060, count: 14, city: "New York" },
             { lat: 51.5072, lng: -0.1276, count: 22, city: "London" },
@@ -175,18 +174,14 @@
             { lat: 48.8566, lng: 2.3522, count: 11, city: "Paris" },
             { lat: 37.7749, lng: -122.4194, count: 9, city: "San Francisco" },
             { lat: 19.0760, lng: 72.8777, count: 15, city: "Mumbai" },
-            { lat: -23.5505, lng: -46.6333, count: 8, city: "São Paulo" },
-            { lat: 55.7558, lng: 37.6173, count: 6, city: "Moscow" },
-            { lat: -1.2921, lng: 36.8219, count: 4, city: "Nairobi" }
+            { lat: -23.5505, lng: -46.6333, count: 8, city: "São Paulo" }
         ];
 
         const sampleArcs = [
             { startLat: 40.7128, startLng: -74.0060, endLat: 51.5072, endLng: -0.1276, arcAlt: 0.2, color: arcColors[0] },
             { startLat: 35.6762, startLng: 139.6503, endLat: 37.7749, endLng: -122.4194, arcAlt: 0.3, color: arcColors[1] },
             { startLat: 19.0760, startLng: 72.8777, endLat: -33.8688, endLng: 151.2093, arcAlt: 0.2, color: arcColors[2] },
-            { startLat: 48.8566, startLng: 2.3522, endLat: 40.7128, endLng: -74.0060, arcAlt: 0.4, color: arcColors[0] },
-            { startLat: -23.5505, startLng: -46.6333, endLat: 55.7558, endLng: 37.6173, arcAlt: 0.3, color: arcColors[1] },
-            { startLat: -1.2921, startLng: 36.8219, endLat: 48.8566, endLng: 2.3522, arcAlt: 0.2, color: arcColors[2] }
+            { startLat: 48.8566, startLng: 2.3522, endLat: 40.7128, endLng: -74.0060, arcAlt: 0.4, color: arcColors[0] }
         ];
 
         // ── 2. SETUP GLOBE ──
@@ -198,7 +193,11 @@
                 (globeEl)
                 .backgroundColor('rgba(0,0,0,0)') // Transparent to show body bg
                 .showAtmosphere(true)
-                .atmosphereAltitude(0.15)
+                .atmosphereAltitude(0.2)
+                
+                // Set initial texture right here so it shows up instantly
+                .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
+                .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
                 
                 // ── ARCS (Flight paths) ──
                 .arcsData(sampleArcs)
@@ -218,8 +217,8 @@
                 .pointLat('lat')
                 .pointLng('lng')
                 .pointColor(() => '#38bdf8') // Cyan
-                .pointAltitude(0.01) 
-                .pointRadius(d => Math.min(0.6, 0.15 + (d.count * 0.02))) // Scale by user count
+                .pointAltitude(0.02) // Float slightly higher so they don't clip
+                .pointRadius(d => Math.min(0.6, 0.15 + (d.count * 0.02))) 
 
                 // ── RINGS (The Radar Pings) ──
                 .ringsData(userLocations)
@@ -236,7 +235,7 @@
                 .autoRotate(true)
                 .autoRotateSpeed(0.6);
 
-            // Apply Theme (Textures & Colors)
+            // Apply Theme (Colors & Material)
             updateGlobeTheme();
 
             // Handle Resize
@@ -247,7 +246,7 @@
             world.width(globeEl.clientWidth);
             world.height(globeEl.clientHeight);
 
-            // Hover Tooltip (Optional visual feedback without doxxing)
+            // Hover Tooltip
             world.onPointHover((point) => {
                 if (point) {
                     globeEl.style.cursor = 'pointer';
@@ -268,24 +267,26 @@
             if (!world) return;
             const isDark = root.getAttribute('data-theme') === 'dark';
             
-            // Swap Textures
+            // Swap Textures (Night City Lights vs Day Satellite)
             world.globeImageUrl(isDark 
-                ? '//unpkg.com/three-globe/example/img/earth-dark.jpg' 
-                : '//unpkg.com/three-globe/example/img/earth-day.jpg'
+                ? 'https://unpkg.com/three-globe/example/img/earth-night.jpg' 
+                : 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg'
             );
-            
-            // Always use topography for 3D depth
-            world.bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png');
             
             // Atmosphere
             world.atmosphereColor(isDark ? '#ffffff' : '#a1a1aa');
             
             // Material Tweaks
             const globeMaterial = world.globeMaterial();
-            globeMaterial.color = new THREE.Color('#ffffff'); // White tint to show texture
+            globeMaterial.color = new THREE.Color('#ffffff'); // White tint (multiplier)
+            
+            // If it's dark, give it a faint blue emissive glow so the dark side isn't pitch black
             globeMaterial.emissive = new THREE.Color(isDark ? '#062056' : '#000000');
             globeMaterial.emissiveIntensity = isDark ? 0.1 : 0;
             globeMaterial.shininess = 0.9;
+            
+            // Force material update to ensure texture renders
+            globeMaterial.needsUpdate = true;
         }
 
         themeToggle.addEventListener('click', () => {
@@ -295,14 +296,12 @@
             root.setAttribute('data-theme', next);
             localStorage.setItem('theme', next);
             
-            // Update Icon
             if (next === 'dark') {
                 themeIcon.classList.replace('fa-sun', 'fa-moon');
             } else {
                 themeIcon.classList.replace('fa-moon', 'fa-sun');
             }
             
-            // Update 3D Globe
             updateGlobeTheme();
         });
 
