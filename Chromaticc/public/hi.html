@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chromaticc — Editor</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -14,7 +12,7 @@
     <style>
         :root {
             --bg: #09090b;
-            --page-bg: #09090b;
+            --page-bg: #000000;
             --surface: #121214;
             --surface-hover: #18181b;
             --border: #27272a;
@@ -25,13 +23,12 @@
             --chroma-accent: #ffffff;
         }
 
-        /* Chromaticc Light Mode Override */
         :root[data-theme="light"] {
-            --bg: #f4f4f5;
+            --bg: #e4e4e7;
             --page-bg: #ffffff;
-            --surface: #ffffff;
-            --surface-hover: #f4f4f5;
-            --border: #e4e4e7;
+            --surface: #f4f4f5;
+            --surface-hover: #e4e4e7;
+            --border: #d4d4d8;
             --text: #09090b;
             --muted: #71717a;
             --chroma-accent: #09090b;
@@ -96,6 +93,7 @@
             position: relative;
             cursor: text;
             transition: background 0.3s;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
         }
         .block-list {
             display: flex;
@@ -111,18 +109,25 @@
             align-items: flex-start;
             padding: 4px 0;
             border-radius: 8px;
+            transition: background 0.2s;
         }
-        .block-wrapper:hover { background: rgba(255,255,255,0.02); }
-        [data-theme="light"] .block-wrapper:hover { background: rgba(0,0,0,0.02); }
-
+        
         .drag-handle {
             position: absolute; left: -28px; top: 6px;
             width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
             color: var(--muted); cursor: grab; opacity: 0;
             transition: opacity 0.2s; border-radius: 4px;
         }
-        .drag-handle:hover { background: var(--surface); color: var(--text); }
         .block-wrapper:hover .drag-handle { opacity: 1; }
+
+        .block-settings-btn {
+            position: absolute; right: -32px; top: 6px;
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            color: var(--muted); cursor: pointer; opacity: 0;
+            transition: opacity 0.2s; border-radius: 4px;
+        }
+        .block-settings-btn:hover { background: var(--surface); color: var(--text); }
+        .block-wrapper:hover .block-settings-btn { opacity: 1; }
 
         .block-content { flex: 1; min-width: 0; }
 
@@ -157,10 +162,9 @@
         .w-bio { font-size: 14px; color: var(--muted); }
         .w-image img { width: 100%; border-radius: 12px; margin: 8px 0; display: block; }
 
-        /* ── CHROMATICC MODE (Glassmorphism) ── */
+        /* ── CHROMATICC MODE ── */
         .chroma-enabled .w-link, 
-        .chroma-enabled .w-profile, 
-        .chroma-enabled .w-image img {
+        .chroma-enabled .w-profile {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
@@ -177,7 +181,7 @@
 
         /* ── SLASH MENU ── */
         .slash-menu {
-            position: fixed;
+            position: absolute;
             width: 260px;
             background: var(--surface);
             border: 1px solid var(--border);
@@ -189,9 +193,7 @@
             flex-direction: column;
             gap: 2px;
         }
-        .slash-menu.active { display: flex; animation: popIn 0.15s var(--ease); }
-        @keyframes popIn { from { opacity: 0; transform: translateY(-5px) scale(0.95); } to { opacity: 1; transform: none; } }
-
+        .slash-menu.active { display: flex; }
         .slash-item {
             display: flex; align-items: center; gap: 12px; padding: 10px 12px;
             border-radius: 6px; color: var(--text); font-size: 13px; cursor: pointer;
@@ -226,14 +228,13 @@
 
         .setting-group { margin-bottom: 16px; }
         .setting-group label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
-        .setting-group input, .setting-group textarea, .setting-group select {
+        .setting-group input, .setting-group textarea {
             width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--border);
             background: var(--surface); font-family: var(--font); font-size: 15px; color: var(--text);
             outline: none; transition: border 0.2s;
         }
         .setting-group input:focus { border-color: var(--accent); }
 
-        /* Toggle Switch */
         .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
         .toggle-row span { font-size: 15px; font-weight: 500; }
         .switch { position: relative; width: 48px; height: 28px; background: var(--border); border-radius: 20px; cursor: pointer; transition: background 0.2s; }
@@ -244,7 +245,6 @@
 </head>
 <body>
 
-    <!-- Top Bar -->
     <div class="top-bar">
         <div class="brand"><div class="brand-mark"></div> Editor</div>
         <div class="top-actions">
@@ -253,19 +253,17 @@
         </div>
     </div>
 
-    <!-- Document -->
-    <div class="document-container">
+    <div class="document-container" id="documentContainer">
         <div class="page" id="page">
             <div class="block-list" id="blockList"></div>
         </div>
     </div>
 
-    <!-- Slash Menu -->
+    <!-- Slash Menu (Positioned absolutely inside page) -->
     <div class="slash-menu" id="slashMenu">
         <div id="slashList"></div>
     </div>
 
-    <!-- Settings Bottom Sheet -->
     <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
     <div class="sheet" id="bottomSheet">
         <div class="sheet-header">
@@ -276,7 +274,6 @@
     </div>
 
     <script>
-        // ── DATA FROM DASHBOARD ──
         const WIDGET_TYPES = [
             { type: 'text', name: 'Text Block', icon: 'fa-font' },
             { type: 'profile', name: 'Profile Card', icon: 'fa-user' },
@@ -285,22 +282,16 @@
         ];
 
         let layout = [];
-        let pageSettings = {
-            aurora: { enabled: false }, // Chromaticc mode
-            background: '#09090b',
-            theme: 'dark'
-        };
+        let pageSettings = { aurora: { enabled: false }, theme: 'dark' };
         let activeBlockId = null;
         let slashMenuIndex = 0;
 
-        // ── INIT ──
         function init() {
             buildSlashMenu();
             
-            // Load state from LocalStorage (Replace with fetch to Neon in prod)
+            // Load
             const savedLayout = localStorage.getItem('chroma_layout');
             const savedSettings = localStorage.getItem('chroma_settings');
-
             if (savedLayout) layout = JSON.parse(savedLayout);
             if (savedSettings) pageSettings = JSON.parse(savedSettings);
 
@@ -317,7 +308,6 @@
 
         function generateId() { return Math.random().toString(36).substr(2, 9); }
 
-        // ── RENDER ENGINE ──
         function render() {
             const list = document.getElementById('blockList');
             list.innerHTML = '';
@@ -327,23 +317,18 @@
                 wrapper.className = 'block-wrapper';
                 wrapper.dataset.id = block.id;
 
-                wrapper.innerHTML = `<div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>`;
+                wrapper.innerHTML = `
+                    <div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>
+                    <div class="block-settings-btn" onclick="openWidgetSettings('${block.id}')"><i class="fa-solid fa-gear"></i></div>
+                `;
 
                 const content = document.createElement('div');
                 content.className = 'block-content';
                 content.innerHTML = getBlockHTML(block);
                 wrapper.appendChild(content);
                 list.appendChild(wrapper);
-
-                // Click to open settings (except on text edit)
-                content.addEventListener('click', (e) => {
-                    if (!e.target.isContentEditable) {
-                        openWidgetSettings(block.id);
-                    }
-                });
             });
 
-            // Init Drag & Drop
             if (!window.sortableInstance) {
                 window.sortableInstance = new Sortable(list, {
                     handle: '.drag-handle',
@@ -358,7 +343,6 @@
             }
         }
 
-        // ── HTML GENERATOR ──
         function getBlockHTML(block) {
             const d = block.data;
             const update = (field) => `oninput="updateData('${block.id}', '${field}', this.innerText)"`;
@@ -385,7 +369,6 @@
             }
         }
 
-        // ── STATE MUTATIONS ──
         function updateData(id, field, value) {
             const block = layout.find(b => b.id === id);
             if (block) {
@@ -395,12 +378,7 @@
         }
 
         function addWidget(type, insertIndex) {
-            const newBlock = {
-                id: generateId(),
-                type: type,
-                data: getDefaultData(type)
-            };
-            
+            const newBlock = { id: generateId(), type: type, data: getDefaultData(type) };
             if (insertIndex >= 0) layout.splice(insertIndex, 0, newBlock);
             else layout.push(newBlock);
 
@@ -421,7 +399,7 @@
             return {};
         }
 
-        // ── SLASH MENU LOGIC ──
+        /* ── SLASH MENU LOGIC (Fixed Positioning) ── */
         function buildSlashMenu() {
             document.getElementById('slashList').innerHTML = WIDGET_TYPES.map(w => `
                 <div class="slash-item" data-type="${w.type}">
@@ -439,17 +417,28 @@
 
         document.addEventListener('keydown', (e) => {
             if (e.key === '/' && e.target.isContentEditable) {
-                const sel = window.getSelection();
-                if (sel.rangeCount > 0) {
-                    const rect = sel.getRangeAt(0).getBoundingClientRect();
-                    activeBlockId = e.target.closest('.block-wrapper').dataset.id;
-                    
-                    const menu = document.getElementById('slashMenu');
-                    menu.style.left = `${Math.min(window.innerWidth - 280, rect.left)}px`;
-                    menu.style.top = `${rect.bottom + 8}px`;
-                    menu.classList.add('active');
-                    highlightSlashItem(0);
-                }
+                // Wait for the '/' to be typed so the range updates
+                setTimeout(() => {
+                    const sel = window.getSelection();
+                    if (sel.rangeCount > 0) {
+                        const range = sel.getRangeAt(0);
+                        const rect = range.getBoundingClientRect();
+                        
+                        activeBlockId = e.target.closest('.block-wrapper').dataset.id;
+                        
+                        const menu = document.getElementById('slashMenu');
+                        const pageRect = document.getElementById('page').getBoundingClientRect();
+                        
+                        // Calculate position relative to the page, not viewport
+                        const topPos = (rect.bottom - pageRect.top) + 10;
+                        const leftPos = Math.max(10, (rect.left - pageRect.left));
+
+                        menu.style.top = `${topPos}px`;
+                        menu.style.left = `${leftPos}px`;
+                        menu.classList.add('active');
+                        highlightSlashItem(0);
+                    }
+                }, 10);
             }
 
             const menu = document.getElementById('slashMenu');
@@ -479,14 +468,13 @@
             addWidget(type, idx !== -1 ? idx + 1 : layout.length);
         }
 
-        // ── CLICK BACKGROUND TO TYPE ──
         document.getElementById('blockList').addEventListener('mousedown', (e) => {
             if (e.target.id === 'blockList' || e.target.id === 'page') {
                 addWidget('text', layout.length);
             }
         });
 
-        // ── BOTTOM SHEETS (Settings) ──
+        /* ── SETTINGS BOTTOM SHEETS ── */
         function openSheet() {
             document.getElementById('sheetOverlay').classList.add('active');
             document.getElementById('bottomSheet').classList.add('active');
@@ -522,7 +510,6 @@
             }
 
             html += `<button onclick="deleteWidget('${id}')" style="width:100%; padding:14px; border-radius:10px; border:none; background:rgba(239,68,68,0.1); color:#ef4444; font-weight:600; font-size:15px; cursor:pointer; margin-top:20px;">Delete Widget</button>`;
-            
             body.innerHTML = html;
             openSheet();
         }
@@ -580,7 +567,6 @@
             localStorage.setItem('chroma_layout', JSON.stringify(layout));
             localStorage.setItem('chroma_settings', JSON.stringify(pageSettings));
             
-            // Show "Saved" toast
             const toast = document.createElement('div');
             toast.innerText = 'Saved';
             toast.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:8px 16px; border-radius:20px; font-size:12px; font-weight:600; z-index:9999;';
