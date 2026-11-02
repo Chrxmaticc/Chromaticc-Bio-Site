@@ -13,33 +13,33 @@
     <style>
         /* ── THEME VARIABLES ── */
         :root[data-theme="dark"] {
-            --bg: #09090b;
-            --surface: #121214;
-            --surface-hover: #18181b;
-            --border: #27272a;
-            --border-hover: #3f3f46;
+            --bg: #050505;
+            --surface: rgba(255, 255, 255, 0.03); /* Glass */
+            --surface-hover: rgba(255, 255, 255, 0.06);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.2);
             --text: #ffffff;
-            --muted: #a1a1aa;
-            --faint: #52525b;
-            --grid-color: rgba(255, 255, 255, 0.04);
-            --glow-color: rgba(255, 255, 255, 0.06);
+            --muted: #888888;
+            --faint: #444444;
+            --glow-1: rgba(255, 255, 255, 0.1);
+            --glow-2: rgba(150, 150, 150, 0.05);
+            --grid-color: rgba(255, 255, 255, 0.05);
             --success: #22c55e;
-            --danger: #ef4444;
         }
 
         :root[data-theme="light"] {
             --bg: #fafafa;
-            --surface: #ffffff;
-            --surface-hover: #f4f4f5;
-            --border: #e4e4e7;
-            --border-hover: #d4d4d8;
+            --surface: rgba(255, 255, 255, 0.6);
+            --surface-hover: rgba(255, 255, 255, 0.9);
+            --border: rgba(0, 0, 0, 0.06);
+            --border-hover: rgba(0, 0, 0, 0.15);
             --text: #09090b;
-            --muted: #71717a;
-            --faint: #a1a1aa;
-            --grid-color: rgba(0, 0, 0, 0.04);
-            --glow-color: rgba(0, 0, 0, 0.03);
+            --muted: #666666;
+            --faint: #cccccc;
+            --glow-1: rgba(0, 0, 0, 0.05);
+            --glow-2: rgba(0, 0, 0, 0.02);
+            --grid-color: rgba(0, 0, 0, 0.05);
             --success: #16a34a;
-            --danger: #dc2626;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -51,48 +51,88 @@
             min-height: 100vh;
             display: flex;
             transition: background-color 0.3s, color 0.3s;
-            overflow-x: hidden;
+            overflow: hidden;
             position: relative;
         }
 
-        /* ── PREMIUM BACKGROUNDS ── */
-        body::before {
-            content: ''; position: fixed; top: -20vh; left: 50%; transform: translateX(-50%);
-            width: 100vw; height: 60vh;
-            background: radial-gradient(ellipse at top, var(--glow-color), transparent 70%);
-            pointer-events: none; z-index: 0;
-        }
-        body::after {
-            content: ''; position: fixed; inset: 0;
+        /* ── THE INSANE BACKGROUND ── */
+        
+        /* 1. The Grid (Masked) */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
             background-image: radial-gradient(var(--grid-color) 1px, transparent 1px);
-            background-size: 24px 24px; pointer-events: none; z-index: 0;
+            background-size: 32px 32px;
+            z-index: -2;
+            /* Fades the grid out at the edges */
+            mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
         }
+
+        /* 2. The Floating Mesh Glows */
+        .bg-glow {
+            position: fixed;
+            width: 80vw;
+            height: 80vw;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -3;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+        .glow-top {
+            top: -40vh;
+            left: -20vw;
+            background: radial-gradient(circle, var(--glow-1), transparent 70%);
+            animation: float1 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glow-bottom {
+            bottom: -40vh;
+            right: -20vw;
+            background: radial-gradient(circle, var(--glow-2), transparent 70%);
+            animation: float2 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes float1 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(10vw, 10vh) scale(1.1); }
+        }
+        @keyframes float2 {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-10vw, -10vh) scale(1.2); }
+        }
+
+        /* 3. The Grain */
         .noise-overlay {
-            position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: 0.03;
+            position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: 0.05;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
             mix-blend-mode: overlay;
         }
 
         /* ── LAYOUT ── */
-        .app { display: flex; width: 100%; position: relative; z-index: 1; }
+        .app { display: flex; width: 100%; height: 100vh; position: relative; z-index: 1; }
 
-        /* ── SIDEBAR ── */
+        /* ── SIDEBAR (Glassmorphic) ── */
         .sidebar {
-            width: 250px; background: var(--bg); border-right: 1px solid var(--border);
-            padding: 24px 16px; display: flex; flex-direction: column; height: 100vh;
-            position: sticky; top: 0;
+            width: 260px; 
+            background: var(--surface); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            padding: 24px 16px; 
+            display: flex; flex-direction: column;
         }
         .brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; margin-bottom: 32px; padding: 0 8px; }
         .brand-mark { width: 20px; height: 20px; background: var(--text); border-radius: 6px; }
         
-        .nav-section { font-size: 11px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 8px 8px; }
+        .nav-section { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 8px 8px; }
         .nav-item {
             display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px;
             color: var(--muted); font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s;
-            text-decoration: none; margin-bottom: 2px;
+            text-decoration: none; margin-bottom: 2px; border: 1px solid transparent;
         }
-        .nav-item:hover { background: var(--surface); color: var(--text); }
-        .nav-item.active { background: var(--surface-hover); color: var(--text); }
+        .nav-item:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border); }
+        .nav-item.active { background: var(--text); color: var(--bg); }
         .nav-item i { width: 18px; text-align: center; font-size: 14px; }
 
         .pro-card {
@@ -104,15 +144,16 @@
         .pro-card button { width: 100%; padding: 8px; border-radius: 6px; background: var(--text); color: var(--bg); border: none; font-weight: 600; font-size: 12px; cursor: pointer; }
 
         /* ── MAIN CONTENT ── */
-        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; }
         
         /* Topbar */
         .topbar {
             height: 72px; border-bottom: 1px solid var(--border); display: flex;
-            align-items: center; justify-content: space-between; padding: 0 32px; background: var(--bg);
+            align-items: center; justify-content: space-between; padding: 0 32px; 
+            background: var(--surface); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         }
         .search-bar {
-            display: flex; align-items: center; gap: 8px; background: var(--surface);
+            display: flex; align-items: center; gap: 8px; background: var(--bg);
             border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px;
             width: 300px; color: var(--muted); font-size: 13px;
         }
@@ -129,76 +170,99 @@
         .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--border); border: 1px solid var(--border-hover); }
 
         /* Views Container */
-        .view-container { padding: 40px; overflow-y: auto; flex: 1; max-width: 1200px; margin: 0 auto; width: 100%; }
-        .view { display: none; animation: fadeIn 0.3s ease; }
+        .view-container { padding: 40px; overflow-y: auto; flex: 1; width: 100%; }
+        .view { display: none; animation: fadeIn 0.3s ease; max-width: 1100px; margin: 0 auto; }
         .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
         /* Typography */
-        h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 4px; }
+        h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 4px; }
         .page-desc { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
 
         /* ── HOME VIEW ── */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+        .stat-card { 
+            background: var(--surface); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+            border: 1px solid var(--border); border-radius: 12px; padding: 24px; 
+            transition: border-color 0.2s; 
+        }
+        .stat-card:hover { border-color: var(--border-hover); }
         .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .stat-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-value { font-size: 28px; font-weight: 600; }
+        .stat-value { font-size: 32px; font-weight: 600; }
         .stat-delta { font-size: 12px; color: var(--success); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; }
 
         .home-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
-        .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; }
-        .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .panel-title { font-size: 14px; font-weight: 600; }
+        .panel { 
+            background: var(--surface); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: 12px; padding: 24px; 
+            display: flex; flex-direction: column; 
+        }
+        .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .panel-title { font-size: 15px; font-weight: 600; }
         
         .preview-mockup {
-            flex: 1; background: var(--bg); border: 1px dashed var(--border); border-radius: 8px;
+            flex: 1; background: rgba(0,0,0,0.2); border: 1px dashed var(--border-hover); border-radius: 12px;
             display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;
             min-height: 300px; gap: 16px;
         }
-        .preview-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--border); }
+        :root[data-theme="light"] .preview-mockup { background: rgba(255,255,255,0.4); }
+        .preview-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--border-hover); }
         .preview-name { font-size: 18px; font-weight: 600; }
-        .preview-btn { width: 100%; max-width: 240px; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; text-align: center; font-size: 13px; }
+        .preview-btn { width: 100%; max-width: 240px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; text-align: center; font-size: 13px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 
-        .activity-list { display: flex; flex-direction: column; gap: 16px; }
+        .activity-list { display: flex; flex-direction: column; gap: 20px; }
         .activity-item { display: flex; gap: 12px; font-size: 13px; }
-        .activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-hover); margin-top: 6px; flex-shrink: 0; }
-        .activity-text b { color: var(--text); font-weight: 500; }
-        .activity-time { font-size: 11px; color: var(--muted); margin-top: 2px; }
+        .activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text); margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px var(--text); }
+        .activity-text b { color: var(--text); font-weight: 600; }
+        .activity-time { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-        .quick-actions { display: flex; gap: 12px; margin-top: 24px; }
-        .btn { padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: 0.2s; display: flex; align-items: center; gap: 8px; }
-        .btn:hover { background: var(--surface-hover); }
+        .quick-actions { display: flex; gap: 12px; margin-top: 32px; }
+        .btn { 
+            padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; 
+            cursor: pointer; border: 1px solid var(--border); background: var(--surface); 
+            color: var(--text); transition: 0.2s; display: flex; align-items: center; gap: 8px; 
+        }
+        .btn:hover { background: var(--surface-hover); border-color: var(--border-hover); }
         .btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
         .btn-primary:hover { opacity: 0.9; }
 
         /* ── FORMS (Settings/SEO) ── */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .form-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+        .form-panel { 
+            background: var(--surface); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: 12px; padding: 24px; 
+        }
         .field { margin-bottom: 20px; }
         .field:last-child { margin-bottom: 0; }
         .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
         .field input, .field select, .field textarea {
-            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
-            background: var(--bg); color: var(--text); font-family: inherit; font-size: 14px; outline: none; transition: border 0.2s;
+            width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--border);
+            background: rgba(0,0,0,0.2); color: var(--text); font-family: inherit; font-size: 14px; outline: none; transition: border 0.2s;
         }
-        .field input:focus { border-color: var(--border-hover); }
+        :root[data-theme="light"] .field input, 
+        :root[data-theme="light"] .field select, 
+        :root[data-theme="light"] .field textarea { background: rgba(255,255,255,0.5); }
+        .field input:focus { border-color: var(--text); }
         
         .domain-input-group { display: flex; align-items: center; gap: 8px; }
         .domain-suffix { font-size: 14px; color: var(--muted); font-weight: 500; }
 
-        .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
         .toggle-row:last-child { border-bottom: none; }
         .toggle-row span { font-size: 14px; font-weight: 500; }
-        .switch { position: relative; width: 44px; height: 24px; background: var(--border); border-radius: 20px; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
-        .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+        .switch { position: relative; width: 44px; height: 24px; background: var(--border-hover); border-radius: 20px; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
+        .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .switch.on { background: var(--text); }
         .switch.on::after { transform: translateX(20px); background: var(--bg); }
     </style>
 </head>
 <body>
 
-    <!-- Grain Overlay -->
+    <!-- The insane background layers -->
+    <div class="bg-glow glow-top"></div>
+    <div class="bg-glow glow-bottom"></div>
+    <div class="bg-grid"></div>
     <div class="noise-overlay"></div>
 
     <div class="app">
@@ -228,7 +292,7 @@
 
             <div class="pro-card">
                 <h4>Chromaticc Pro</h4>
-                <p>Unlock wildcard domains and unlimited widgets.</p>
+                <p>Unlock wildcards and premium glass.</p>
                 <button>Upgrade</button>
             </div>
         </aside>
@@ -327,13 +391,6 @@
                                         <div class="activity-time">Yesterday</div>
                                     </div>
                                 </div>
-                                <div class="activity-item">
-                                    <div class="activity-dot"></div>
-                                    <div class="activity-text">
-                                        Custom domain <b>chromati.cc.cd</b> linked
-                                        <div class="activity-time">3 days ago</div>
-                                    </div>
-                                </div>
                             </div>
                             
                             <div class="quick-actions">
@@ -352,7 +409,7 @@
                     <div class="form-grid">
                         <!-- Custom Domain -->
                         <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 16px;">Custom Domain</div>
+                            <div class="panel-title" style="margin-bottom: 20px;">Custom Domain</div>
                             <div class="field">
                                 <label>Subdomain</label>
                                 <div class="domain-input-group">
@@ -367,7 +424,7 @@
 
                         <!-- Appearance -->
                         <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 16px;">Appearance</div>
+                            <div class="panel-title" style="margin-bottom: 20px;">Appearance</div>
                             <div class="toggle-row">
                                 <span>Chromaticc Mode (Glass)</span>
                                 <div class="switch on" onclick="this.classList.toggle('on')"></div>
@@ -384,12 +441,12 @@
 
                         <!-- Hidden Mode -->
                         <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 16px;">Hidden Mode</div>
+                            <div class="panel-title" style="margin-bottom: 20px;">Hidden Mode</div>
                             <div class="toggle-row">
                                 <span>Enable Alias Routing</span>
                                 <div class="switch" onclick="this.classList.toggle('on')"></div>
                             </div>
-                            <div class="field" style="margin-top: 16px;">
+                            <div class="field" style="margin-top: 20px;">
                                 <label>Alias Username</label>
                                 <input type="text" placeholder="ghost">
                             </div>
@@ -397,7 +454,7 @@
 
                         <!-- Background -->
                         <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 16px;">Background</div>
+                            <div class="panel-title" style="margin-bottom: 20px;">Background</div>
                             <div class="field">
                                 <label>Color or Gradient</label>
                                 <input type="text" placeholder="#09090b or linear-gradient(...)" value="#09090b">
@@ -418,7 +475,7 @@
                     <div class="form-grid">
                         <!-- Meta -->
                         <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 16px;">Page Meta</div>
+                            <div class="panel-title" style="margin-bottom: 20px;">Page Meta</div>
                             <div class="field">
                                 <label>Page Title</label>
                                 <input type="text" placeholder="chrx — Chromaticc" value="chrx — Chromaticc">
@@ -435,7 +492,7 @@
 
                         <!-- Social (OG) -->
                         <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 16px;">Social Preview (OG)</div>
+                            <div class="panel-title" style="margin-bottom: 20px;">Social Preview (OG)</div>
                             <div class="field">
                                 <label>OG Title</label>
                                 <input type="text" placeholder="Leave blank to use Page Title">
@@ -489,19 +546,13 @@
     <script>
         // ── VIEW SWITCHING ──
         function switchView(viewName) {
-            // Update active sidebar item
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             
-            // Find matching sidebar item
             const activeNav = document.querySelector(`.nav-item[data-view="${viewName}"]`);
             if (activeNav) activeNav.classList.add('active');
 
-            // Update view container
-            document.querySelectorAll('.view').forEach(view => {
-                view.classList.remove('active');
-            });
+            document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+            
             const targetView = document.getElementById(`view-${viewName}`);
             if (targetView) targetView.classList.add('active');
         }
@@ -514,7 +565,6 @@
             
             html.setAttribute('data-theme', next);
             
-            // Update icon
             const icon = document.querySelector('#themeBtn i');
             if (next === 'light') {
                 icon.classList.replace('fa-moon', 'fa-sun');
