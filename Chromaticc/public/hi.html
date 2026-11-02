@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chromaticc — Editor</title>
+    <title>Chromaticc — Pro Editor</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
     <style>
         :root {
@@ -60,29 +61,48 @@
         }
         .brand { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; }
         .brand-mark { width: 16px; height: 16px; background: var(--text); border-radius: 4px; }
+        
+        .mode-toggle {
+            display: flex;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2px;
+        }
+        .mode-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .mode-btn.active { background: var(--text); color: var(--bg); }
+
         .top-actions { display: flex; gap: 12px; align-items: center; }
         .icon-btn {
             background: transparent; border: none; color: var(--muted);
             width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
         }
-        .icon-btn:hover { background: var(--surface); color: var(--text); }
         .btn-publish {
-            background: var(--text); color: var(--bg);
-            border: none; padding: 8px 16px; border-radius: 8px;
-            font-weight: 600; font-size: 13px; cursor: pointer;
+            background: var(--text); color: var(--bg); border: none;
+            padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;
         }
 
         /* ── MAIN DOCUMENT ── */
         .document-container {
             flex: 1;
-            overflow-y: auto;
+            overflow: auto; /* Scrollable for canvas mode */
             display: flex;
             justify-content: center;
             padding: 40px 20px 120px 20px;
             background: var(--bg);
         }
+
         .page {
             width: 100%;
             max-width: 600px;
@@ -91,45 +111,66 @@
             min-height: 800px;
             padding: 60px 40px;
             position: relative;
-            cursor: text;
-            transition: background 0.3s;
+            transition: background 0.3s, background-image 0.3s;
             box-shadow: 0 4px 24px rgba(0,0,0,0.1);
         }
-        .block-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-height: 500px;
-        }
 
-        /* ── BLOCKS ── */
-        .block-wrapper {
-            position: relative;
-            display: flex;
-            align-items: flex-start;
-            padding: 4px 0;
-            border-radius: 8px;
-            transition: background 0.2s;
+        /* Flow Mode (Default) */
+        .page.flow-mode .block-list { display: flex; flex-direction: column; gap: 8px; min-height: 500px; }
+        .page.flow-mode .block-wrapper { position: relative; }
+
+        /* Canvas Mode (Absolute) */
+        .page.canvas-mode {
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 20px 20px;
         }
-        
+        .page.canvas-mode .block-list { position: absolute; inset: 0; }
+        .page.canvas-mode .block-wrapper {
+            position: absolute;
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            touch-action: none; /* Crucial for interact.js */
+            width: 300px; /* Default width */
+        }
+        .page.canvas-mode .block-wrapper.selected {
+            border: 1px solid var(--accent);
+            z-index: 100;
+        }
+        .page.canvas-mode .drag-handle { left: -12px; top: -12px; background: var(--surface); border: 1px solid var(--border); border-radius: 50%; width: 24px; height: 24px; cursor: grab; }
+
+        /* ── BLOCK STYLES ── */
         .drag-handle {
             position: absolute; left: -28px; top: 6px;
             width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
-            color: var(--muted); cursor: grab; opacity: 0;
-            transition: opacity 0.2s; border-radius: 4px;
+            color: var(--muted); cursor: grab; opacity: 0; transition: opacity 0.2s; border-radius: 4px;
         }
         .block-wrapper:hover .drag-handle { opacity: 1; }
-
+        
         .block-settings-btn {
             position: absolute; right: -32px; top: 6px;
             width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
-            color: var(--muted); cursor: pointer; opacity: 0;
-            transition: opacity 0.2s; border-radius: 4px;
+            color: var(--muted); cursor: pointer; opacity: 0; transition: opacity 0.2s; border-radius: 4px;
         }
-        .block-settings-btn:hover { background: var(--surface); color: var(--text); }
         .block-wrapper:hover .block-settings-btn { opacity: 1; }
 
-        .block-content { flex: 1; min-width: 0; }
+        /* Canvas Mode Toolbar (Move, Resize, Rotate) */
+        .canvas-toolbar {
+            position: absolute; top: -45px; left: 50%; transform: translateX(-50%);
+            display: none; gap: 4px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 200;
+        }
+        .page.canvas-mode .block-wrapper.selected .canvas-toolbar { display: flex; }
+        .canvas-toolbar button {
+            background: transparent; border: none; color: var(--muted);
+            width: 28px; height: 28px; border-radius: 4px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .canvas-toolbar button:hover { background: var(--surface-hover); color: var(--text); }
+        .canvas-toolbar button.active { background: var(--accent); color: #fff; }
+
+        .block-content { width: 100%; height: 100%; pointer-events: auto; }
+        .page.canvas-mode .block-wrapper.selected .block-content { pointer-events: none; } /* Prevent text editing while manipulating */
 
         [contenteditable] {
             outline: none; cursor: text; padding: 4px 8px;
@@ -137,40 +178,20 @@
             border-radius: 4px; transition: background 0.2s;
         }
         [contenteditable]:focus { background: var(--surface); }
-        [contenteditable]:empty:before {
-            content: attr(data-placeholder); color: var(--muted); pointer-events: none; display: block;
-        }
 
-        .sortable-ghost { opacity: 0.4; background: var(--surface); }
-        .sortable-drag { opacity: 1 !important; }
-
-        /* ── WIDGET STYLES ── */
+        /* ── WIDGET STYLES (Same as before) ── */
         .w-text { font-size: 16px; width: 100%; }
-        .w-link { 
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 20px; background: var(--surface); border: 1px solid var(--border);
-            border-radius: 12px; margin: 8px 0; text-decoration: none; color: var(--text);
-            font-weight: 500; transition: all 0.2s; cursor: pointer;
-        }
-        .w-link:hover { background: var(--surface-hover); }
-        .w-profile { 
-            display: flex; align-items: center; gap: 16px; padding: 20px;
-            background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin: 8px 0;
-        }
+        .w-link { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; text-decoration: none; color: var(--text); font-weight: 500; }
+        .w-profile { display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
         .w-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--border); flex-shrink: 0; object-fit: cover; }
         .w-name { font-size: 22px; font-weight: 600; }
         .w-bio { font-size: 14px; color: var(--muted); }
-        .w-image img { width: 100%; border-radius: 12px; margin: 8px 0; display: block; }
+        .w-image img { width: 100%; border-radius: 12px; display: block; }
 
-        /* ── CHROMATICC MODE ── */
-        .chroma-enabled .w-link, 
-        .chroma-enabled .w-profile {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1.5px solid transparent;
-            background-clip: padding-box, border-box;
-            background-origin: border-box;
+        /* Chromaticc Mode */
+        .chroma-enabled .w-link, .chroma-enabled .w-profile {
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid transparent; background-clip: padding-box, border-box; background-origin: border-box;
             background-image: linear-gradient(rgba(0,0,1,0.4), rgba(0,0,1,0.4)), linear-gradient(135deg, var(--chroma-accent), #ffffff, var(--chroma-accent), #ffffff, var(--chroma-accent));
             background-size: 100% 100%, 300% 300%;
             box-shadow: 0 0 32px rgba(255,255,255,0.15), 0 8px 24px rgba(0,0,0,0.4);
@@ -180,63 +201,22 @@
         @keyframes auroraPulse { 0%,100% { box-shadow: 0 0 32px rgba(255,255,255,0.1); } 50% { box-shadow: 0 0 55px rgba(255,255,255,0.3); } }
 
         /* ── SLASH MENU ── */
-        .slash-menu {
-            position: absolute;
-            width: 260px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            padding: 8px;
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            gap: 2px;
-        }
+        .slash-menu { position: absolute; width: 240px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); padding: 6px; z-index: 1000; display: none; flex-direction: column; gap: 2px; }
         .slash-menu.active { display: flex; }
-        .slash-item {
-            display: flex; align-items: center; gap: 12px; padding: 10px 12px;
-            border-radius: 6px; color: var(--text); font-size: 13px; cursor: pointer;
-        }
+        .slash-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px; color: var(--text); font-size: 13px; cursor: pointer; }
         .slash-item:hover, .slash-item.active { background: var(--surface-hover); }
-        .slash-item i { width: 20px; text-align: center; color: var(--muted); }
 
-        /* ── BOTTOM SHEET SETTINGS ── */
-        .sheet-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-            opacity: 0; pointer-events: none; transition: opacity 0.3s;
-            z-index: 2000; backdrop-filter: blur(4px);
-        }
+        /* ── SETTINGS BOTTOM SHEET ── */
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 2000; backdrop-filter: blur(4px); }
         .sheet-overlay.active { opacity: 1; pointer-events: auto; }
-
-        .sheet {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: var(--bg);
-            border-radius: 24px 24px 0 0;
-            padding: 24px 24px 40px;
-            transform: translateY(100%);
-            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 2001; max-height: 80vh; overflow-y: auto;
-            border-top: 1px solid var(--border);
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.3);
-        }
+        .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-radius: 24px 24px 0 0; padding: 24px; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); z-index: 2001; max-height: 80vh; overflow-y: auto; border-top: 1px solid var(--border); }
         .sheet.active { transform: translateY(0); }
-
         .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .sheet-header h3 { font-size: 18px; font-weight: 600; }
-        .close-sheet { background: var(--surface); border: none; width: 32px; height: 32px; border-radius: 50%; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
+        .close-sheet { background: var(--surface); border: none; width: 32px; height: 32px; border-radius: 50%; color: var(--muted); cursor: pointer; }
         .setting-group { margin-bottom: 16px; }
         .setting-group label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
-        .setting-group input, .setting-group textarea {
-            width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--border);
-            background: var(--surface); font-family: var(--font); font-size: 15px; color: var(--text);
-            outline: none; transition: border 0.2s;
-        }
-        .setting-group input:focus { border-color: var(--accent); }
-
+        .setting-group input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font); font-size: 15px; outline: none; }
         .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .toggle-row span { font-size: 15px; font-weight: 500; }
         .switch { position: relative; width: 48px; height: 28px; background: var(--border); border-radius: 20px; cursor: pointer; transition: background 0.2s; }
         .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
         .switch.on { background: var(--accent); }
@@ -246,23 +226,27 @@
 <body>
 
     <div class="top-bar">
-        <div class="brand"><div class="brand-mark"></div> Editor</div>
+        <div class="brand"><div class="brand-mark"></div></div>
+        
+        <!-- FLOW / CANVAS TOGGLE -->
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="btnFlow" onclick="setMode('flow')">Flow</button>
+            <button class="mode-btn" id="btnCanvas" onclick="setMode('canvas')">Canvas</button>
+        </div>
+
         <div class="top-actions">
             <button class="icon-btn" onclick="openPageSettings()"><i class="fa-solid fa-sliders"></i></button>
-            <button class="btn-publish" onclick="alert('Saved to Neon!')">Publish</button>
+            <button class="btn-publish" onclick="alert('Saved to Neon!')">Save</button>
         </div>
     </div>
 
     <div class="document-container" id="documentContainer">
-        <div class="page" id="page">
+        <div class="page flow-mode" id="page">
             <div class="block-list" id="blockList"></div>
         </div>
     </div>
 
-    <!-- Slash Menu (Positioned absolutely inside page) -->
-    <div class="slash-menu" id="slashMenu">
-        <div id="slashList"></div>
-    </div>
+    <div class="slash-menu" id="slashMenu"><div id="slashList"></div></div>
 
     <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
     <div class="sheet" id="bottomSheet">
@@ -282,23 +266,21 @@
         ];
 
         let layout = [];
-        let pageSettings = { aurora: { enabled: false }, theme: 'dark' };
+        let pageSettings = { aurora: { enabled: false }, theme: 'dark', mode: 'flow' };
         let activeBlockId = null;
         let slashMenuIndex = 0;
 
         function init() {
             buildSlashMenu();
-            
-            // Load
-            const savedLayout = localStorage.getItem('chroma_layout');
-            const savedSettings = localStorage.getItem('chroma_settings');
+            const savedLayout = localStorage.getItem('chroma_layout_v2');
+            const savedSettings = localStorage.getItem('chroma_settings_v2');
             if (savedLayout) layout = JSON.parse(savedLayout);
             if (savedSettings) pageSettings = JSON.parse(savedSettings);
 
             if (layout.length === 0) {
                 layout = [
-                    { id: '1', type: 'profile', data: { name: 'Alex', bio: 'Designer & Builder' } },
-                    { id: '2', type: 'link', data: { label: 'My Portfolio', url: '#' } }
+                    { id: '1', type: 'profile', x: 50, y: 50, w: 300, h: 100, rot: 0, data: { name: 'Alex', bio: 'Designer & Builder' } },
+                    { id: '2', type: 'link', x: 50, y: 180, w: 300, h: 60, rot: 0, data: { label: 'My Portfolio', url: '#' } }
                 ];
             }
 
@@ -308,6 +290,15 @@
 
         function generateId() { return Math.random().toString(36).substr(2, 9); }
 
+        function setMode(mode) {
+            pageSettings.mode = mode;
+            document.getElementById('btnFlow').classList.toggle('active', mode === 'flow');
+            document.getElementById('btnCanvas').classList.toggle('active', mode === 'canvas');
+            document.getElementById('page').className = `page ${mode}-mode`;
+            render();
+            saveData();
+        }
+
         function render() {
             const list = document.getElementById('blockList');
             list.innerHTML = '';
@@ -316,10 +307,24 @@
                 const wrapper = document.createElement('div');
                 wrapper.className = 'block-wrapper';
                 wrapper.dataset.id = block.id;
+                
+                // Apply absolute positions in Canvas Mode
+                if (pageSettings.mode === 'canvas') {
+                    wrapper.style.left = `${block.x}px`;
+                    wrapper.style.top = `${block.y}px`;
+                    wrapper.style.width = `${block.w}px`;
+                    wrapper.style.height = `${block.h}px`;
+                    wrapper.style.transform = `rotate(${block.rot || 0}deg)`;
+                }
 
                 wrapper.innerHTML = `
                     <div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>
                     <div class="block-settings-btn" onclick="openWidgetSettings('${block.id}')"><i class="fa-solid fa-gear"></i></div>
+                    <div class="canvas-toolbar">
+                        <button class="tool-move active" onclick="setTool('${block.id}', 'move')"><i class="fa-solid fa-up-down-left-right"></i></button>
+                        <button class="tool-resize" onclick="setTool('${block.id}', 'resize')"><i class="fa-solid fa-expand"></i></button>
+                        <button class="tool-rotate" onclick="setTool('${block.id}', 'rotate')"><i class="fa-solid fa-rotate"></i></button>
+                    </div>
                 `;
 
                 const content = document.createElement('div');
@@ -327,22 +332,98 @@
                 content.innerHTML = getBlockHTML(block);
                 wrapper.appendChild(content);
                 list.appendChild(wrapper);
+
+                // Select block in canvas mode
+                if (pageSettings.mode === 'canvas') {
+                    wrapper.addEventListener('mousedown', (e) => {
+                        if (!e.target.closest('.canvas-toolbar') && !e.target.closest('.block-settings-btn')) {
+                            selectBlock(block.id);
+                        }
+                    });
+                    makeInteractable(wrapper, block);
+                }
             });
 
-            if (!window.sortableInstance) {
+            // Init Drag & Drop ONLY for Flow Mode
+            if (pageSettings.mode === 'flow' && !window.sortableInstance) {
                 window.sortableInstance = new Sortable(list, {
                     handle: '.drag-handle',
                     animation: 150,
-                    ghostClass: 'sortable-ghost',
                     onEnd: function (evt) {
                         const [moved] = layout.splice(evt.oldIndex, 1);
                         layout.splice(evt.newIndex, 0, moved);
                         saveData();
                     }
                 });
+            } else if (pageSettings.mode === 'canvas' && window.sortableInstance) {
+                window.sortableInstance.destroy();
+                window.sortableInstance = null;
             }
         }
 
+        /* ── CANVAS MODE INTERACTION ── */
+        function selectBlock(id) {
+            document.querySelectorAll('.block-wrapper').forEach(b => b.classList.remove('selected'));
+            const el = document.querySelector(`[data-id="${id}"]`);
+            if (el) el.classList.add('selected');
+            activeBlockId = id;
+        }
+
+        let currentTool = 'move';
+
+        function setTool(id, tool) {
+            currentTool = tool;
+            const blockEl = document.querySelector(`[data-id="${id}"]`);
+            blockEl.querySelectorAll('.canvas-toolbar button').forEach(b => b.classList.remove('active'));
+            blockEl.querySelector(`.tool-${tool}`).classList.add('active');
+        }
+
+        function makeInteractable(el, block) {
+            interact(el)
+                .draggable({
+                    enabled: pageSettings.mode === 'canvas' && currentTool === 'move',
+                    ignoreFrom: '.canvas-toolbar, .block-settings-btn, [contenteditable]',
+                    listeners: {
+                        move(event) {
+                            block.x += event.dx;
+                            block.y += event.dy;
+                            el.style.left = `${block.x}px`;
+                            el.style.top = `${block.y}px`;
+                        },
+                        end() { saveData(); }
+                    }
+                })
+                .resizable({
+                    enabled: pageSettings.mode === 'canvas' && currentTool === 'resize',
+                    edges: { left: true, right: true, bottom: true, top: true },
+                    listeners: {
+                        move(event) {
+                            block.w = event.rect.width;
+                            block.h = event.rect.height;
+                            block.x = block.x + event.deltaRect.left;
+                            block.y = block.y + event.deltaRect.top;
+                            
+                            el.style.width = `${block.w}px`;
+                            el.style.height = `${block.h}px`;
+                            el.style.left = `${block.x}px`;
+                            el.style.top = `${block.y}px`;
+                        },
+                        end() { saveData(); }
+                    }
+                })
+                .gesturable({
+                    enabled: pageSettings.mode === 'canvas' && currentTool === 'rotate',
+                    listeners: {
+                        move(event) {
+                            block.rot = (block.rot || 0) + event.da;
+                            el.style.transform = `rotate(${block.rot}deg)`;
+                        },
+                        end() { saveData(); }
+                    }
+                });
+        }
+
+        /* ── GOOGLE DOC TYPING & HTML ── */
         function getBlockHTML(block) {
             const d = block.data;
             const update = (field) => `oninput="updateData('${block.id}', '${field}', this.innerText)"`;
@@ -371,24 +452,20 @@
 
         function updateData(id, field, value) {
             const block = layout.find(b => b.id === id);
-            if (block) {
-                block.data[field] = value;
-                saveData();
-            }
+            if (block) { block.data[field] = value; saveData(); }
         }
 
         function addWidget(type, insertIndex) {
-            const newBlock = { id: generateId(), type: type, data: getDefaultData(type) };
+            const newBlock = { 
+                id: generateId(), type: type, 
+                x: 50, y: 50, w: 300, h: 60, rot: 0, 
+                data: getDefaultData(type) 
+            };
+            
             if (insertIndex >= 0) layout.splice(insertIndex, 0, newBlock);
             else layout.push(newBlock);
 
-            saveData();
-            render();
-
-            setTimeout(() => {
-                const el = document.querySelector(`[data-id="${newBlock.id}"] [contenteditable]`);
-                if (el) el.focus();
-            }, 50);
+            saveData(); render();
         }
 
         function getDefaultData(type) {
@@ -399,42 +476,29 @@
             return {};
         }
 
-        /* ── SLASH MENU LOGIC (Fixed Positioning) ── */
+        /* ── SLASH MENU (Fixed Positioning) ── */
         function buildSlashMenu() {
             document.getElementById('slashList').innerHTML = WIDGET_TYPES.map(w => `
-                <div class="slash-item" data-type="${w.type}">
-                    <i class="fa-solid ${w.icon}"></i> ${w.name}
-                </div>
+                <div class="slash-item" data-type="${w.type}"><i class="fa-solid ${w.icon}"></i> ${w.name}</div>
             `).join('');
 
             document.querySelectorAll('.slash-item').forEach(item => {
-                item.onmousedown = (e) => {
-                    e.preventDefault();
-                    insertWidget(item.dataset.type);
-                };
+                item.onmousedown = (e) => { e.preventDefault(); insertWidget(item.dataset.type); };
             });
         }
 
         document.addEventListener('keydown', (e) => {
             if (e.key === '/' && e.target.isContentEditable) {
-                // Wait for the '/' to be typed so the range updates
                 setTimeout(() => {
                     const sel = window.getSelection();
                     if (sel.rangeCount > 0) {
-                        const range = sel.getRangeAt(0);
-                        const rect = range.getBoundingClientRect();
-                        
+                        const rect = sel.getRangeAt(0).getBoundingClientRect();
+                        const pageRect = document.getElementById('page').getBoundingClientRect();
                         activeBlockId = e.target.closest('.block-wrapper').dataset.id;
                         
                         const menu = document.getElementById('slashMenu');
-                        const pageRect = document.getElementById('page').getBoundingClientRect();
-                        
-                        // Calculate position relative to the page, not viewport
-                        const topPos = (rect.bottom - pageRect.top) + 10;
-                        const leftPos = Math.max(10, (rect.left - pageRect.left));
-
-                        menu.style.top = `${topPos}px`;
-                        menu.style.left = `${leftPos}px`;
+                        menu.style.top = `${(rect.bottom - pageRect.top) + 10}px`;
+                        menu.style.left = `${Math.max(10, rect.left - pageRect.left)}px`;
                         menu.classList.add('active');
                         highlightSlashItem(0);
                     }
@@ -474,51 +538,49 @@
             }
         });
 
-        /* ── SETTINGS BOTTOM SHEETS ── */
-        function openSheet() {
-            document.getElementById('sheetOverlay').classList.add('active');
-            document.getElementById('bottomSheet').classList.add('active');
-        }
-        function closeSheet() {
-            document.getElementById('sheetOverlay').classList.remove('active');
-            document.getElementById('bottomSheet').classList.remove('active');
-        }
+        /* ── SETTINGS SHEETS ── */
+        function openSheet() { document.getElementById('sheetOverlay').classList.add('active'); document.getElementById('bottomSheet').classList.add('active'); }
+        function closeSheet() { document.getElementById('sheetOverlay').classList.remove('active'); document.getElementById('bottomSheet').classList.remove('active'); }
 
         function openWidgetSettings(id) {
             activeBlockId = id;
             const block = layout.find(b => b.id === id);
             if (!block) return;
-
             document.getElementById('sheetTitle').innerText = `Edit ${block.type}`;
             const body = document.getElementById('sheetContent');
             
             let html = '';
             if (block.type === 'profile') {
-                html = `
-                    <div class="setting-group"><label>Name</label><input type="text" value="${block.data.name}" oninput="updateData('${id}', 'name', this.value)"></div>
-                    <div class="setting-group"><label>Bio</label><input type="text" value="${block.data.bio}" oninput="updateData('${id}', 'bio', this.value)"></div>
-                `;
+                html = `<div class="setting-group"><label>Name</label><input type="text" value="${block.data.name}" oninput="updateData('${id}', 'name', this.value)"></div>
+                        <div class="setting-group"><label>Bio</label><input type="text" value="${block.data.bio}" oninput="updateData('${id}', 'bio', this.value)"></div>`;
             } else if (block.type === 'link') {
-                html = `
-                    <div class="setting-group"><label>Label</label><input type="text" value="${block.data.label}" oninput="updateData('${id}', 'label', this.value)"></div>
-                    <div class="setting-group"><label>URL</label><input type="text" value="${block.data.url}" oninput="updateData('${id}', 'url', this.value)"></div>
-                `;
+                html = `<div class="setting-group"><label>Label</label><input type="text" value="${block.data.label}" oninput="updateData('${id}', 'label', this.value)"></div>
+                        <div class="setting-group"><label>URL</label><input type="text" value="${block.data.url}" oninput="updateData('${id}', 'url', this.value)"></div>`;
             } else if (block.type === 'image') {
                 html = `<div class="setting-group"><label>Image URL</label><input type="text" value="${block.data.url || ''}" oninput="updateData('${id}', 'url', this.value)"></div>`;
-            } else {
-                html = `<p style="color:var(--muted); font-size:14px;">Use inline editing to change text.</p>`;
+            }
+            
+            // Add position/rotation controls if in Canvas Mode
+            if (pageSettings.mode === 'canvas') {
+                html += `<hr style="border:none;border-top:1px solid var(--border);margin:20px 0;">
+                        <div class="setting-group"><label>X Position (px)</label><input type="number" value="${Math.round(block.x)}" onchange="updatePos('${id}', 'x', this.value)"></div>
+                        <div class="setting-group"><label>Y Position (px)</label><input type="number" value="${Math.round(block.y)}" onchange="updatePos('${id}', 'y', this.value)"></div>
+                        <div class="setting-group"><label>Rotation (deg)</label><input type="number" value="${Math.round(block.rot)}" onchange="updatePos('${id}', 'rot', this.value)"></div>`;
             }
 
-            html += `<button onclick="deleteWidget('${id}')" style="width:100%; padding:14px; border-radius:10px; border:none; background:rgba(239,68,68,0.1); color:#ef4444; font-weight:600; font-size:15px; cursor:pointer; margin-top:20px;">Delete Widget</button>`;
+            html += `<button onclick="deleteWidget('${id}')" style="width:100%; padding:14px; border-radius:10px; border:none; background:rgba(239,68,68,0.1); color:#ef4444; font-weight:600; margin-top:20px;">Delete Widget</button>`;
             body.innerHTML = html;
             openSheet();
         }
 
+        function updatePos(id, prop, val) {
+            const block = layout.find(b => b.id === id);
+            if(block) { block[prop] = parseFloat(val); saveData(); render(); }
+        }
+
         function openPageSettings() {
-            activeBlockId = null;
             document.getElementById('sheetTitle').innerText = 'Page Settings';
             const body = document.getElementById('sheetContent');
-            
             body.innerHTML = `
                 <div class="toggle-row">
                     <span>Chromaticc Mode</span>
@@ -532,46 +594,21 @@
             openSheet();
         }
 
-        function toggleAurora(el) {
-            el.classList.toggle('on');
-            pageSettings.aurora.enabled = el.classList.contains('on');
-            applyPageSettings();
-            saveData();
-        }
-
-        function toggleTheme(el) {
-            el.classList.toggle('on');
-            pageSettings.theme = el.classList.contains('on') ? 'light' : 'dark';
-            applyPageSettings();
-            saveData();
-        }
+        function toggleAurora(el) { el.classList.toggle('on'); pageSettings.aurora.enabled = el.classList.contains('on'); applyPageSettings(); saveData(); }
+        function toggleTheme(el) { el.classList.toggle('on'); pageSettings.theme = el.classList.contains('on') ? 'light' : 'dark'; applyPageSettings(); saveData(); }
 
         function applyPageSettings() {
             document.documentElement.setAttribute('data-theme', pageSettings.theme);
-            const pageEl = document.getElementById('page');
-            if (pageSettings.aurora.enabled) {
-                pageEl.classList.add('chroma-enabled');
-            } else {
-                pageEl.classList.remove('chroma-enabled');
-            }
+            document.getElementById('page').classList.toggle('chroma-enabled', pageSettings.aurora.enabled);
         }
 
         function deleteWidget(id) {
-            layout = layout.filter(b => b.id !== id);
-            saveData();
-            render();
-            closeSheet();
+            layout = layout.filter(b => b.id !== id); saveData(); render(); closeSheet();
         }
 
         function saveData() {
-            localStorage.setItem('chroma_layout', JSON.stringify(layout));
-            localStorage.setItem('chroma_settings', JSON.stringify(pageSettings));
-            
-            const toast = document.createElement('div');
-            toast.innerText = 'Saved';
-            toast.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--text); color:var(--bg); padding:8px 16px; border-radius:20px; font-size:12px; font-weight:600; z-index:9999;';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 1500);
+            localStorage.setItem('chroma_layout_v2', JSON.stringify(layout));
+            localStorage.setItem('chroma_settings_v2', JSON.stringify(pageSettings));
         }
 
         init();
