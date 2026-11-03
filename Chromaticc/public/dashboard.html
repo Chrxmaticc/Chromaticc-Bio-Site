@@ -80,6 +80,7 @@
         box-shadow: 0 0 20px var(--glow-color);
         border-color: rgba(255,255,255,0.3);
     }
+    :root[data-theme="light"] body.glow-mode .panel, :root[data-theme="light"] body.glow-mode .sidebar { border-color: rgba(0,0,0,0.2); }
 
     .scroll-progress{position:fixed;top:0;left:0;right:0;height:2px;z-index:9999;background:var(--text);transform:scaleX(0);transform-origin:left;box-shadow:0 0 12px var(--text);transition:transform .1s linear;}
     a{color:inherit;text-decoration:none;}
@@ -328,7 +329,7 @@
 
             <div class="view-container">
                 
-                <!-- HOME VIEW (RESTORED FULLY) -->
+                <!-- HOME VIEW -->
                 <section class="view active" id="view-home">
                     <div class="page-header">
                         <div><h1>Dashboard</h1><p id="greeting">// loading…</p></div>
@@ -354,7 +355,7 @@
                     </div>
                 </section>
 
-                <!-- EDITOR VIEW (RESTORED FULLY) -->
+                <!-- EDITOR VIEW -->
                 <section class="view" id="view-editor">
                     <div class="editor-toolbar">
                         <div class="toolbar-left">
@@ -393,7 +394,7 @@
                     </div>
                 </section>
 
-                <!-- PAGE SETTINGS VIEW (RESTORED FULLY) -->
+                <!-- PAGE SETTINGS VIEW -->
                 <section class="view" id="view-page">
                     <div class="page-header">
                         <div><h1>Page Settings</h1><p>// routing, domains, and global behavior.</p></div>
@@ -440,7 +441,7 @@
                     </div>
                 </section>
 
-                <!-- SEO VIEW (RESTORED FULLY + DISCORD) -->
+                <!-- SEO VIEW -->
                 <section class="view" id="view-seo">
                     <div class="page-header">
                         <div><h1>SEO & Socials</h1><p>// how you show up on Google, Discord, and Twitter.</p></div>
@@ -473,7 +474,7 @@
                     </div>
                 </section>
 
-                <!-- PROFILE VIEW (RESTORED FULLY) -->
+                <!-- PROFILE VIEW -->
                 <section class="view" id="view-profile">
                     <div class="page-header"><div><h1>Profile</h1><p>// your identity. widgets pull from here.</p></div><div class="header-actions"><button class="btn btn-primary" onclick="saveProfile()">Save Profile</button></div></div>
                     <div class="form-grid">
@@ -493,7 +494,7 @@
                     </div>
                 </section>
 
-                <!-- PLACEHOLDERS (RESTORED) -->
+                <!-- PLACEHOLDERS -->
                 <section class="view" id="view-stats"><h1>Stats</h1><p class="page-desc">Detailed analytics.</p></section>
                 <section class="view" id="view-analytics"><h1>Analytics</h1><p class="page-desc">Views over time.</p></section>
                 <section class="view" id="view-guests"><h1>Guests</h1><p class="page-desc">Guestbook messages.</p></section>
@@ -512,351 +513,388 @@
             <div class="cmd-list" id="cmdList"></div>
         </div>
     </div>
-
-    <script>
-    'use strict';
     
+    <script>
+    (function(){
+    'use strict';
     const $ = (s,c) => (c||document).querySelector(s);
     const $$ = (s,c) => Array.from((c||document).querySelectorAll(s));
     const BOT_URL = 'https://chronic-bot.onrender.com';
-    const currentUser = { username: 'chrx' }; 
 
+    // ── AUTH & STATE ──
+    const token = localStorage.getItem('chromaticc_token') || 'mock_token';
+    const currentUser = JSON.parse(localStorage.getItem('chromaticc_user') || '{"username":"chrx"}');
+    
     let layout = [];
+    let pageSettings = {};
+    let profileData = {};
+    let userBadges = [];
     let selectedId = null;
     let isCanvasMode = false;
     let editMode = 'position';
     let history = [];
     let historyIndex = -1;
-    let pageSettings = {};
-    let profileData = {};
-    let userBadges = [];
     let sortableInstance = null;
 
-    // ── MASSIVE WIDGET LIST (RESTORED) ──
+    // ── WIDGET TYPES (RESTORED) ──
     const widgetTypes = [
-        { category: 'Text', type: 'text', name: 'Text', defaults: { content: 'Hello World', fontSize: 16 } },
-        { category: 'Text', type: 'gradient-text', name: 'Gradient Text', defaults: { content: 'Gradient', fontSize: 20 } },
-        { category: 'Text', type: 'neon-text', name: 'Neon Text', defaults: { content: 'Neon', color: '#ffffff' } },
-        { category: 'Text', type: 'marquee-text', name: 'Marquee', defaults: { content: 'Scrolling...' } },
-        { category: 'Text', type: 'typewriter', name: 'Typewriter', defaults: { text: 'Hello world', speed: 80 } },
-        { category: 'Text', type: 'glitch-text', name: 'Glitch Text', defaults: { content: 'GLITCH', color: '#ffffff' } },
-        { category: 'Profile', type: 'profile-card', name: 'Profile Card', isContainer: true, defaults: { preset:'minimal', slots:'avatar,name,badges,tagline,location,socials,views' } },
-        { category: 'Profile', type: 'profile-circle', name: 'Profile Circle', defaults: { src:'', borderColor:'#ffffff' } },
-        { category: 'Profile', type: 'badges-showcase', name: 'Badges', defaults: { title:'my badges' } },
-        { category: 'Profile', type: 'level', name: 'Level', defaults: { showLabel:true } },
-        { category: 'Media', type: 'image', name: 'Image', defaults: { src:'' } },
-        { category: 'Media', type: 'video', name: 'Video', defaults: { src:'' } },
-        { category: 'Media', type: 'audio', name: 'Audio', defaults: { src:'', title:'Track' } },
-        { category: 'Media', type: 'audio-lyric', name: 'Audio + Lyrics', defaults: { src:'', trackName:'Track', artistName:'Artist' } },
-        { category: 'Links', type: 'link-list', name: 'Link List', isContainer: true, defaults:{} },
-        { category: 'Links', type: 'link-embed', name: 'Link', defaults: { url:'', label:'My Link' } },
-        { category: 'Embeds', type: 'youtube', name: 'YouTube', defaults: { videoId:'' } },
-        { category: 'Embeds', type: 'spotify', name: 'Spotify', defaults: { uri:'' } },
-        { category: 'Embeds', type: 'twitch', name: 'Twitch', defaults: { channel:'' } },
-        { category: 'Utility', type: 'clock', name: 'Clock', defaults: { format:'12h' } },
-        { category: 'Utility', type: 'countdown', name: 'Countdown', defaults: { targetDate:'' } },
-        { category: 'Utility', type: 'progress-bar', name: 'Progress Bar', defaults: { value:50 } },
-        { category: 'Utility', type: 'qr-code', name: 'QR Code', defaults: { url:'' } },
-        { category: 'Social', type: 'discord-presence', name: 'Discord Presence', defaults: { showStatusDot:true } },
-        { category: 'Social', type: 'github-stats', name: 'GitHub Stats', defaults: { username:'' } },
-        { category: 'Social', type: 'tech-stack', name: 'Tech Stack', defaults: { items:'React,Node' } },
-        { category: 'Interactive', type: 'guestbook', name: 'Guestbook', defaults: { title:'Leave a message' } },
-        { category: 'Interactive', type: 'mini-poll', name: 'Mini Poll', defaults: { question:'Favorite?' } },
-        { category: 'Decoration', type: 'divider', name: 'Divider', defaults: { color:'#ffffff' } },
-        { category: 'Advanced', type: 'code', name: 'Code', defaults: { html:'<div>Custom</div>' } }
+        { category:'Text', type:'text', name:'Text', defaults:{content:'Hello {{user.displayName}}', fontSize:16, color:'#e8e8f0', align:'left'} },
+        { category:'Text', type:'gradient-text', name:'Gradient Text', defaults:{content:'Gradient', fontSize:20, gradient:'linear-gradient(90deg,#fff,#b0b0b0)'} },
+        { category:'Text', type:'neon-text', name:'Neon Text', defaults:{content:'Neon', color:'#ffffff', fontSize:22} },
+        { category:'Text', type:'marquee-text', name:'Marquee', defaults:{content:'Scrolling...', speed:5} },
+        { category:'Text', type:'typewriter', name:'Typewriter', defaults:{text:'Hello world', speed:80, color:'#ffffff'} },
+        { category:'Text', type:'glitch-text', name:'Glitch Text', defaults:{content:'GLITCH', color:'#ffffff'} },
+        { category:'Profile', type:'profile-card', name:'Profile Card', isContainer:true, defaults:{preset:'minimal', slots:'avatar,name,badges,tagline,location,socials,views', nameEffect:'none'} },
+        { category:'Profile', type:'profile-circle', name:'Profile Circle', defaults:{src:'', borderColor:'#ffffff', showPresence:true} },
+        { category:'Profile', type:'badges-showcase', name:'Badges Showcase', defaults:{title:'my badges', showLocked:false, size:44} },
+        { category:'Profile', type:'level', name:'Level', defaults:{showLabel:true, showXP:true} },
+        { category:'Media', type:'image', name:'Image', defaults:{src:'', alt:''} },
+        { category:'Media', type:'video', name:'Video', defaults:{src:'', controls:true} },
+        { category:'Media', type:'audio', name:'Audio', defaults:{src:'', title:'Track'} },
+        { category:'Media', type:'audio-lyric', name:'Audio + Lyrics', defaults:{src:'', trackName:'Track', artistName:'Artist', albumArt:'', highlightColor:'#ffffff', loop:false, autoplay:false} },
+        { category:'Media', type:'image-carousel', name:'Image Carousel', defaults:{images:'', interval:3500} },
+        { category:'Links', type:'link-list', name:'Link List', isContainer:true, defaults:{} },
+        { category:'Links', type:'link-embed', name:'Link', defaults:{url:'', label:'My Link', iconUrl:'', description:''} },
+        { category:'Embeds', type:'youtube', name:'YouTube', defaults:{videoId:''} },
+        { category:'Embeds', type:'spotify', name:'Spotify', defaults:{uri:''} },
+        { category:'Embeds', type:'twitch', name:'Twitch', defaults:{channel:''} },
+        { category:'Utility', type:'clock', name:'Clock', defaults:{format:'12h', showSeconds:true} },
+        { category:'Utility', type:'countdown', name:'Countdown', defaults:{targetDate:'', label:''} },
+        { category:'Utility', type:'visitor-counter', name:'Visitor Counter', defaults:{} },
+        { category:'Utility', type:'progress-bar', name:'Progress Bar', defaults:{value:50, max:100, color:'#ffffff'} },
+        { category:'Utility', type:'qr-code', name:'QR Code', defaults:{url:'', size:200} },
+        { category:'Utility', type:'streak-counter', name:'Streak Counter', defaults:{startDate:'', label:'Streak'} },
+        { category:'Social', type:'discord-presence', name:'Discord Presence', defaults:{showStatusDot:true, showSpotify:true, showActivity:true} },
+        { category:'Social', type:'github-stats', name:'GitHub Stats', defaults:{username:''} },
+        { category:'Social', type:'tech-stack', name:'Tech Stack', defaults:{items:'React,Node,TS', columns:3} },
+        { category:'Social', type:'game-library', name:'Game Library', defaults:{games:'Valorant,Minecraft,CS2'} },
+        { category:'Interactive', type:'guestbook', name:'Guestbook', defaults:{title:'Leave a message'} },
+        { category:'Interactive', type:'mini-poll', name:'Mini Poll', defaults:{question:'Favorite?', options:'Yes,No'} },
+        { category:'Interactive', type:'flip-card', name:'Flip Card', defaults:{front:'Click me', back:'Surprise!'} },
+        { category:'Interactive', type:'virtual-pet', name:'Virtual Pet', defaults:{name:'Chrxy'} },
+        { category:'Decoration', type:'divider', name:'Divider', defaults:{color:'#ffffff', thickness:2, style:'solid'} },
+        { category:'Decoration', type:'shape', name:'Shape', defaults:{shape:'rect', color:'#ffffff'} },
+        { category:'Advanced', type:'code', name:'Code Widget', defaults:{html:'<div style="color:#fff;font-weight:700;">Custom HTML</div>', css:'', js:''} },
+        { category:'Fun', type:'sparkle-button', name:'Sparkle Button', defaults:{label:'Sparkle!', color:'#ffffff'} },
+        { category:'Fun', type:'confetti-button', name:'Confetti Button', defaults:{label:'Confetti!'} },
+        { category:'Fun', type:'matrix-rain', name:'Matrix Rain', defaults:{color:'#c8c8d2'} }
     ];
 
     const WIDGET_STYLE_DEFAULTS = {
-        bg:{type:'glass', value:'', blur:12, opacity:1},
-        border:{width:1, color:'rgba(255,255,255,0.15)', style:'solid', radius:14},
-        padding:12, shadow:{type:'none', color:'rgba(0,0,0,0.4)', blur:24, x:0, y:8},
-        typography:{family:'inherit', size:14, weight:500, spacing:0, lineHeight:1.4, align:'left', color:'inherit'},
-        textEffect:'none', animation:'none', hover:'none', lock:false, hideMobile:false, zIndex:1
+      bg:{type:'glass', value:'', blur:12, opacity:1},
+      border:{width:1, color:'rgba(255,255,255,0.15)', style:'solid', radius:14},
+      padding:12,
+      shadow:{type:'none', color:'rgba(0,0,0,0.4)', blur:24, x:0, y:8},
+      typography:{family:'inherit', size:14, weight:500, spacing:0, lineHeight:1.4, align:'left', color:'inherit'},
+      textEffect:'none', animation:'none', hover:'none', lock:false, hideMobile:false, zIndex:1, customClass:'', customCSS:''
     };
 
-    function init() {
-        buildDock();
-        setupCommandPalette();
-        
-        // Mock data for visual testing
-        layout = [
-            { id: '1', type: 'profile-card', x: 20, y: 20, w: 300, h: 100, settings: { name: 'chrx', bio: 'Designer' }, style: deepClone(WIDGET_STYLE_DEFAULTS) },
-            { id: '2', type: 'link-embed', x: 20, y: 140, w: 300, h: 60, settings: { label: 'My Portfolio', url: '#' }, style: deepClone(WIDGET_STYLE_DEFAULTS) }
-        ];
-        pageSettings = { wildcard: 'chrx' };
-        profileData = { displayName: 'chrx', tagline: 'Designer' };
-        
-        history = [JSON.stringify(layout)];
-        historyIndex = 0;
-        updateUndoRedoButtons();
-        renderCanvas();
-    }
-
-    // ── UTILS ──
-    function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+    function deepClone(o){return JSON.parse(JSON.stringify(o));}
     function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-    function markDirty() { $('#saveStatus').textContent = 'unsaved'; $('#saveStatus').classList.add('dirty'); }
-    function markSaved() { $('#saveStatus').textContent = 'saved'; $('#saveStatus').classList.remove('dirty'); }
 
-    // ── NAVIGATION & UI ──
-    function switchView(viewName) {
-        $$('.nav-item').forEach(n => n.classList.remove('active'));
-        const activeNav = $(`.nav-item[data-view="${viewName}"]`);
-        if(activeNav) activeNav.classList.add('active');
-
-        $$('.view').forEach(v => v.classList.remove('active'));
-        const targetView = $(`#view-${viewName}`);
-        if(targetView) targetView.classList.add('active');
-
-        if(viewName === 'editor') renderCanvas();
-        if (window.innerWidth <= 900) toggleMobileMenu();
+    // ── API LAYER ──
+    async function apiFetch(url, opts = {}) {
+      const headers = { ...(opts.headers || {}), 'Authorization': 'Bearer ' + token };
+      const res = await fetch(url, { ...opts, headers, credentials: 'include' });
+      if (res.status === 401) { localStorage.removeItem('chromaticc_token'); window.location.href = '/accounts.html'; }
+      return res;
     }
 
-    function toggleMobileMenu() {
-        $('#sidebar').classList.toggle('open');
-        $('#mobileOverlay').classList.toggle('active');
-    }
-    function toggleDesktopSidebar() { $('#sidebar').classList.toggle('hidden'); }
-    function toggleTheme() {
-        const html = document.documentElement;
-        const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        html.setAttribute('data-theme', next);
-        $('#themeIcon').className = next === 'light' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
-    }
-    function toggleGlow(el) { el.classList.toggle('on'); document.body.classList.toggle('glow-mode'); }
-
-    // ── EDITOR LOGIC ──
-    function toggleEditorMode() {
-        isCanvasMode = !isCanvasMode;
-        const canvas = $('#editorCanvas');
-        const btn = $('#modeBtn');
-        
-        if (isCanvasMode) {
-            canvas.classList.remove('flow-mode');
-            canvas.classList.add('canvas-mode');
-            btn.innerHTML = '<i class="fa-solid fa-cube"></i> Canvas';
-            if (sortableInstance) sortableInstance.destroy();
-        } else {
-            canvas.classList.remove('canvas-mode');
-            canvas.classList.add('flow-mode');
-            btn.innerHTML = '<i class="fa-solid fa-arrows-up-down"></i> Flow';
-            initSortable();
-        }
+    async function loadLayout(){
+      try {
+        const res = await apiFetch('/api/get-layout');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        layout = data.layout || [];
+        pageSettings = data.settings || {};
+        profileData = data.profile || {};
+        pushHistory();
         renderCanvas();
+        markSaved();
+      } catch(e) { 
+        // Mock load for visual UI
+        layout = [
+            { id:'1', type:'profile-card', x:20, y:20, w:300, h:100, settings:{preset:'minimal'}, style:deepClone(WIDGET_STYLE_DEFAULTS) },
+            { id:'2', type:'link-embed', x:20, y:140, w:300, h:60, settings:{label:'My Portfolio', url:'#'}, style:deepClone(WIDGET_STYLE_DEFAULTS) }
+        ];
+        renderCanvas(); 
+      }
     }
 
-    function renderCanvas() {
-        const container = isCanvasMode ? $('#editorCanvas') : $('#flowPage');
-        container.innerHTML = '';
-
-        layout.forEach(w => {
-            const el = document.createElement('div');
-            el.className = 'widget-block';
-            el.dataset.id = w.id;
-            
-            if (isCanvasMode) {
-                el.classList.add('canvas-widget');
-                el.style.left = `${w.x}px`;
-                el.style.top = `${w.y}px`;
-                el.style.width = `${w.w}px`;
-                el.style.height = `${w.h}px`;
-            }
-
-            const def = widgetTypes.find(t => t.type === w.type);
-            el.innerHTML = `<div class="widget-content"><span class="widget-label">${def ? def.name : w.type}</span></div>`;
-            
-            el.addEventListener('click', (e) => {
-                e.stopPropagation();
-                selectWidget(w.id);
-            });
-            
-            container.appendChild(el);
-            
-            if (isCanvasMode) makeInteractable(el, w);
+    async function saveLayout(){
+      markSaved();
+      try {
+        await apiFetch('/api/save-layout', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({layout, settings:pageSettings, profile:profileData})
         });
-        $('#editorCanvas').scrollTop = 0;
+      } catch(e) {}
     }
 
-    function makeInteractable(el, w) {
-        interact(el).draggable({
-            ignoreFrom: '.widget-settings-panel',
-            listeners: {
-                move(event) {
-                    w.x += event.dx;
-                    w.y += event.dy;
-                    el.style.left = `${w.x}px`;
-                    el.style.top = `${w.y}px`;
-                }
-            }
-        });
-    }
+    // ── NAVIGATION ──
+    window.switchView = function(name){
+      $$('.view').forEach(v => v.classList.remove('active'));
+      const t = $('#view-' + name);
+      if (t) t.classList.add('active');
+      $$('.nav-item').forEach(n => n.classList.remove('active'));
+      const nav = $(`.nav-item[data-view="${name}"]`);
+      if (nav) nav.classList.add('active');
+      if(window.innerWidth <= 900) toggleMobileMenu();
+      if(name === 'editor') renderCanvas();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    $$('.nav-item[data-view]').forEach(i => i.addEventListener('click', () => switchView(i.dataset.view)));
+
+    window.toggleMobileMenu = function(){
+      $('#sidebar').classList.toggle('open');
+      $('#mobileOverlay').classList.toggle('active');
+    };
+    window.toggleDesktopSidebar = function(){ $('#sidebar').classList.toggle('hidden'); };
+    
+    window.toggleTheme = function(){
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('chromaticc_theme', next);
+      $('#themeIcon').className = next === 'light' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+    };
+
+    window.toggleGlow = function(el){
+      el.classList.toggle('on');
+      document.body.classList.toggle('glow-mode');
+    };
+
+    // ── EDITOR CORE ──
+    window.toggleEditorMode = function(){
+      isCanvasMode = !isCanvasMode;
+      const canvas = $('#editorCanvas');
+      const btn = $('#modeBtn');
+      if (isCanvasMode) {
+        canvas.classList.remove('flow-mode');
+        canvas.classList.add('canvas-mode');
+        btn.innerHTML = '<i class="fa-solid fa-cube"></i> Canvas';
+        if (sortableInstance) sortableInstance.destroy();
+      } else {
+        canvas.classList.remove('canvas-mode');
+        canvas.classList.add('flow-mode');
+        btn.innerHTML = '<i class="fa-solid fa-arrows-up-down"></i> Flow';
+        initSortable();
+      }
+      renderCanvas();
+    };
+
+    window.renderCanvas = function(){
+      const container = isCanvasMode ? $('#editorCanvas') : $('#flowPage');
+      container.innerHTML = '';
+      layout.forEach(w => {
+        const el = document.createElement('div');
+        el.className = 'widget-block';
+        el.dataset.id = w.id;
+        if (isCanvasMode) {
+          el.classList.add('canvas-widget');
+          el.style.left = `${w.x}px`;
+          el.style.top = `${w.y}px`;
+          el.style.width = `${w.w}px`;
+          el.style.height = `${w.h}px`;
+        }
+        const def = widgetTypes.find(t => t.type === w.type);
+        el.innerHTML = `<div class="widget-content"><span class="widget-label">${def ? def.name : w.type}</span></div>`;
+        el.addEventListener('click', (e) => { e.stopPropagation(); selectWidget(w.id); });
+        container.appendChild(el);
+        if (isCanvasMode) makeInteractable(el, w);
+      });
+    };
+
+    window.makeInteractable = function(el, w) {
+      interact(el).draggable({
+        ignoreFrom: '.widget-settings-panel',
+        listeners: { move(event) { w.x += event.dx; w.y += event.dy; el.style.left = `${w.x}px`; el.style.top = `${w.y}px`; } }
+      }).resizable({
+        edges: { right: true, bottom: true },
+        listeners: { move(event) { w.w = event.rect.width; w.h = event.rect.height; el.style.width = `${w.w}px`; el.style.height = `${w.h}px`; } }
+      });
+    };
 
     function initSortable() {
-        const flowPage = $('#flowPage');
-        if (sortableInstance) sortableInstance.destroy();
-        sortableInstance = new Sortable(flowPage, {
-            animation: 150,
-            onEnd: function (evt) {
-                const [moved] = layout.splice(evt.oldIndex, 1);
-                layout.splice(evt.newIndex, 0, moved);
-                pushHistory();
-                markDirty();
-            }
-        });
+      const flowPage = $('#flowPage');
+      if (sortableInstance) sortableInstance.destroy();
+      sortableInstance = new Sortable(flowPage, {
+        animation: 150,
+        onEnd: function (evt) {
+          const [moved] = layout.splice(evt.oldIndex, 1);
+          layout.splice(evt.newIndex, 0, moved);
+          pushHistory(); markDirty();
+        }
+      });
     }
 
     // ── SELECTION & SETTINGS ──
-    function selectWidget(id) {
-        selectedId = id;
-        $$('.widget-block').forEach(b => b.classList.remove('selected'));
-        const el = $(`.widget-block[data-id="${id}"]`);
-        if (el) el.classList.add('selected');
+    window.selectWidget = function(id) {
+      selectedId = id;
+      $$('.widget-block').forEach(b => b.classList.remove('selected'));
+      const el = $(`.widget-block[data-id="${id}"]`);
+      if (el) el.classList.add('selected');
+      const w = layout.find(x => x.id === id);
+      if (!w) return;
+      const def = widgetTypes.find(t => t.type === w.type);
+      if (!def) return;
 
-        const w = layout.find(x => x.id === id);
-        if (!w) return;
-        
-        const def = widgetTypes.find(t => t.type === w.type);
-        if (!def) return;
-
-        $('#settingsPanel').classList.add('open');
-        $('#settingsTitle').innerText = 'Edit ' + def.name;
-        
-        const body = $('#settingsBody');
-        let html = '';
-        
-        for (const key in def.defaults) {
-            const val = w.settings[key] ?? def.defaults[key];
-            html += `<div class="field"><label>${key}</label><input type="text" oninput="updateWidgetSetting('${id}', '${key}', this.value)" value="${val}"></div>`;
+      $('#settingsPanel').classList.add('open');
+      $('#settingsTitle').innerText = 'Edit ' + def.name;
+      const body = $('#settingsBody');
+      let html = '';
+      for (const key in def.defaults) {
+        const val = w.settings[key] ?? def.defaults[key];
+        const isBool = typeof def.defaults[key] === 'boolean';
+        if(isBool) {
+            html += `<div class="toggle-row"><span>${key}</span><div class="switch ${val?'on':''}" onclick="this.classList.toggle('on'); updateWidgetSetting('${id}', '${key}', this.classList.contains('on'))"></div></div>`;
+        } else {
+            html += `<div class="field"><label>${key}</label><input type="text" oninput="updateWidgetSetting('${id}', '${key}', this.value)" value="${esc(val)}"></div>`;
         }
-        
-        html += `<button class="btn btn-danger" style="margin-top:20px;" onclick="deleteWidget('${id}')">Delete Widget</button>`;
-        body.innerHTML = html;
-    }
+      }
+      html += `<button class="btn btn-danger" style="margin-top:20px;" onclick="deleteWidget('${id}')">Delete Widget</button>`;
+      body.innerHTML = html;
+    };
 
-    function updateWidgetSetting(id, key, value) {
-        const w = layout.find(x => x.id === id);
-        if (w) { w.settings[key] = value; markDirty(); }
-    }
+    window.updateWidgetSetting = function(id, key, value) {
+      const w = layout.find(x => x.id === id);
+      if (w) { w.settings[key] = value; markDirty(); }
+    };
 
-    function deleteWidget(id) {
-        layout = layout.filter(x => x.id !== id);
-        $('#settingsPanel').classList.remove('open');
-        pushHistory();
-        renderCanvas();
-        markDirty();
-    }
-
-    function deleteSelected() {
-        if(selectedId) deleteWidget(selectedId);
-    }
+    window.deleteWidget = function(id) {
+      layout = layout.filter(x => x.id !== id);
+      $('#settingsPanel').classList.remove('open');
+      pushHistory(); renderCanvas(); markDirty();
+    };
+    window.deleteSelected = function() { if(selectedId) deleteWidget(selectedId); };
 
     // ── BOTTOM DOCK ──
     function buildDock() {
-        const tabsContainer = $('#dockTabs');
-        const categories = [...new Set(widgetTypes.map(w => w.category))];
-
-        categories.forEach(cat => {
-            const btn = document.createElement('button');
-            btn.className = 'dock-tab';
-            btn.innerText = cat;
-            btn.onclick = () => {
-                $$('.dock-tab').forEach(t => t.classList.remove('active'));
-                btn.classList.add('active');
-                renderDockWidgets(cat);
-            };
-            tabsContainer.appendChild(btn);
-        });
-
-        if(categories.length > 0) tabsContainer.firstChild.click();
+      const tabsContainer = $('#dockTabs');
+      const categories = [...new Set(widgetTypes.map(w => w.category))];
+      categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'dock-tab';
+        btn.innerText = cat;
+        btn.onclick = () => {
+          $$('.dock-tab').forEach(t => t.classList.remove('active'));
+          btn.classList.add('active');
+          renderDockWidgets(cat);
+        };
+        tabsContainer.appendChild(btn);
+      });
+      if(categories.length > 0) tabsContainer.firstChild.click();
     }
 
     function renderDockWidgets(category) {
-        const container = $('#dockWidgets');
-        container.innerHTML = '';
-        widgetTypes.filter(w => w.category === category).forEach(w => {
-            const item = document.createElement('div');
-            item.className = 'dock-item';
-            item.innerHTML = `<i class="fa-solid fa-cube"></i> ${w.name}`;
-            item.onclick = () => addWidget(w.type);
-            container.appendChild(item);
-        });
+      const container = $('#dockWidgets');
+      container.innerHTML = '';
+      widgetTypes.filter(w => w.category === category).forEach(w => {
+        const item = document.createElement('div');
+        item.className = 'dock-item';
+        item.innerHTML = `<i class="fa-solid fa-cube"></i> ${w.name}`;
+        item.onclick = () => addWidget(w.type);
+        container.appendChild(item);
+      });
     }
 
-    function addWidget(type) {
-        const def = widgetTypes.find(t => t.type === type);
-        const newWidget = {
-            id: Date.now().toString(),
-            type: type,
-            x: 50, y: 50, w: 300, h: 80, 
-            settings: JSON.parse(JSON.stringify(def.defaults)),
-            style: deepClone(WIDGET_STYLE_DEFAULTS)
-        };
-        layout.push(newWidget);
-        pushHistory();
-        renderCanvas();
-        markDirty();
-        selectWidget(newWidget.id);
-    }
+    window.addWidget = function(type) {
+      const def = widgetTypes.find(t => t.type === type);
+      const newWidget = {
+        id: Date.now().toString(),
+        type: type,
+        x: 50, y: 50, w: 300, h: 80, 
+        settings: deepClone(def.defaults),
+        style: deepClone(WIDGET_STYLE_DEFAULTS)
+      };
+      layout.push(newWidget);
+      pushHistory(); renderCanvas(); markDirty(); selectWidget(newWidget.id);
+    };
 
-    // ── UNDO / REDO ──
+    // ── HISTORY ENGINE ──
     function pushHistory() {
-        history = history.slice(0, historyIndex + 1);
-        history.push(JSON.stringify(layout));
-        historyIndex = history.length - 1;
-        updateUndoRedoButtons();
+      history = history.slice(0, historyIndex + 1);
+      history.push(JSON.stringify(layout));
+      historyIndex = history.length - 1;
+      updateUndoRedoButtons();
     }
-
-    function undo() {
-        if (historyIndex > 0) {
-            historyIndex--;
-            layout = JSON.parse(history[historyIndex]);
-            renderCanvas();
-            markDirty();
-            updateUndoRedoButtons();
-        }
-    }
-
-    function redo() {
-        if (historyIndex < history.length - 1) {
-            historyIndex++;
-            layout = JSON.parse(history[historyIndex]);
-            renderCanvas();
-            markDirty();
-            updateUndoRedoButtons();
-        }
-    }
-
+    window.undo = function() {
+      if (historyIndex > 0) {
+        historyIndex--; layout = JSON.parse(history[historyIndex]);
+        renderCanvas(); markDirty(); updateUndoRedoButtons();
+      }
+    };
+    window.redo = function() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++; layout = JSON.parse(history[historyIndex]);
+        renderCanvas(); markDirty(); updateUndoRedoButtons();
+      }
+    };
     function updateUndoRedoButtons() {
-        const undoBtn = $('#undoBtn');
-        const redoBtn = $('#redoBtn');
-        if(undoBtn) undoBtn.disabled = historyIndex <= 0;
-        if(redoBtn) redoBtn.disabled = historyIndex >= history.length - 1;
+      const u = $('#undoBtn'), r = $('#redoBtn');
+      if(u) u.disabled = historyIndex <= 0;
+      if(r) r.disabled = historyIndex >= history.length - 1;
     }
 
-    // ── SAVE & DATA ──
-    function saveLayout() { markSaved(); }
-    function saveSettings() { markDirty(); }
-    function saveSEO() { 
-        profileData.seo = { title: $('#seoTitle').value, discordInvite: $('#seoDiscordInvite').value };
-        markDirty(); 
-    }
-    function saveProfile() { 
-        profileData.displayName = $('#pfDisplayName').value;
-        profileData.tagline = $('#pfTagline').value;
-        markDirty(); 
-    }
+    // ── STATE & SAVE ──
+    window.markDirty = function() { $('#saveStatus').textContent = 'unsaved'; $('#saveStatus').classList.add('dirty'); };
+    window.markSaved = function() { $('#saveStatus').textContent = 'saved'; $('#saveStatus').classList.remove('dirty'); };
+    window.saveSettings = function() { saveLayout(); };
 
-    // ── COMMAND PALETTE ──
-    function setupCommandPalette() {
-        document.addEventListener('keydown', e => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCmdPalette(); }
-            if (e.key === 'Escape') $('#cmdOverlay').style.display = 'none';
-        });
-        $('#cmdOverlay').addEventListener('click', e => { if (e.target.id === 'cmdOverlay') e.target.style.display = 'none'; });
-    }
-    function openCmdPalette() { $('#cmdOverlay').style.display = 'flex'; $('#cmdInput').focus(); }
+    // ── SEO & PROFILE ──
+    window.loadSEO = function() {
+      const s = profileData.seo || {};
+      $('#seoTitle').value = s.title || '';
+      $('#seoDesc').value = s.description || '';
+      $('#seoDiscordInvite').value = s.discordInvite || '';
+      $('#seoDiscordId').value = s.discordId || '';
+    };
+    window.saveSEO = function() {
+      profileData.seo = {
+        title: $('#seoTitle').value,
+        description: $('#seoDesc').value,
+        discordInvite: $('#seoDiscordInvite').value,
+        discordId: $('#seoDiscordId').value
+      };
+      markDirty(); saveLayout();
+    };
+    
+    window.loadProfile = function() {
+      const p = profileData || {};
+      $('#pfDisplayName').value = p.displayName || '';
+      $('#pfTagline').value = p.tagline || '';
+      $('#pfBio').value = p.bio || '';
+    };
+    window.saveProfile = function() {
+      profileData.displayName = $('#pfDisplayName').value;
+      profileData.tagline = $('#pfTagline').value;
+      profileData.bio = $('#pfBio').value;
+      markDirty(); saveLayout();
+    };
 
-    init();
-    </script>
+    // ── CMD PALETTE ──
+    window.openCmdPalette = function() { $('#cmdOverlay').style.display = 'flex'; $('#cmdInput').focus(); };
+    document.addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCmdPalette(); }
+      if (e.key === 'Escape') $('#cmdOverlay').style.display = 'none';
+    });
+    $('#cmdOverlay').addEventListener('click', e => { if (e.target.id === 'cmdOverlay') e.target.style.display = 'none'; });
+
+    // ── BOOT ──
+    window.addEventListener('DOMContentLoaded', () => {
+        $('#userName').textContent = currentUser.username;
+        $('#userInitial').textContent = currentUser.username.charAt(0).toUpperCase();
+        buildDock();
+        initSortable();
+        loadLayout();
+        loadSEO();
+        loadProfile();
+        
+        // Populate mock stats
+        document.querySelectorAll('[data-stat]').forEach(el => el.textContent = '1,240');
+    });
+
+    })();
+    </script> 
 </body>
 </html>
