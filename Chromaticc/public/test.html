@@ -12,13 +12,14 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #ffffff; /* Pure white background, no distractions */
+            background-color: #ffffff; /* Pure white background */
             color: #09090b;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden; /* Prevent horizontal scroll from rotated image */
         }
         .container {
-            max-width: 800px; /* Single-column, focused layout */
+            max-width: 800px;
             margin: 0 auto;
             padding: 0 24px;
         }
@@ -35,39 +36,79 @@
             transform: translateY(0);
         }
 
-        /* ── HERO SECTION ── */
+        /* ── HERO SECTION & TOP IMAGE ── */
         .hero {
-            padding: 120px 0 80px 0;
+            padding: 160px 0 120px 0;
             text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
+
+        /* The rotated image behind the claim form */
+        .top-image-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(4deg);
+            width: 90%;
+            max-width: 600px;
+            z-index: 0;
+            opacity: 0.85; /* Slightly dimmed so text pops */
+            filter: blur(1px); /* Subtle blur so it doesn't fight the text */
+            pointer-events: none;
+        }
+        .top-image-wrapper img {
+            width: 100%;
+            height: auto;
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2; /* Sit above the image */
+            max-width: 600px;
+        }
+
         .hero h1 {
             font-size: clamp(48px, 8vw, 80px);
             font-weight: 600;
             letter-spacing: -0.04em;
             line-height: 1.05;
             margin-bottom: 24px;
+            color: #09090b;
         }
         .hero p {
             font-size: 18px;
-            color: #71717a; /* Muted gray */
-            max-width: 500px;
+            color: #52525b;
+            max-width: 480px;
             margin: 0 auto 40px auto;
-            font-weight: 300;
+            font-weight: 400;
         }
+
+        /* ── CLAIM FORM (Glassmorphic) ── */
         .signup-form {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            max-width: 400px;
+            max-width: 420px;
             margin: 0 auto;
-            padding: 8px;
-            border: 1px solid #e4e4e7;
-            border-radius: 12px;
-            transition: border-color 0.2s;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.85); /* Frosted glass */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); /* Strong shadow to float above image */
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         .signup-form:focus-within {
             border-color: #09090b;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
         }
         .signup-prefix {
             font-size: 14px;
@@ -90,8 +131,8 @@
             background: #09090b;
             color: #ffffff;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 12px 24px;
+            border-radius: 10px;
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
@@ -101,25 +142,13 @@
             transform: scale(1.02);
         }
 
-        /* ── IMAGE SECTIONS (TOP & BOTTOM) ── */
-        .image-section {
-            width: 100%;
-            margin: 80px 0;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.04);
-        }
-        .image-section img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
         /* ── WHY WE'RE BETTER (FEATURES) ── */
         .features {
-            padding: 80px 0;
+            padding: 100px 0;
             border-top: 1px solid #e4e4e7;
-            border-bottom: 1px solid #e4e4e7;
+            position: relative;
+            z-index: 2;
+            background: #ffffff;
         }
         .features h2 {
             font-size: 32px;
@@ -131,13 +160,13 @@
         .features p.sub {
             text-align: center;
             color: #71717a;
-            margin-bottom: 48px;
+            margin-bottom: 64px;
             font-size: 16px;
         }
         .feature-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 32px;
+            gap: 40px;
         }
         @media (max-width: 600px) {
             .feature-grid { grid-template-columns: 1fr; }
@@ -158,10 +187,11 @@
 
         /* ── LIVE PREVIEW SECTION ── */
         .preview-section {
-            padding: 80px 0;
+            padding: 100px 0;
             background: #fafafa;
-            border-radius: 24px;
-            margin: 80px 0;
+            border-top: 1px solid #e4e4e7;
+            position: relative;
+            z-index: 2;
         }
         .preview-section h2 {
             text-align: center;
@@ -173,16 +203,16 @@
         .preview-section p {
             text-align: center;
             color: #71717a;
-            margin-bottom: 40px;
+            margin-bottom: 48px;
         }
         .preview-window {
-            max-width: 400px;
+            max-width: 380px;
             margin: 0 auto;
             background: #ffffff;
             border: 1px solid #e4e4e7;
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+            border-radius: 24px;
+            padding: 32px 24px;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.06);
         }
         .preview-avatar {
             width: 72px;
@@ -195,12 +225,12 @@
             text-align: center;
             font-weight: 600;
             font-size: 18px;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         .preview-bio {
             text-align: center;
             color: #71717a;
-            font-size: 14px;
+            font-size: 13px;
             margin-bottom: 24px;
         }
         .preview-link {
@@ -209,7 +239,7 @@
             padding: 14px;
             background: #f4f4f5;
             border: 1px solid #e4e4e7;
-            border-radius: 10px;
+            border-radius: 12px;
             text-align: center;
             font-size: 14px;
             font-weight: 500;
@@ -222,25 +252,55 @@
             background: #e4e4e7;
         }
 
-        /* ── FINAL CTA ── */
+        /* ── THE FADE TO BLACK & BOTTOM IMAGE ── */
+        .bottom-fade-wrapper {
+            /* Start white, fade to deep black */
+            background: linear-gradient(to bottom, #fafafa 0%, #09090b 40%);
+            padding-top: 120px;
+            position: relative;
+            z-index: 2;
+        }
+
         .final-cta {
-            padding: 80px 0 120px 0;
             text-align: center;
+            padding: 0 0 100px 0;
+            color: #ffffff;
         }
         .final-cta h2 {
-            font-size: 40px;
+            font-size: clamp(36px, 6vw, 56px);
             font-weight: 600;
             letter-spacing: -0.03em;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
         }
         .final-cta .btn {
-            background: #09090b;
-            color: #ffffff;
-            padding: 14px 32px;
-            border-radius: 10px;
+            background: #ffffff;
+            color: #09090b;
+            padding: 16px 40px;
+            border-radius: 12px;
             text-decoration: none;
             font-weight: 600;
             font-size: 16px;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        .final-cta .btn:hover {
+            transform: scale(1.02);
+        }
+
+        /* The Bottom Image */
+        .bottom-image-wrapper {
+            background: #09090b;
+            width: 100%;
+            line-height: 0;
+            position: relative;
+            z-index: 2;
+        }
+        .bottom-image-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-width: 1000px;
+            margin: 0 auto;
         }
     </style>
 </head>
@@ -249,21 +309,23 @@
     <div class="container">
         <!-- ── HERO SECTION ── -->
         <section class="hero fade-in">
-            <h1>Your page.<br>Your way.</h1>
-            <p>Not just a stack of buttons. A page that feels like you. Claim your handle before someone else does.</p>
             
-            <!-- Signup Form (Like wsp.baby) -->
-            <div class="signup-form">
-                <span class="signup-prefix">chromati.cc.cd/</span>
-                <input type="text" class="signup-input" placeholder="yourname" aria-label="Username">
-                <button class="signup-btn">Claim</button>
+            <!-- The Rotated Top Image -->
+            <div class="top-image-wrapper">
+                <img src="top.jpeg" alt="Chromaticc Top Preview">
             </div>
-        </section>
 
-        <!-- ── TOP IMAGE (REPLACE SRC WITH top.jpeg) ── -->
-        <!-- Place this image at the same vertical position as wsp.baby's top image -->
-        <section class="image-section fade-in">
-            <img src="top.jpeg" alt="Chromaticc Preview Top" loading="lazy">
+            <!-- The Hero Content -->
+            <div class="hero-content">
+                <h1>Your page.<br>Your way.</h1>
+                <p>Not just a stack of buttons. A page that feels like you. Claim your handle before someone else does.</p>
+                
+                <div class="signup-form">
+                    <span class="signup-prefix">chromati.cc.cd/</span>
+                    <input type="text" class="signup-input" placeholder="yourname" aria-label="Username">
+                    <button class="signup-btn">Claim</button>
+                </div>
+            </div>
         </section>
 
         <!-- ── WHY WE'RE BETTER (FEATURES) ── -->
@@ -305,18 +367,21 @@
                 <a href="#" class="preview-link" onclick="event.preventDefault()">Latest Project</a>
             </div>
         </section>
+    </div>
 
-        <!-- ── BOTTOM IMAGE (REPLACE SRC WITH bottom.jpeg) ── -->
-        <!-- Place this image at the same vertical position as wsp.baby's bottom image -->
-        <section class="image-section fade-in">
-            <img src="bottom.jpeg" alt="Chromaticc Preview Bottom" loading="lazy">
-        </section>
-
-        <!-- ── FINAL CTA ── -->
-        <section class="final-cta fade-in">
-            <h2>Ready to claim your page?</h2>
-            <a href="#" class="btn">Get started</a>
-        </section>
+    <!-- ── FADE TO BLACK & BOTTOM IMAGE ── -->
+    <div class="bottom-fade-wrapper">
+        <div class="container">
+            <section class="final-cta fade-in">
+                <h2>Ready to claim<br>your page?</h2>
+                <a href="#" class="btn">Get started</a>
+            </section>
+        </div>
+        
+        <!-- The Bottom Image -->
+        <div class="bottom-image-wrapper">
+            <img src="bottom.jpeg" alt="Chromaticc Bottom Preview">
+        </div>
     </div>
 
     <script>
