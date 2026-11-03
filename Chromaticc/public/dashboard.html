@@ -6,12 +6,10 @@
     <title>Dashboard — Chromaticc</title>
     <meta name="robots" content="noindex">
     <link rel="icon" type="image/png" href="Chromaticc.png">
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
@@ -27,16 +25,19 @@
     /* ═══════════ THEME & CORE ═══════════ */
     :root[data-theme="dark"] {
         --bg: #050505;
-        --surface: rgba(20, 20, 20, 0.5); /* Glass */
+        --surface: rgba(20, 20, 20, 0.5);
         --surface-solid: #121212;
         --surface-hover: rgba(255, 255, 255, 0.08);
         --border: rgba(255, 255, 255, 0.1);
         --border-hover: rgba(255, 255, 255, 0.25);
         --text: #ffffff;
         --muted: #a3a3a3;
+        --muted-2: #52525b;
         --success: #4ade80;
         --danger: #ff5566;
         --warn: #fbbf24;
+        --info: #7dd3fc;
+        --discord: #5865F2;
         --glow-color: rgba(255, 255, 255, 0.15);
         --top-img-opacity: 0.15;
         --icon: url('Chromaticc.png');
@@ -45,16 +46,19 @@
     }
     :root[data-theme="light"] {
         --bg: #fafafa;
-        --surface: rgba(255, 255, 255, 0.6); /* Glass */
+        --surface: rgba(255, 255, 255, 0.6);
         --surface-solid: #ffffff;
         --surface-hover: rgba(0, 0, 0, 0.04);
         --border: rgba(0, 0, 0, 0.08);
         --border-hover: rgba(0, 0, 0, 0.2);
         --text: #09090b;
         --muted: #666666;
+        --muted-2: #a1a1aa;
         --success: #16a34a;
         --danger: #dc2626;
         --warn: #d97706;
+        --info: #0ea5e9;
+        --discord: #4752C4;
         --glow-color: rgba(0, 0, 0, 0.05);
         --top-img-opacity: 0;
         --icon: url('Chromaticc.png');
@@ -76,8 +80,8 @@
         box-shadow: 0 0 20px var(--glow-color);
         border-color: rgba(255,255,255,0.3);
     }
-    :root[data-theme="light"] body.glow-mode .panel, :root[data-theme="light"] body.glow-mode .sidebar { border-color: rgba(0,0,0,0.2); }
 
+    .scroll-progress{position:fixed;top:0;left:0;right:0;height:2px;z-index:9999;background:var(--text);transform:scaleX(0);transform-origin:left;box-shadow:0 0 12px var(--text);transition:transform .1s linear;}
     a{color:inherit;text-decoration:none;}
     button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
     img{max-width:100%;display:block;}
@@ -228,6 +232,19 @@
     .settings-header h3 { font-size: 16px; font-weight: 600; }
     .settings-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
 
+    /* ── COMMAND PALETTE & MODALS ── */
+    .cmd-overlay{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:none;align-items:flex-start;justify-content:center;padding:80px 20px;}
+    .cmd-palette{width:100%;max-width:560px;background:var(--surface-solid);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.5);}
+    .cmd-input{width:100%;padding:18px 22px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:1rem;outline:none;font-family:inherit;}
+    .cmd-list{max-height:400px;overflow-y:auto;padding:8px;}
+    .cmd-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;cursor:pointer;color:var(--muted);font-size:0.83rem;transition:all .15s;font-family:'JetBrains Mono',monospace;}
+    .cmd-item:hover,.cmd-item.active{background:var(--surface-hover);color:var(--text);}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;z-index:5000;padding:20px;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--surface-solid);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:520px;width:100%;box-shadow:0 40px 100px rgba(0,0,0,1);max-height:90vh;overflow-y:auto;}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--text);color:var(--bg);padding:13px 22px;border-radius:30px;font-weight:700;font-size:0.78rem;z-index:9999;transition:transform .4s cubic-bezier(.175,.885,.32,1.275);display:flex;align-items:center;gap:9px;}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+
     /* ── MOBILE SUPPORT ── */
     @media (max-width: 900px) {
         .app { grid-template-columns: 1fr; }
@@ -249,16 +266,15 @@
         .widget-settings-panel { width: 100%; top: auto; height: 70vh; bottom: 0; transform: translateY(100%); border-left: none; border-top: 1px solid var(--border); border-radius: 20px 20px 0 0; }
         .widget-settings-panel.open { transform: translateY(0); }
         .editor-dock { padding-bottom: 80px; }
+        .stats-grid, .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
     }
     </style>
 </head>
 <body>
 
-    <!-- Backgrounds -->
     <div class="bg-image"></div>
     <div class="bg-gradient"></div>
 
-    <!-- Mobile Nav -->
     <button class="mobile-menu" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></button>
     <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
 
@@ -274,6 +290,7 @@
 
             <div class="sidebar-section">INSIGHTS</div>
             <div class="nav-item" data-view="stats" onclick="switchView('stats')"><i class="fa-solid fa-chart-simple"></i><span>stats</span></div>
+            <div class="nav-item" data-view="analytics" onclick="switchView('analytics')"><i class="fa-solid fa-chart-line"></i><span>analytics</span></div>
             <div class="nav-item" data-view="guests" onclick="switchView('guests')"><i class="fa-solid fa-comments"></i><span>guests</span></div>
             <div class="nav-item" data-view="badges" onclick="switchView('badges')"><i class="fa-solid fa-award"></i><span>badges</span><span class="nav-count" id="badgeCount">0</span></div>
 
@@ -288,7 +305,6 @@
 
         <!-- MAIN CONTENT -->
         <main class="main">
-            <!-- TOPBAR -->
             <header class="topbar">
                 <div class="topbar-left">
                     <button class="menu-toggle" onclick="toggleDesktopSidebar()"><i class="fa-solid fa-bars"></i></button>
@@ -310,10 +326,9 @@
                 </div>
             </header>
 
-            <!-- VIEWS CONTAINER -->
             <div class="view-container">
                 
-                <!-- HOME VIEW -->
+                <!-- HOME VIEW (RESTORED FULLY) -->
                 <section class="view active" id="view-home">
                     <div class="page-header">
                         <div><h1>Dashboard</h1><p id="greeting">// loading…</p></div>
@@ -322,7 +337,7 @@
                             <button class="btn btn-primary" onclick="window.open('/'+currentUser.username, '_blank')"><i class="fa-solid fa-eye"></i> view profile</button>
                         </div>
                     </div>
-                    <div class="stats-grid">
+                    <div class="stats-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
                         <div class="stat-card"><div class="stat-head"><span class="stat-label">Profile Views</span><div class="stat-icon"><i class="fa-solid fa-eye"></i></div></div><div class="stat-value" data-stat="views">0</div><div class="stat-delta" data-delta="views">—</div></div>
                         <div class="stat-card"><div class="stat-head"><span class="stat-label">Widgets</span><div class="stat-icon"><i class="fa-solid fa-cube"></i></div></div><div class="stat-value" data-stat="widgets">0</div><div class="stat-delta" data-delta="widgets">—</div></div>
                         <div class="stat-card"><div class="stat-head"><span class="stat-label">Guestbook</span><div class="stat-icon"><i class="fa-solid fa-comments"></i></div></div><div class="stat-value" data-stat="guestbook">0</div><div class="stat-delta" data-delta="guestbook">—</div></div>
@@ -333,9 +348,13 @@
                         <div class="panel"><div class="panel-head"><div class="panel-title">Completion</div></div><div style="font-size:1.5rem;font-weight:700;" id="ringPct">0%</div></div>
                         <div class="panel"><div class="panel-head"><div class="panel-title">Quick Actions</div></div><div style="display:flex;gap:8px;flex-direction:column;"><button class="btn btn-primary" onclick="switchView('editor')">open editor</button><button class="btn btn-outline" onclick="switchView('profile')">edit profile</button></div></div>
                     </div>
+                    <div class="grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <div class="panel"><div class="panel-head"><div class="panel-title">Recent Activity</div></div><div class="feed" id="activityFeed"><div class="empty" style="color:var(--muted); font-size:14px;">// loading…</div></div></div>
+                        <div class="panel"><div class="panel-head"><div class="panel-title">Widget Breakdown</div></div><div class="breakdown-list" id="breakdownList"><div class="empty" style="color:var(--muted); font-size:14px;">// no widgets yet</div></div></div>
+                    </div>
                 </section>
 
-                <!-- EDITOR VIEW -->
+                <!-- EDITOR VIEW (RESTORED FULLY) -->
                 <section class="view" id="view-editor">
                     <div class="editor-toolbar">
                         <div class="toolbar-left">
@@ -354,12 +373,9 @@
 
                     <div class="editor-canvas-wrapper">
                         <div class="editor-canvas flow-mode" id="editorCanvas">
-                            <div class="flow-page" id="flowPage">
-                                <!-- Widgets render here -->
-                            </div>
+                            <div class="flow-page" id="flowPage"></div>
                         </div>
                         
-                        <!-- Widget Settings Panel -->
                         <div class="widget-settings-panel" id="settingsPanel">
                             <div class="settings-header">
                                 <h3 id="settingsTitle">Widget Settings</h3>
@@ -371,18 +387,13 @@
                         </div>
                     </div>
 
-                    <!-- BOTTOM WIDGET DOCK -->
                     <div class="editor-dock">
-                        <div class="dock-tabs" id="dockTabs">
-                            <!-- Injected via JS -->
-                        </div>
-                        <div class="dock-widgets" id="dockWidgets">
-                            <!-- Injected via JS -->
-                        </div>
+                        <div class="dock-tabs" id="dockTabs"></div>
+                        <div class="dock-widgets" id="dockWidgets"></div>
                     </div>
                 </section>
 
-                <!-- PAGE SETTINGS VIEW -->
+                <!-- PAGE SETTINGS VIEW (RESTORED FULLY) -->
                 <section class="view" id="view-page">
                     <div class="page-header">
                         <div><h1>Page Settings</h1><p>// routing, domains, and global behavior.</p></div>
@@ -417,10 +428,19 @@
                                 <div class="switch" id="swLightMode" onclick="toggleTheme()"></div>
                             </div>
                         </div>
+                        <div class="form-panel">
+                            <div class="panel-title" style="margin-bottom:20px;">Chromaticc Page Mode</div>
+                            <div class="toggle-row"><span>Enable Glassmorphism</span><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+                            <div class="toggle-row"><span>Shimmer Animations</span><div class="switch" onclick="this.classList.toggle('on')"></div></div>
+                        </div>
+                        <div class="form-panel">
+                            <div class="panel-title" style="margin-bottom:20px;">Advanced</div>
+                            <div class="field"><label>Custom CSS</label><textarea rows="4" placeholder="body { ... }"></textarea></div>
+                        </div>
                     </div>
                 </section>
 
-                <!-- SEO VIEW -->
+                <!-- SEO VIEW (RESTORED FULLY + DISCORD) -->
                 <section class="view" id="view-seo">
                     <div class="page-header">
                         <div><h1>SEO & Socials</h1><p>// how you show up on Google, Discord, and Twitter.</p></div>
@@ -431,12 +451,16 @@
                             <div class="panel-title" style="margin-bottom:20px;">Page Meta</div>
                             <div class="field"><label>Page Title</label><input type="text" id="seoTitle"></div>
                             <div class="field"><label>Meta Description</label><textarea id="seoDesc" rows="3"></textarea></div>
+                            <div class="field"><label>Keywords</label><input type="text" id="seoKeywords"></div>
+                            <div class="field"><label>Author</label><input type="text" id="seoAuthor"></div>
                             <div class="toggle-row"><span>Index on Google</span><div class="switch" id="seoIndexable" onclick="this.classList.toggle('on')"></div></div>
                         </div>
                         <div class="form-panel">
                             <div class="panel-title" style="margin-bottom:20px;">Social Cards (OG)</div>
                             <div class="field"><label>OG Title</label><input type="text" id="seoOgTitle"></div>
+                            <div class="field"><label>OG Description</label><textarea id="seoOgDesc" rows="2"></textarea></div>
                             <div class="field"><label>OG Image URL</label><input type="text" id="seoOgImage"></div>
+                            <div class="field"><label>Twitter Card</label><select id="seoTwitterCard"><option value="summary">summary</option><option value="summary_large_image">summary large</option></select></div>
                         </div>
                         <div class="form-panel" style="grid-column: 1 / -1;">
                             <div class="panel-title" style="margin-bottom:20px;">Discord Integration</div>
@@ -449,7 +473,7 @@
                     </div>
                 </section>
 
-                <!-- PROFILE VIEW -->
+                <!-- PROFILE VIEW (RESTORED FULLY) -->
                 <section class="view" id="view-profile">
                     <div class="page-header"><div><h1>Profile</h1><p>// your identity. widgets pull from here.</p></div><div class="header-actions"><button class="btn btn-primary" onclick="saveProfile()">Save Profile</button></div></div>
                     <div class="form-grid">
@@ -458,17 +482,20 @@
                             <div class="field"><label>Display Name</label><input type="text" id="pfDisplayName"></div>
                             <div class="field"><label>Tagline</label><input type="text" id="pfTagline"></div>
                             <div class="field"><label>Bio</label><textarea id="pfBio" rows="3"></textarea></div>
+                            <div class="field"><label>Location</label><input type="text" id="pfLocation"></div>
+                            <div class="field"><label>Pronouns</label><input type="text" id="pfPronouns"></div>
                         </div>
                         <div class="form-panel">
                             <div class="panel-title" style="margin-bottom:20px;">Avatar & Socials</div>
                             <div class="field"><label>Avatar URL</label><input type="text" id="pfAvatar"></div>
-                            <div class="field"><label>Social Link (e.g. Twitter)</label><input type="text" id="pfSocial" placeholder="https://..."></div>
+                            <div class="field"><label>Accent Color</label><input type="color" id="pfAccentColor" value="#ffffff" style="padding:3px; height:42px; cursor:pointer;"></div>
                         </div>
                     </div>
                 </section>
 
                 <!-- PLACEHOLDERS (RESTORED) -->
                 <section class="view" id="view-stats"><h1>Stats</h1><p class="page-desc">Detailed analytics.</p></section>
+                <section class="view" id="view-analytics"><h1>Analytics</h1><p class="page-desc">Views over time.</p></section>
                 <section class="view" id="view-guests"><h1>Guests</h1><p class="page-desc">Guestbook messages.</p></section>
                 <section class="view" id="view-badges"><h1>Badges</h1><p class="page-desc">Your earned badges.</p></section>
                 <section class="view" id="view-templates"><h1>Templates</h1><p class="page-desc">Quick-start layouts.</p></section>
@@ -478,27 +505,31 @@
         </main>
     </div>
 
-    <!-- COMMAND PALETTE -->
-    <div class="cmd-overlay" id="cmdOverlay" style="position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:none;align-items:flex-start;justify-content:center;padding:80px 20px;">
-        <div style="width:100%;max-width:560px;background:var(--surface-solid);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.5);">
-            <input type="text" id="cmdInput" placeholder="Type a command..." style="width:100%;padding:18px 22px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:1rem;outline:none;font-family:inherit;">
-            <div class="cmd-list" id="cmdList" style="max-height:400px;overflow-y:auto;padding:8px;"></div>
+    <!-- MODALS -->
+    <div class="cmd-overlay" id="cmdOverlay">
+        <div class="cmd-palette">
+            <input type="text" class="cmd-input" id="cmdInput" placeholder="Type a command or search…" autocomplete="off">
+            <div class="cmd-list" id="cmdList"></div>
         </div>
     </div>
 
     <script>
     'use strict';
     
-    // ── CORE VARIABLES ──
-    const currentUser = { username: 'chrx' }; // Mocked for UI
+    const $ = (s,c) => (c||document).querySelector(s);
+    const $$ = (s,c) => Array.from((c||document).querySelectorAll(s));
     const BOT_URL = 'https://chronic-bot.onrender.com';
+    const currentUser = { username: 'chrx' }; 
+
     let layout = [];
-    let pageSettings = {};
-    let profileData = {};
-    let history = [];
-    let historyIndex = -1;
     let selectedId = null;
     let isCanvasMode = false;
+    let editMode = 'position';
+    let history = [];
+    let historyIndex = -1;
+    let pageSettings = {};
+    let profileData = {};
+    let userBadges = [];
     let sortableInstance = null;
 
     // ── MASSIVE WIDGET LIST (RESTORED) ──
@@ -506,50 +537,75 @@
         { category: 'Text', type: 'text', name: 'Text', defaults: { content: 'Hello World', fontSize: 16 } },
         { category: 'Text', type: 'gradient-text', name: 'Gradient Text', defaults: { content: 'Gradient', fontSize: 20 } },
         { category: 'Text', type: 'neon-text', name: 'Neon Text', defaults: { content: 'Neon', color: '#ffffff' } },
-        { category: 'Profile', type: 'profile-card', name: 'Profile Card', defaults: { name: 'chrx', bio: 'Designer' } },
-        { category: 'Profile', type: 'profile-circle', name: 'Profile Circle', defaults: { src: '' } },
-        { category: 'Profile', type: 'badges-showcase', name: 'Badges', defaults: { title: 'badges' } },
-        { category: 'Media', type: 'image', name: 'Image', defaults: { src: '' } },
-        { category: 'Media', type: 'video', name: 'Video', defaults: { src: '' } },
-        { category: 'Media', type: 'audio', name: 'Audio', defaults: { src: '' } },
-        { category: 'Links', type: 'link-list', name: 'Link List', defaults: {} },
-        { category: 'Links', type: 'link-embed', name: 'Link', defaults: { url: '', label: 'Link' } },
-        { category: 'Embeds', type: 'youtube', name: 'YouTube', defaults: { videoId: '' } },
-        { category: 'Embeds', type: 'spotify', name: 'Spotify', defaults: { uri: '' } },
-        { category: 'Utility', type: 'clock', name: 'Clock', defaults: { format: '12h' } },
-        { category: 'Social', type: 'discord-presence', name: 'Discord', defaults: {} }
+        { category: 'Text', type: 'marquee-text', name: 'Marquee', defaults: { content: 'Scrolling...' } },
+        { category: 'Text', type: 'typewriter', name: 'Typewriter', defaults: { text: 'Hello world', speed: 80 } },
+        { category: 'Text', type: 'glitch-text', name: 'Glitch Text', defaults: { content: 'GLITCH', color: '#ffffff' } },
+        { category: 'Profile', type: 'profile-card', name: 'Profile Card', isContainer: true, defaults: { preset:'minimal', slots:'avatar,name,badges,tagline,location,socials,views' } },
+        { category: 'Profile', type: 'profile-circle', name: 'Profile Circle', defaults: { src:'', borderColor:'#ffffff' } },
+        { category: 'Profile', type: 'badges-showcase', name: 'Badges', defaults: { title:'my badges' } },
+        { category: 'Profile', type: 'level', name: 'Level', defaults: { showLabel:true } },
+        { category: 'Media', type: 'image', name: 'Image', defaults: { src:'' } },
+        { category: 'Media', type: 'video', name: 'Video', defaults: { src:'' } },
+        { category: 'Media', type: 'audio', name: 'Audio', defaults: { src:'', title:'Track' } },
+        { category: 'Media', type: 'audio-lyric', name: 'Audio + Lyrics', defaults: { src:'', trackName:'Track', artistName:'Artist' } },
+        { category: 'Links', type: 'link-list', name: 'Link List', isContainer: true, defaults:{} },
+        { category: 'Links', type: 'link-embed', name: 'Link', defaults: { url:'', label:'My Link' } },
+        { category: 'Embeds', type: 'youtube', name: 'YouTube', defaults: { videoId:'' } },
+        { category: 'Embeds', type: 'spotify', name: 'Spotify', defaults: { uri:'' } },
+        { category: 'Embeds', type: 'twitch', name: 'Twitch', defaults: { channel:'' } },
+        { category: 'Utility', type: 'clock', name: 'Clock', defaults: { format:'12h' } },
+        { category: 'Utility', type: 'countdown', name: 'Countdown', defaults: { targetDate:'' } },
+        { category: 'Utility', type: 'progress-bar', name: 'Progress Bar', defaults: { value:50 } },
+        { category: 'Utility', type: 'qr-code', name: 'QR Code', defaults: { url:'' } },
+        { category: 'Social', type: 'discord-presence', name: 'Discord Presence', defaults: { showStatusDot:true } },
+        { category: 'Social', type: 'github-stats', name: 'GitHub Stats', defaults: { username:'' } },
+        { category: 'Social', type: 'tech-stack', name: 'Tech Stack', defaults: { items:'React,Node' } },
+        { category: 'Interactive', type: 'guestbook', name: 'Guestbook', defaults: { title:'Leave a message' } },
+        { category: 'Interactive', type: 'mini-poll', name: 'Mini Poll', defaults: { question:'Favorite?' } },
+        { category: 'Decoration', type: 'divider', name: 'Divider', defaults: { color:'#ffffff' } },
+        { category: 'Advanced', type: 'code', name: 'Code', defaults: { html:'<div>Custom</div>' } }
     ];
 
-    // ── INIT ──
+    const WIDGET_STYLE_DEFAULTS = {
+        bg:{type:'glass', value:'', blur:12, opacity:1},
+        border:{width:1, color:'rgba(255,255,255,0.15)', style:'solid', radius:14},
+        padding:12, shadow:{type:'none', color:'rgba(0,0,0,0.4)', blur:24, x:0, y:8},
+        typography:{family:'inherit', size:14, weight:500, spacing:0, lineHeight:1.4, align:'left', color:'inherit'},
+        textEffect:'none', animation:'none', hover:'none', lock:false, hideMobile:false, zIndex:1
+    };
+
     function init() {
         buildDock();
         setupCommandPalette();
         
-        // Mock Data for UI
+        // Mock data for visual testing
         layout = [
-            { id: '1', type: 'profile-card', x: 20, y: 20, w: 300, h: 100, settings: { name: 'chrx', bio: 'Designer' } },
-            { id: '2', type: 'link-embed', x: 20, y: 140, w: 300, h: 60, settings: { label: 'My Portfolio', url: '#' } }
+            { id: '1', type: 'profile-card', x: 20, y: 20, w: 300, h: 100, settings: { name: 'chrx', bio: 'Designer' }, style: deepClone(WIDGET_STYLE_DEFAULTS) },
+            { id: '2', type: 'link-embed', x: 20, y: 140, w: 300, h: 60, settings: { label: 'My Portfolio', url: '#' }, style: deepClone(WIDGET_STYLE_DEFAULTS) }
         ];
         pageSettings = { wildcard: 'chrx' };
         profileData = { displayName: 'chrx', tagline: 'Designer' };
-
+        
         history = [JSON.stringify(layout)];
         historyIndex = 0;
         updateUndoRedoButtons();
-        
         renderCanvas();
-        loadSEO();
-        loadProfile();
     }
 
-    // ── UI NAVIGATION ──
+    // ── UTILS ──
+    function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+    function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    function markDirty() { $('#saveStatus').textContent = 'unsaved'; $('#saveStatus').classList.add('dirty'); }
+    function markSaved() { $('#saveStatus').textContent = 'saved'; $('#saveStatus').classList.remove('dirty'); }
+
+    // ── NAVIGATION & UI ──
     function switchView(viewName) {
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        const activeNav = document.querySelector(`.nav-item[data-view="${viewName}"]`);
+        $$('.nav-item').forEach(n => n.classList.remove('active'));
+        const activeNav = $(`.nav-item[data-view="${viewName}"]`);
         if(activeNav) activeNav.classList.add('active');
 
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        const targetView = document.getElementById(`view-${viewName}`);
+        $$('.view').forEach(v => v.classList.remove('active'));
+        const targetView = $(`#view-${viewName}`);
         if(targetView) targetView.classList.add('active');
 
         if(viewName === 'editor') renderCanvas();
@@ -557,28 +613,23 @@
     }
 
     function toggleMobileMenu() {
-        document.getElementById('sidebar').classList.toggle('open');
-        document.getElementById('mobileOverlay').classList.toggle('active');
+        $('#sidebar').classList.toggle('open');
+        $('#mobileOverlay').classList.toggle('active');
     }
-    function toggleDesktopSidebar() {
-        document.getElementById('sidebar').classList.toggle('hidden');
-    }
+    function toggleDesktopSidebar() { $('#sidebar').classList.toggle('hidden'); }
     function toggleTheme() {
         const html = document.documentElement;
         const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         html.setAttribute('data-theme', next);
-        document.querySelector('#themeIcon').className = next === 'light' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        $('#themeIcon').className = next === 'light' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
     }
-    function toggleGlow(el) {
-        el.classList.toggle('on');
-        document.body.classList.toggle('glow-mode');
-    }
+    function toggleGlow(el) { el.classList.toggle('on'); document.body.classList.toggle('glow-mode'); }
 
-    // ── EDITOR LOGIC (FLOW & CANVAS) ──
+    // ── EDITOR LOGIC ──
     function toggleEditorMode() {
         isCanvasMode = !isCanvasMode;
-        const canvas = document.getElementById('editorCanvas');
-        const btn = document.getElementById('modeBtn');
+        const canvas = $('#editorCanvas');
+        const btn = $('#modeBtn');
         
         if (isCanvasMode) {
             canvas.classList.remove('flow-mode');
@@ -595,7 +646,7 @@
     }
 
     function renderCanvas() {
-        const container = isCanvasMode ? document.getElementById('editorCanvas') : document.getElementById('flowPage');
+        const container = isCanvasMode ? $('#editorCanvas') : $('#flowPage');
         container.innerHTML = '';
 
         layout.forEach(w => {
@@ -621,11 +672,9 @@
             
             container.appendChild(el);
             
-            if (isCanvasMode) {
-                makeInteractable(el, w);
-            }
+            if (isCanvasMode) makeInteractable(el, w);
         });
-        document.getElementById('editorCanvas').scrollTop = 0;
+        $('#editorCanvas').scrollTop = 0;
     }
 
     function makeInteractable(el, w) {
@@ -643,7 +692,7 @@
     }
 
     function initSortable() {
-        const flowPage = document.getElementById('flowPage');
+        const flowPage = $('#flowPage');
         if (sortableInstance) sortableInstance.destroy();
         sortableInstance = new Sortable(flowPage, {
             animation: 150,
@@ -656,11 +705,11 @@
         });
     }
 
-    // ── WIDGET SELECTION & SETTINGS ──
+    // ── SELECTION & SETTINGS ──
     function selectWidget(id) {
         selectedId = id;
-        document.querySelectorAll('.widget-block').forEach(b => b.classList.remove('selected'));
-        const el = document.querySelector(`.widget-block[data-id="${id}"]`);
+        $$('.widget-block').forEach(b => b.classList.remove('selected'));
+        const el = $(`.widget-block[data-id="${id}"]`);
         if (el) el.classList.add('selected');
 
         const w = layout.find(x => x.id === id);
@@ -669,13 +718,12 @@
         const def = widgetTypes.find(t => t.type === w.type);
         if (!def) return;
 
-        document.getElementById('settingsPanel').classList.add('open');
-        document.getElementById('settingsTitle').innerText = 'Edit ' + def.name;
+        $('#settingsPanel').classList.add('open');
+        $('#settingsTitle').innerText = 'Edit ' + def.name;
         
-        const body = document.getElementById('settingsBody');
+        const body = $('#settingsBody');
         let html = '';
         
-        // Generate settings fields based on widget type defaults
         for (const key in def.defaults) {
             const val = w.settings[key] ?? def.defaults[key];
             html += `<div class="field"><label>${key}</label><input type="text" oninput="updateWidgetSetting('${id}', '${key}', this.value)" value="${val}"></div>`;
@@ -692,16 +740,19 @@
 
     function deleteWidget(id) {
         layout = layout.filter(x => x.id !== id);
-        document.getElementById('settingsPanel').classList.remove('open');
+        $('#settingsPanel').classList.remove('open');
         pushHistory();
         renderCanvas();
         markDirty();
     }
 
-    // ── BOTTOM DOCK LOGIC ──
+    function deleteSelected() {
+        if(selectedId) deleteWidget(selectedId);
+    }
+
+    // ── BOTTOM DOCK ──
     function buildDock() {
-        const tabsContainer = document.getElementById('dockTabs');
-        const widgetsContainer = document.getElementById('dockWidgets');
+        const tabsContainer = $('#dockTabs');
         const categories = [...new Set(widgetTypes.map(w => w.category))];
 
         categories.forEach(cat => {
@@ -709,19 +760,18 @@
             btn.className = 'dock-tab';
             btn.innerText = cat;
             btn.onclick = () => {
-                document.querySelectorAll('.dock-tab').forEach(t => t.classList.remove('active'));
+                $$('.dock-tab').forEach(t => t.classList.remove('active'));
                 btn.classList.add('active');
                 renderDockWidgets(cat);
             };
             tabsContainer.appendChild(btn);
         });
 
-        // Select first category by default
         if(categories.length > 0) tabsContainer.firstChild.click();
     }
 
     function renderDockWidgets(category) {
-        const container = document.getElementById('dockWidgets');
+        const container = $('#dockWidgets');
         container.innerHTML = '';
         widgetTypes.filter(w => w.category === category).forEach(w => {
             const item = document.createElement('div');
@@ -737,8 +787,9 @@
         const newWidget = {
             id: Date.now().toString(),
             type: type,
-            x: 50, y: 50, w: 300, h: 80, // default absolute pos
-            settings: JSON.parse(JSON.stringify(def.defaults))
+            x: 50, y: 50, w: 300, h: 80, 
+            settings: JSON.parse(JSON.stringify(def.defaults)),
+            style: deepClone(WIDGET_STYLE_DEFAULTS)
         };
         layout.push(newWidget);
         pushHistory();
@@ -747,7 +798,7 @@
         selectWidget(newWidget.id);
     }
 
-    // ── UNDO / REDO SYSTEM (RESTORED) ──
+    // ── UNDO / REDO ──
     function pushHistory() {
         history = history.slice(0, historyIndex + 1);
         history.push(JSON.stringify(layout));
@@ -776,73 +827,35 @@
     }
 
     function updateUndoRedoButtons() {
-        const undoBtn = document.getElementById('undoBtn');
-        const redoBtn = document.getElementById('redoBtn');
+        const undoBtn = $('#undoBtn');
+        const redoBtn = $('#redoBtn');
         if(undoBtn) undoBtn.disabled = historyIndex <= 0;
         if(redoBtn) redoBtn.disabled = historyIndex >= history.length - 1;
     }
 
-    // ── SAVE STATE ──
-    function markDirty() {
-        const s = document.getElementById('saveStatus');
-        s.textContent = 'unsaved';
-        s.classList.add('dirty');
+    // ── SAVE & DATA ──
+    function saveLayout() { markSaved(); }
+    function saveSettings() { markDirty(); }
+    function saveSEO() { 
+        profileData.seo = { title: $('#seoTitle').value, discordInvite: $('#seoDiscordInvite').value };
+        markDirty(); 
+    }
+    function saveProfile() { 
+        profileData.displayName = $('#pfDisplayName').value;
+        profileData.tagline = $('#pfTagline').value;
+        markDirty(); 
     }
 
-    function saveLayout() {
-        // Mock save
-        const s = document.getElementById('saveStatus');
-        s.textContent = 'saved';
-        s.classList.remove('dirty');
-        console.log('Saving to API:', { layout, pageSettings, profileData });
-    }
-
-    // ── MISC SETTINGS ──
-    function loadSEO() {
-        document.getElementById('seoTitle').value = profileData.seo?.title || '';
-        document.getElementById('seoDiscordInvite').value = profileData.seo?.discordInvite || '';
-    }
-    function saveSEO() {
-        profileData.seo = {
-            title: document.getElementById('seoTitle').value,
-            discordInvite: document.getElementById('seoDiscordInvite').value
-        };
-        markDirty();
-    }
-
-    function loadProfile() {
-        document.getElementById('pfDisplayName').value = profileData.displayName || '';
-        document.getElementById('pfTagline').value = profileData.tagline || '';
-    }
-    function saveProfile() {
-        profileData.displayName = document.getElementById('pfDisplayName').value;
-        profileData.tagline = document.getElementById('pfTagline').value;
-        markDirty();
-    }
-
-    // ── CMD+K PALETTE ──
+    // ── COMMAND PALETTE ──
     function setupCommandPalette() {
         document.addEventListener('keydown', e => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                document.getElementById('cmdOverlay').style.display = 'flex';
-                document.getElementById('cmdInput').focus();
-            }
-            if (e.key === 'Escape') {
-                document.getElementById('cmdOverlay').style.display = 'none';
-            }
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openCmdPalette(); }
+            if (e.key === 'Escape') $('#cmdOverlay').style.display = 'none';
         });
-        
-        document.getElementById('cmdOverlay').addEventListener('click', e => {
-            if (e.target.id === 'cmdOverlay') e.target.style.display = 'none';
-        });
+        $('#cmdOverlay').addEventListener('click', e => { if (e.target.id === 'cmdOverlay') e.target.style.display = 'none'; });
     }
-    function openCmdPalette() {
-        document.getElementById('cmdOverlay').style.display = 'flex';
-        document.getElementById('cmdInput').focus();
-    }
+    function openCmdPalette() { $('#cmdOverlay').style.display = 'flex'; $('#cmdInput').focus(); }
 
-    // Boot
     init();
     </script>
 </body>
