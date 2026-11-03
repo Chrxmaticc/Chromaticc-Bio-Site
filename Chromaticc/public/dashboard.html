@@ -9,35 +9,34 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <style>
         /* ── STRICT BLACK & WHITE THEME ── */
         :root[data-theme="dark"] {
-            --bg: #000000;
-            --surface: #0a0a0a;
-            --surface-hover: #141414;
-            --border: #262626;
-            --border-hover: #404040;
+            --bg: #050505;
+            --surface: rgba(20, 20, 20, 0.6);
+            --surface-solid: #121212;
+            --surface-hover: #1a1a1a;
+            --border: rgba(255, 255, 255, 0.1);
+            --border-hover: rgba(255, 255, 255, 0.3);
             --text: #ffffff;
             --muted: #a3a3a3;
             --glow-color: rgba(255, 255, 255, 0.15);
-            --chart-bar: #262626;
-            --chart-bar-active: #ffffff;
-            --chart-line: #262626;
+            --top-img-opacity: 0.15; /* Show image in dark mode */
         }
 
         :root[data-theme="light"] {
             --bg: #ffffff;
-            --surface: #fafafa;
+            --surface: rgba(250, 250, 250, 0.8);
+            --surface-solid: #fafafa;
             --surface-hover: #f0f0f0;
-            --border: #e5e5e5;
-            --border-hover: #d4d4d4;
+            --border: rgba(0, 0, 0, 0.08);
+            --border-hover: rgba(0, 0, 0, 0.2);
             --text: #000000;
             --muted: #666666;
-            --glow-color: rgba(0, 0, 0, 0.1);
-            --chart-bar: #e5e5e5;
-            --chart-bar-active: #000000;
-            --chart-line: #e5e5e5;
+            --glow-color: rgba(0, 0, 0, 0.05);
+            --top-img-opacity: 0; /* Hide image in light mode */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -51,34 +50,48 @@
             overflow-x: hidden;
         }
 
-        /* ── GLOW MODE (Toggled via JS) ── */
-        body.glow-mode .panel, 
-        body.glow-mode .stat-card,
-        body.glow-mode .sidebar,
-        body.glow-mode .topbar {
-            box-shadow: 0 0 20px var(--glow-color);
-            border-color: var(--text);
+        /* ── BACKGROUND EFFECTS ── */
+        .bg-image {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw; height: 100vh;
+            background-image: url('top.jpeg');
+            background-size: cover;
+            background-position: center;
+            opacity: var(--top-img-opacity);
+            pointer-events: none;
+            z-index: -2;
+            transition: opacity 0.4s;
+            filter: grayscale(100%) contrast(1.2);
         }
-        body.glow-mode .btn-primary {
-            box-shadow: 0 0 15px var(--text);
+        
+        /* The Subtle White Gradient */
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        :root[data-theme="light"] .bg-gradient { background: radial-gradient(circle at center, rgba(0,0,0,0.03) 0%, transparent 60%); }
+
+        /* ── GLOW MODE ── */
+        body.glow-mode .panel, body.glow-mode .sidebar, body.glow-mode .topbar, body.glow-mode .editor-canvas {
+            box-shadow: 0 0 20px var(--glow-color);
+            border-color: rgba(255,255,255,0.3);
         }
 
         /* ── LAYOUT ── */
         .app { display: flex; width: 100%; height: 100vh; overflow: hidden; }
 
-        /* ── SIDEBAR (Desktop & Mobile Drawer) ── */
+        /* ── SIDEBAR ── */
         .sidebar { 
-            width: 260px; 
-            background: var(--surface); 
-            border-right: 1px solid var(--border); 
-            padding: 24px 16px; 
-            display: flex; 
-            flex-direction: column; 
-            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            z-index: 100;
+            width: 260px; background: var(--surface); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; 
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 100;
         }
         .sidebar.hidden { transform: translateX(-100%); margin-left: -260px; }
-
         .brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; margin-bottom: 32px; padding: 0 8px; }
         .brand-mark { width: 20px; height: 20px; background: var(--text); border-radius: 6px; }
         .nav-section { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 8px 8px; }
@@ -87,36 +100,20 @@
         .nav-item.active { background: var(--border); color: var(--text); }
         .nav-item i { width: 18px; text-align: center; font-size: 14px; }
 
-        .pro-card { margin-top: auto; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
-        .pro-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-        .pro-card p { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
-        .pro-card button { width: 100%; padding: 8px; border-radius: 6px; background: var(--text); color: var(--bg); border: none; font-weight: 600; font-size: 12px; cursor: pointer; }
-
         /* ── MAIN CONTENT ── */
         .main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
-        
-        .topbar { 
-            height: 72px; border-bottom: 1px solid var(--border); display: flex; 
-            align-items: center; justify-content: space-between; padding: 0 24px; 
-            background: var(--bg); transition: 0.3s;
-        }
+        .topbar { height: 72px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: var(--surface); backdrop-filter: blur(20px); z-index: 50; }
         .topbar-left { display: flex; align-items: center; gap: 16px; }
-        .menu-toggle { 
-            display: flex; background: var(--surface); border: 1px solid var(--border); 
-            color: var(--text); width: 36px; height: 36px; border-radius: 8px; 
-            cursor: pointer; align-items: center; justify-content: center; transition: 0.2s;
-        }
-        .menu-toggle:hover { background: var(--surface-hover); }
-
-        .search-bar { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; width: 300px; color: var(--muted); font-size: 13px; }
+        .menu-toggle { display: flex; background: var(--surface-solid); border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: 8px; cursor: pointer; align-items: center; justify-content: center; transition: 0.2s; }
+        .search-bar { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; width: 300px; color: var(--muted); font-size: 13px; }
         .top-right { display: flex; align-items: center; gap: 16px; }
         .save-status { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text); }
         .save-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--text); box-shadow: 0 0 8px var(--text); }
-        .icon-btn { background: var(--surface); border: 1px solid var(--border); color: var(--muted); width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .icon-btn { background: var(--surface-solid); border: 1px solid var(--border); color: var(--muted); width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .icon-btn:hover { background: var(--surface-hover); color: var(--text); }
         .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--border); border: 1px solid var(--border-hover); }
 
-        .view-container { padding: 40px; overflow-y: auto; flex: 1; width: 100%; }
+        .view-container { padding: 40px; overflow-y: auto; flex: 1; width: 100%; position: relative; }
         .view { display: none; animation: fadeIn 0.3s ease; max-width: 1100px; margin: 0 auto; }
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
@@ -124,13 +121,10 @@
         h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 4px; }
         .page-desc { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
 
-        /* ── DASHBOARD WIDGETS ── */
+        /* ── PANELS & CHARTS ── */
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; transition: box-shadow 0.3s, border-color 0.3s; }
-        .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .panel-title { font-size: 15px; font-weight: 600; }
-
-        /* Chart & Spotify cards remain the same visually, just monochrome */
+        .panel { background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; transition: box-shadow 0.3s, border-color 0.3s; }
+        
         .chart-card { width: 100%; display: flex; flex-direction: column; }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .chart-title { font-weight: 600; font-size: 16px; }
@@ -140,12 +134,12 @@
         .range-unit { font-size: 13px; color: var(--muted); }
         .date-range { font-size: 12px; color: var(--muted); margin-bottom: 24px; }
         .chart-container { position: relative; height: 160px; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
-        .avg-line { position: absolute; top: 40%; left: 0; right: 0; border-top: 1px dashed var(--chart-line); z-index: 1; }
-        .avg-label { position: absolute; top: 34%; right: 0; font-size: 10px; color: var(--muted); background: var(--surface); padding: 0 4px; }
+        .avg-line { position: absolute; top: 40%; left: 0; right: 0; border-top: 1px dashed var(--border); z-index: 1; }
+        .avg-label { position: absolute; top: 34%; right: 0; font-size: 10px; color: var(--muted); background: var(--surface-solid); padding: 0 4px; }
         .bar-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; flex: 1; z-index: 2; }
         .bar-container { height: 100%; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
-        .bar { width: 8px; border-radius: 4px; background: var(--chart-bar); transition: 0.3s; position: relative; }
-        .bar:hover { background: var(--chart-bar-active); }
+        .bar { width: 8px; border-radius: 4px; background: var(--border); transition: 0.3s; position: relative; }
+        .bar:hover { background: var(--text); }
         .day-label { font-size: 10px; color: var(--muted); margin-top: 8px; position: absolute; bottom: 0; }
         .h-30 { height: 30%; } .h-50 { height: 50%; } .h-70 { height: 70%; } .h-90 { height: 90%; } .h-100 { height: 100%; }
         .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text); position: absolute; left: 50%; transform: translateX(-50%); }
@@ -155,58 +149,105 @@
         .reading-time { font-size: 11px; color: var(--muted); }
         .reading-val { font-weight: 600; font-size: 14px; }
 
-        .spotify-card { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-        .currently-playing { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-        .spotify-logo { width: 32px; height: 32px; fill: var(--text); }
-        .playing-label { font-size: 13px; font-weight: 600; color: var(--muted); }
-        .song-row { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); }
-        .song-info { flex: 1; display: flex; flex-direction: column; }
-        .song-name { font-size: 13px; font-weight: 600; }
-        .song-artist { font-size: 11px; color: var(--muted); }
-        .album-art { width: 40px; height: 40px; border-radius: 8px; background: var(--border-hover); flex-shrink: 0; }
-        .viz-container { display: flex; align-items: flex-end; gap: 3px; height: 24px; width: 40px; }
-        .viz-bar { width: 4px; background: var(--text); border-radius: 2px; animation: bounce 1.2s infinite ease-in-out; }
-        .viz-bar:nth-child(2) { animation-delay: 0.2s; }
-        .viz-bar:nth-child(3) { animation-delay: 0.4s; }
-        .viz-bar:nth-child(4) { animation-delay: 0.1s; }
-        @keyframes bounce { 0%, 100% { height: 20%; } 50% { height: 100%; } }
-        .play-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text); cursor: pointer; }
-
-        /* ── SETTINGS FORMS ── */
+        /* ── FORMS ── */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .form-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+        .form-panel { background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
         .field { margin-bottom: 20px; }
         .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
         .field input, .field select, .field textarea { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; font-size: 14px; outline: none; transition: border 0.2s; }
         .field input:focus { border-color: var(--text); }
-        .field .input-group { display: flex; align-items: center; gap: 8px; }
-        .field .input-group .suffix { font-size: 14px; color: var(--muted); font-weight: 500; white-space: nowrap; }
+        .input-group { display: flex; align-items: center; gap: 8px; }
+        .input-group .suffix { font-size: 14px; color: var(--muted); font-weight: 500; white-space: nowrap; }
         
         .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
         .toggle-row:last-child { border-bottom: none; }
         .toggle-row span { font-size: 14px; font-weight: 500; }
         .switch { position: relative; width: 44px; height: 24px; background: var(--border-hover); border-radius: 20px; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
-        .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: var(--text); border-radius: 50%; transition: transform 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .switch.on { background: var(--text); }
         .switch.on::after { transform: translateX(20px); background: var(--bg); }
-        :root[data-theme="dark"] .switch::after { background: #000; }
-        :root[data-theme="dark"] .switch.on::after { background: #fff; }
 
-        /* ── MOBILE FLOATING MENU ── */
-        .mobile-menu-btn {
-            display: none;
-            position: fixed; bottom: 24px; left: 24px;
-            width: 56px; height: 56px; border-radius: 50%;
-            background: var(--text); color: var(--bg);
-            border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            align-items: center; justify-content: center; font-size: 20px;
-            z-index: 200; cursor: pointer;
+        /* ── EDITOR VIEW (THE REAL ONE) ── */
+        #view-editor { display: none; flex-direction: column; height: 100%; max-width: none; margin: 0; padding: 0; }
+        #view-editor.active { display: flex; }
+        
+        .editor-toolbar {
+            height: 56px; border-bottom: 1px solid var(--border); display: flex; align-items: center; 
+            justify-content: space-between; padding: 0 20px; background: var(--surface-solid);
         }
-        .mobile-overlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-            z-index: 90; opacity: 0; transition: opacity 0.3s;
+        .toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 8px; }
+        .tool-btn {
+            background: transparent; border: 1px solid transparent; color: var(--muted);
+            padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;
+            display: flex; align-items: center; gap: 6px; transition: 0.2s;
+        }
+        .tool-btn:hover { background: var(--surface-hover); color: var(--text); }
+        .tool-btn.active { background: var(--border); color: var(--text); border-color: var(--border-hover); }
+        .tool-divider { width: 1px; height: 20px; background: var(--border); margin: 0 8px; }
+
+        .editor-canvas {
+            flex: 1; overflow: auto; position: relative; background: var(--bg);
+            /* Subtle Dot Grid */
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        
+        /* Canvas Mode vs Flow Mode */
+        .editor-canvas.flow-mode {
+            background-image: none; display: flex; justify-content: center; padding: 40px 20px 120px 20px;
+        }
+        .flow-page {
+            width: 100%; max-width: 600px; background: var(--surface-solid); border-radius: 12px;
+            padding: 40px; min-height: 500px; border: 1px solid var(--border);
+            display: flex; flex-direction: column; gap: 8px;
         }
 
+        /* Widgets inside Flow Mode */
+        .widget-block {
+            position: relative; padding: 8px; border-radius: 8px; border: 1px solid transparent;
+            transition: 0.2s;
+        }
+        .widget-block:hover { background: var(--surface-hover); border-color: var(--border); }
+        
+        /* Widgets inside Canvas Mode */
+        .editor-canvas.canvas-mode .widget-block {
+            position: absolute; background: var(--surface-solid); border: 1px dashed var(--border-hover);
+            min-width: 200px; min-height: 50px; cursor: grab;
+        }
+        .editor-canvas.canvas-mode .widget-block:active { cursor: grabbing; }
+
+        .widget-content { width: 100%; height: 100%; }
+
+        /* ── BOTTOM WIDGET DOCK (LINKTREE STYLE) ── */
+        .editor-dock {
+            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 600px; background: var(--surface); backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: 16px; padding: 8px;
+            display: flex; flex-direction: column; gap: 8px; z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .dock-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+        .dock-tabs::-webkit-scrollbar { display: none; }
+        .dock-tab {
+            background: transparent; border: none; color: var(--muted); padding: 6px 12px;
+            font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; white-space: nowrap;
+        }
+        .dock-tab.active { background: var(--text); color: var(--bg); }
+        
+        .dock-widgets { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0; scrollbar-width: none; }
+        .dock-widgets::-webkit-scrollbar { display: none; }
+        .dock-item {
+            background: var(--surface-solid); border: 1px solid var(--border); color: var(--text);
+            padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+            display: flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap;
+            transition: 0.2s;
+        }
+        .dock-item:hover { border-color: var(--text); background: var(--surface-hover); }
+
+        /* Mobile Adjustments */
+        .mobile-menu-btn { display: none; position: fixed; bottom: 24px; left: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--text); color: var(--bg); border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); align-items: center; justify-content: center; font-size: 20px; z-index: 200; cursor: pointer; }
+        .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; opacity: 0; transition: opacity 0.3s; }
+        
         @media (max-width: 768px) {
             .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); margin: 0; }
             .sidebar.open { transform: translateX(0); }
@@ -217,27 +258,28 @@
             .search-bar { display: none; }
             .view-container { padding: 24px 16px 100px 16px; }
             .dashboard-grid, .form-grid { grid-template-columns: 1fr; gap: 16px; }
-            .menu-toggle { display: none; } /* Hide desktop toggle */
+            .menu-toggle { display: none; }
+            
+            .editor-canvas.flow-mode { padding: 20px 10px 120px 10px; }
+            .flow-page { padding: 20px; }
+            .editor-dock { bottom: 80px; width: 95%; }
         }
     </style>
 </head>
 <body>
 
+    <!-- Backgrounds -->
+    <div class="bg-image"></div>
+    <div class="bg-gradient"></div>
+
     <!-- Mobile Overlay -->
     <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
-
-    <!-- Mobile Floating Menu Button (Bottom Left) -->
-    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-        <i class="fa-solid fa-bars"></i>
-    </button>
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()"><i class="fa-solid fa-bars"></i></button>
 
     <div class="app">
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
-            <div class="brand">
-                <div class="brand-mark"></div>
-                Chromaticc
-            </div>
+            <div class="brand"><div class="brand-mark"></div> Chromaticc</div>
 
             <div class="nav-section">MAIN</div>
             <a class="nav-item active" data-view="home" onclick="switchView('home')"><i class="fa-solid fa-house"></i> Dashboard</a>
@@ -252,14 +294,12 @@
             <a class="nav-item" data-view="templates" onclick="switchView('templates')"><i class="fa-solid fa-layer-group"></i> Templates</a>
             <a class="nav-item" data-view="seo" onclick="switchView('seo')"><i class="fa-solid fa-magnifying-glass"></i> SEO & Socials</a>
 
-            <div class="nav-section">ACCOUNT</div>
-            <a class="nav-item" data-view="settings" onclick="switchView('settings')"><i class="fa-solid fa-gear"></i> Settings</a>
+            <div class="nav-section">SETTINGS</div>
+            <a class="nav-item" data-view="page" onclick="switchView('page')"><i class="fa-solid fa-sliders"></i> Page</a>
             <a class="nav-item" data-view="help" onclick="switchView('help')"><i class="fa-solid fa-circle-question"></i> Help</a>
-
-            <div class="pro-card">
-                <h4>Chromaticc Pro</h4>
-                <p>Unlock wildcards and premium glass.</p>
-                <button>Upgrade</button>
+            
+            <div style="margin-top: auto; text-align: center; padding: 16px; font-size: 11px; color: var(--muted);">
+                Chromaticc v2.0 (Free)
             </div>
         </aside>
 
@@ -268,17 +308,9 @@
             <!-- TOPBAR -->
             <header class="topbar">
                 <div class="topbar-left">
-                    <!-- Desktop Menu Toggle -->
-                    <button class="menu-toggle" onclick="toggleDesktopSidebar()" id="desktopMenuBtn">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <div class="search-bar">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        Search or jump to...
-                        <span style="margin-left: auto; font-size: 11px; background: var(--surface-hover); padding: 2px 6px; border-radius: 4px;">⌘K</span>
-                    </div>
+                    <button class="menu-toggle" onclick="toggleDesktopSidebar()"><i class="fa-solid fa-bars"></i></button>
+                    <div class="search-bar"><i class="fa-solid fa-magnifying-glass"></i> Search... <span style="margin-left: auto; font-size: 11px; background: var(--surface-hover); padding: 2px 6px; border-radius: 4px;">⌘K</span></div>
                 </div>
-
                 <div class="top-right">
                     <div class="save-status">Saved</div>
                     <button class="icon-btn" onclick="toggleTheme()" id="themeBtn"><i class="fa-solid fa-moon"></i></button>
@@ -286,94 +318,99 @@
                 </div>
             </header>
 
-            <!-- VIEWS CONTAINER -->
+            <!-- VIEWS -->
             <div class="view-container">
 
                 <!-- HOME VIEW -->
                 <section class="view active" id="view-home">
                     <h1>Dashboard</h1>
-                    <p class="page-desc">Welcome back, chrx. Here is what's happening with your page.</p>
-
+                    <p class="page-desc">Welcome back, chrx. Here is what's happening.</p>
+                    
                     <div class="dashboard-grid">
-                        <!-- Chart Panel -->
                         <div class="panel">
                             <div class="chart-card">
-                                <div class="chart-header">
-                                    <span class="chart-title">Profile Views</span>
-                                    <button class="chart-btn">Full stats &rarr;</button>
-                                </div>
-                                <div class="range-info">
-                                    <span class="range-val">14,053</span>
-                                    <span class="range-unit">views</span>
-                                </div>
-                                <div class="date-range">10 - 17 Sep 2022</div>
-
+                                <div class="chart-header"><span class="chart-title">Profile Views</span><button class="chart-btn">Details</button></div>
+                                <div class="range-info"><span class="range-val">14,053</span><span class="range-unit">views</span></div>
                                 <div class="chart-container">
-                                    <div class="avg-line"></div>
-                                    <div class="avg-label">Avg. 1.2k</div>
-                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-50"></div></div><div class="day-label">Mo</div></div>
-                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-70"><div class="dot dot-top"></div></div></div><div class="day-label">Tu</div></div>
-                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-40"><div class="dot dot-bottom"></div></div></div><div class="day-label">We</div></div>
-                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-90"></div></div><div class="day-label">Th</div></div>
-                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-60"><div class="dot dot-bottom"></div></div></div><div class="day-label">Fr</div></div>
-                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-30"></div></div><div class="day-label">Sa</div></div>
-                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-80"><div class="dot dot-top"></div><div class="dot dot-bottom"></div></div></div><div class="day-label">Su</div></div>
-                                </div>
-
-                                <div class="readings-list">
-                                    <div class="reading-item">
-                                        <span class="reading-time">Today (14:00)</span>
-                                        <span class="reading-val">1,250</span>
-                                    </div>
-                                    <div class="reading-item">
-                                        <span class="reading-time">Today (13:00)</span>
-                                        <span class="reading-val">1,100</span>
-                                    </div>
+                                    <div class="avg-line"></div><div class="avg-label">Avg. 1.2k</div>
+                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-50"></div></div></div>
+                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-70"></div></div></div>
+                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-40"></div></div></div>
+                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-90"></div></div></div>
+                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-60"></div></div></div>
+                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-30"></div></div></div>
+                                    <div class="bar-wrapper"><div class="bar-container"><div class="bar h-80"></div></div></div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Spotify Widget -->
                         <div class="panel">
-                            <div class="spotify-card">
-                                <div class="currently-playing">
-                                    <svg class="spotify-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.52 17.34c-.24.36-.66.48-1.02.24-2.82-1.74-6.36-2.1-10.56-1.14-.42.12-.78-.18-.9-.54-.12-.42.18-.78.54-.9 4.56-1.02 8.52-.6 11.64 1.32.42.18.48.66.3 1.02zm1.44-3.3c-.3.42-.84.6-1.26.3-3.24-1.98-8.16-2.58-11.94-1.38-.48.12-1.02-.12-1.14-.6-.12-.48.12-1.02.6-1.14C9.6 9.9 15 10.56 18.72 12.84c.36.18.54.78.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.3c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.72 1.62.54.3.72 1.02.42 1.56-.3.42-1.02.6-1.56.3z"/></svg>
-                                    <span class="playing-label">Currently Playing</span>
-                                </div>
-                                
-                                <div class="song-row">
-                                    <div class="album-art"></div>
-                                    <div class="song-info">
-                                        <span class="song-name">Time in a Bottle</span>
-                                        <span class="song-artist">Jim Croce</span>
-                                    </div>
-                                    <div class="viz-container">
-                                        <div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div>
-                                    </div>
-                                </div>
-
-                                <div class="song-row" style="opacity: 0.6;">
-                                    <div class="album-art"></div>
-                                    <div class="song-info">
-                                        <span class="song-name">My Way</span>
-                                        <span class="song-artist">Frank Sinatra</span>
-                                    </div>
-                                    <div class="play-btn"><i class="fa-solid fa-play"></i></div>
-                                </div>
+                            <div style="font-size: 15px; font-weight: 600; margin-bottom: 16px;">Recent Activity</div>
+                            <div style="display:flex; flex-direction:column; gap:16px;">
+                                <div style="display:flex; gap:12px; font-size:13px;"><div style="width:8px; height:8px; border-radius:50%; background:var(--text); margin-top:6px;"></div><div><b>New guestbook message</b><br><span style="color:var(--muted); font-size:11px;">2m ago</span></div></div>
+                                <div style="display:flex; gap:12px; font-size:13px;"><div style="width:8px; height:8px; border-radius:50%; background:var(--text); margin-top:6px;"></div><div><b>Added 2 widgets</b><br><span style="color:var(--muted); font-size:11px;">1h ago</span></div></div>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- SETTINGS VIEW -->
-                <section class="view" id="view-settings">
-                    <h1>Settings</h1>
-                    <p class="page-desc">Manage your routing, appearance, and dashboard behavior.</p>
+                <!-- EDITOR VIEW -->
+                <section class="view" id="view-editor">
+                    <div class="editor-toolbar">
+                        <div class="toolbar-left">
+                            <button class="tool-btn" onclick="toggleEditorMode()" id="modeBtn"><i class="fa-solid fa-arrows-up-down"></i> Flow</button>
+                            <div class="tool-divider"></div>
+                            <button class="tool-btn"><i class="fa-solid fa-rotate-left"></i> Undo</button>
+                            <button class="tool-btn"><i class="fa-solid fa-bezier-curve"></i> Wire</button>
+                        </div>
+                        <div class="toolbar-right">
+                            <button class="tool-btn" onclick="switchView('page')"><i class="fa-solid fa-gear"></i> Settings</button>
+                        </div>
+                    </div>
+
+                    <div class="editor-canvas flow-mode" id="editorCanvas">
+                        <div class="flow-page" id="flowPage">
+                            <!-- Widgets render here -->
+                            <div class="widget-block">
+                                <div class="widget-content" style="text-align:center; padding: 20px;">
+                                    <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--border); margin: 0 auto 16px auto;"></div>
+                                    <h2 style="font-size: 24px; margin-bottom: 8px;">chrx</h2>
+                                    <p style="color: var(--muted); font-size: 14px;">Designer & Builder</p>
+                                </div>
+                            </div>
+                            <div class="widget-block">
+                                <div class="widget-content" style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px; text-align: center; font-weight: 500;">
+                                    My Portfolio <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: var(--muted); margin-left: 8px;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOTTOM WIDGET DOCK -->
+                    <div class="editor-dock">
+                        <div class="dock-tabs">
+                            <button class="dock-tab active" onclick="switchDockTab('text', this)">Text</button>
+                            <button class="dock-tab" onclick="switchDockTab('profile', this)">Profile</button>
+                            <button class="dock-tab" onclick="switchDockTab('links', this)">Links</button>
+                            <button class="dock-tab" onclick="switchDockTab('media', this)">Media</button>
+                            <button class="dock-tab" onclick="switchDockTab('embeds', this)">Embeds</button>
+                        </div>
+                        <div class="dock-widgets" id="dockWidgets">
+                            <div class="dock-item"><i class="fa-solid fa-font"></i> Header</div>
+                            <div class="dock-item"><i class="fa-solid fa-align-left"></i> Text</div>
+                            <div class="dock-item"><i class="fa-solid fa-quote-left"></i> Quote</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PAGE (SETTINGS) VIEW -->
+                <section class="view" id="view-page">
+                    <h1>Page Settings</h1>
+                    <p class="page-desc">Manage routing, appearance, and global configurations.</p>
                     
                     <div class="form-grid">
                         <!-- ROUTING -->
                         <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 20px;">Routing & Domains</div>
+                            <div style="font-size: 15px; font-weight: 600; margin-bottom: 20px;">Routing & Domains</div>
                             <div class="field">
                                 <label>Username (Standard Link)</label>
                                 <div class="input-group">
@@ -382,7 +419,7 @@
                                 </div>
                             </div>
                             <div class="field">
-                                <label>Wildcard Subdomain (Pro)</label>
+                                <label>Wildcard Subdomain (Free)</label>
                                 <div class="input-group">
                                     <input type="text" placeholder="chrx" value="chrx">
                                     <span class="suffix">.chromati.cc.cd</span>
@@ -390,26 +427,22 @@
                             </div>
                         </div>
 
-                        <!-- DASHBOARD APPEARANCE -->
+                        <!-- APPEARANCE -->
                         <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 20px;">Dashboard Appearance</div>
+                            <div style="font-size: 15px; font-weight: 600; margin-bottom: 20px;">Dashboard Appearance</div>
                             <div class="toggle-row">
                                 <span>Glow Mode (White border glow)</span>
                                 <div class="switch" onclick="toggleGlow(this)"></div>
                             </div>
                             <div class="toggle-row">
-                                <span>Compact Layout</span>
-                                <div class="switch" onclick="this.classList.toggle('on')"></div>
-                            </div>
-                            <div class="toggle-row">
-                                <span>Show Background Noise</span>
+                                <span>Show Background Image</span>
                                 <div class="switch on" onclick="this.classList.toggle('on')"></div>
                             </div>
                         </div>
 
-                        <!-- CHROMATICC PAGE MODE -->
+                        <!-- CHROMATICC MODE -->
                         <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 20px;">Chromaticc Mode (Public Page)</div>
+                            <div style="font-size: 15px; font-weight: 600; margin-bottom: 20px;">Chromaticc Page Mode</div>
                             <div class="toggle-row">
                                 <span>Enable Glassmorphism</span>
                                 <div class="switch on" onclick="this.classList.toggle('on')"></div>
@@ -419,150 +452,144 @@
                                 <div class="switch" onclick="this.classList.toggle('on')"></div>
                             </div>
                         </div>
-
-                        <!-- ADVANCED -->
-                        <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 20px;">Advanced</div>
-                            <div class="field">
-                                <label>Custom CSS</label>
-                                <textarea rows="4" placeholder="body { ... }"></textarea>
-                            </div>
-                        </div>
                     </div>
                 </section>
 
-                <!-- SEO & SOCIALS VIEW -->
+                <!-- SEO & SOCIALS -->
                 <section class="view" id="view-seo">
                     <h1>SEO & Socials</h1>
-                    <p class="page-desc">Configure how your page appears on Google, Discord, and Twitter.</p>
+                    <p class="page-desc">Configure how your page appears to the world.</p>
                     
                     <div class="form-grid">
-                        <!-- META -->
                         <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 20px;">Page Meta</div>
-                            <div class="field">
-                                <label>Page Title</label>
-                                <input type="text" placeholder="chrx — Chromaticc" value="chrx — Chromaticc">
-                            </div>
-                            <div class="field">
-                                <label>Description</label>
-                                <textarea rows="3">Designer & Builder</textarea>
-                            </div>
-                            <div class="toggle-row">
-                                <span>Index on Google</span>
-                                <div class="switch on" onclick="this.classList.toggle('on')"></div>
-                            </div>
+                            <div style="font-size: 15px; font-weight: 600; margin-bottom: 20px;">Page Meta</div>
+                            <div class="field"><label>Page Title</label><input type="text" value="chrx — Chromaticc"></div>
+                            <div class="field"><label>Description</label><textarea rows="3">Designer & Builder</textarea></div>
                         </div>
 
-                        <!-- SOCIAL (OG) -->
                         <div class="form-panel">
-                            <div class="panel-title" style="margin-bottom: 20px;">Social Cards (OG)</div>
-                            <div class="field">
-                                <label>OG Title</label>
-                                <input type="text" placeholder="Leave blank to use Page Title">
-                            </div>
-                            <div class="field">
-                                <label>OG Image URL</label>
-                                <input type="text" placeholder="https://...">
-                            </div>
-                            <div class="field">
-                                <label>Twitter Card</label>
-                                <select><option>Summary Large Image</option><option>Summary</option></select>
-                            </div>
-                        </div>
-
-                        <!-- DISCORD -->
-                        <div class="form-panel" style="grid-column: 1 / -1;">
-                            <div class="panel-title" style="margin-bottom: 20px;">Discord Integration</div>
-                            <div class="form-grid" style="gap: 20px;">
-                                <div class="field">
-                                    <label>Discord Server Invite URL</label>
-                                    <input type="text" placeholder="https://discord.gg/...">
-                                </div>
-                                <div class="field">
-                                    <label>Discord User ID (For Live Widget)</label>
-                                    <input type="text" placeholder="e.g. 1527403360880431275">
-                                </div>
-                            </div>
+                            <div style="font-size: 15px; font-weight: 600; margin-bottom: 20px;">Discord Integration</div>
+                            <div class="field"><label>Discord Server Invite</label><input type="text" placeholder="https://discord.gg/..."></div>
+                            <div class="field"><label>Discord User ID</label><input type="text" placeholder="For live presence"></div>
                             <div class="toggle-row">
-                                <span>Show Rich Presence (Spotify/Activity)</span>
-                                <div class="switch on" onclick="this.classList.toggle('on')"></div>
-                            </div>
-                            <div class="toggle-row">
-                                <span>Show Discord Status Dot</span>
+                                <span>Show Discord Status Button</span>
                                 <div class="switch on" onclick="this.classList.toggle('on')"></div>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Placeholders -->
-                <section class="view" id="view-editor"><h1>Editor</h1><p class="page-desc">Editor will load here.</p></section>
-                <section class="view" id="view-profile"><h1>Profile</h1><p class="page-desc">Edit profile.</p></section>
+                <!-- PLACEHOLDERS -->
+                <section class="view" id="view-profile"><h1>Profile</h1><p class="page-desc">Avatar, bio, socials.</p></section>
                 <section class="view" id="view-stats"><h1>Stats</h1><p class="page-desc">Analytics.</p></section>
                 <section class="view" id="view-guests"><h1>Guests</h1><p class="page-desc">Guestbook.</p></section>
                 <section class="view" id="view-templates"><h1>Templates</h1><p class="page-desc">Layouts.</p></section>
                 <section class="view" id="view-help"><h1>Help</h1><p class="page-desc">Support.</p></section>
+
             </div>
         </main>
     </div>
 
     <script>
-        /* ── 1. DESKTOP SIDEBAR TOGGLE ── */
-        function toggleDesktopSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('hidden');
-        }
+        /* ── 1. NAVIGATION ── */
+        function toggleDesktopSidebar() { document.getElementById('sidebar').classList.toggle('hidden'); }
+        function toggleMobileMenu() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('mobileOverlay').classList.toggle('active'); }
 
-        /* ── 2. MOBILE SIDEBAR TOGGLE ── */
-        function toggleMobileMenu() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('mobileOverlay');
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
-        }
-
-        /* ── 3. VIEW SWITCHING ── */
         function switchView(viewName) {
-            // Update active classes on nav items
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             const activeNav = document.querySelector(`.nav-item[data-view="${viewName}"]`);
             if (activeNav) activeNav.classList.add('active');
 
-            // Switch views
             document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
             const targetView = document.getElementById(`view-${viewName}`);
             if (targetView) {
                 targetView.classList.add('active');
                 document.querySelector('.view-container').scrollTop = 0;
             }
-
-            // Close mobile menu on click
-            if (window.innerWidth <= 768) {
-                toggleMobileMenu();
-            }
+            if (window.innerWidth <= 768) toggleMobileMenu();
         }
 
-        /* ── 4. THEME TOGGLE ── */
+        /* ── 2. THEME & GLOW ── */
         function toggleTheme() {
             const html = document.documentElement;
-            const current = html.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
+            const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             html.setAttribute('data-theme', next);
+            document.querySelector('#themeBtn i').className = next === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+        function toggleGlow(el) { el.classList.toggle('on'); document.body.classList.toggle('glow-mode'); }
+
+        /* ── 3. EDITOR LOGIC ── */
+        let isCanvasMode = false;
+
+        function toggleEditorMode() {
+            isCanvasMode = !isCanvasMode;
+            const canvas = document.getElementById('editorCanvas');
+            const btn = document.getElementById('modeBtn');
             
-            const icon = document.querySelector('#themeBtn i');
-            if (next === 'light') {
-                icon.classList.replace('fa-moon', 'fa-sun');
+            if (isCanvasMode) {
+                canvas.classList.remove('flow-mode');
+                canvas.classList.add('canvas-mode');
+                btn.innerHTML = '<i class="fa-solid fa-cube"></i> Canvas';
             } else {
-                icon.classList.replace('fa-sun', 'fa-moon');
+                canvas.classList.remove('canvas-mode');
+                canvas.classList.add('flow-mode');
+                btn.innerHTML = '<i class="fa-solid fa-arrows-up-down"></i> Flow';
             }
         }
 
-        /* ── 5. GLOW MODE TOGGLE ── */
-        function toggleGlow(element) {
-            element.classList.toggle('on');
-            document.body.classList.toggle('glow-mode');
+        // Widget Dock Logic
+        const dockData = {
+            text: [
+                { icon: 'fa-font', name: 'Header' },
+                { icon: 'fa-align-left', name: 'Text' },
+                { icon: 'fa-quote-left', name: 'Quote' }
+            ],
+            profile: [
+                { icon: 'fa-user', name: 'Avatar' },
+                { icon: 'fa-id-card', name: 'Bio' }
+            ],
+            links: [
+                { icon: 'fa-link', name: 'Link Button' },
+                { icon: 'fa-list', name: 'Link List' }
+            ],
+            media: [
+                { icon: 'fa-image', name: 'Image' },
+                { icon: 'fa-video', name: 'Video' }
+            ],
+            embeds: [
+                { icon: 'fa-spotify', name: 'Spotify' },
+                { icon: 'fa-discord', name: 'Discord' }
+            ]
+        };
+
+        function switchDockTab(category, btn) {
+            document.querySelectorAll('.dock-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const container = document.getElementById('dockWidgets');
+            container.innerHTML = dockData[category].map(w => `
+                <div class="dock-item" onclick="addWidget('${w.name}')"><i class="fa-solid ${w.icon}"></i> ${w.name}</div>
+            `).join('');
         }
+
+        function addWidget(name) {
+            const flowPage = document.getElementById('flowPage');
+            const newBlock = document.createElement('div');
+            newBlock.className = 'widget-block';
+            newBlock.innerHTML = `
+                <div class="widget-content" style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px; text-align: center;">
+                    <span style="font-size:14px; font-weight:500;">${name} Widget</span>
+                </div>
+            `;
+            flowPage.appendChild(newBlock);
+            
+            // Scroll to bottom
+            const canvas = document.getElementById('editorCanvas');
+            canvas.scrollTop = canvas.scrollHeight;
+        }
+
+        // Init dock
+        switchDockTab('text', document.querySelector('.dock-tab'));
     </script>
 </body>
 </html>
