@@ -1,526 +1,326 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chromaticc — Your whole internet.</title>
-    
+    <title>Chromaticc — Your page, your way.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <script>
-        // Set theme instantly on load to prevent flash
-        const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (savedTheme === 'light' || (!savedTheme && !prefersDark)) {
-            document.documentElement.setAttribute('data-theme', 'light');
-        }
-    </script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root[data-theme="dark"] {
-            --bg: #000000;
-            --surface: #09090b;
-            --surface-hover: #141415;
-            --border: #27272a;
-            --border-hover: #52525b;
-            --text: #ffffff;
-            --muted: #a1a1aa;
-            --faint: #3f3f46;
-            --glow-color: rgba(255,255,255,0.08);
-            --dot-1: #ff5f56; --dot-2: #ffbd2e; --dot-3: #27c93f;
-        }
-
-        :root[data-theme="light"] {
-            --bg: #fafafa;
-            --surface: #ffffff;
-            --surface-hover: #f4f4f5;
-            --border: #e4e4e7;
-            --border-hover: #a1a1aa;
-            --text: #09090b;
-            --muted: #52525b;
-            --faint: #d4d4d8;
-            --glow-color: rgba(0,0,0,0.04);
-            --dot-1: #ff5f56; --dot-2: #ffbd2e; --dot-3: #27c93f;
-        }
-
-        :root {
-            --font: 'Poppins', sans-serif;
-            --ease: cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
+        /* ── GLOBAL & RESET ── */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        
         body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: var(--font);
-            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff; /* Pure white background, no distractions */
+            color: #09090b;
+            line-height: 1.6;
             -webkit-font-smoothing: antialiased;
-            transition: background-color 0.4s var(--ease), color 0.4s var(--ease);
+        }
+        .container {
+            max-width: 800px; /* Single-column, focused layout */
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        .text-center { text-align: center; }
+
+        /* ── ANIMATIONS ── */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        ::selection { background: var(--text); color: var(--bg); }
-
-        /* ── NOISE OVERLAY & AMBIENT BACKGROUND ── */
-        .noise {
-            position: fixed;
-            inset: 0;
-            z-index: 999;
-            pointer-events: none;
-            opacity: 0.04;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            mix-blend-mode: overlay;
-        }
-
-        .ambient-blob {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(120px);
-            z-index: -1;
-            opacity: 0.5;
-            animation: drift 20s infinite alternate;
-            transition: background 0.4s;
-        }
-        .blob-1 { width: 50vw; height: 50vw; top: -10vw; left: -10vw; background: var(--glow-color); }
-        .blob-2 { width: 40vw; height: 40vw; bottom: -10vw; right: -10vw; background: var(--glow-color); animation-delay: -5s; }
-
-        @keyframes drift {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(10vw, 10vh) scale(1.2); }
-        }
-
-        /* ── CUSTOM CURSOR GLOW ── */
-        .cursor-glow {
-            position: fixed;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, var(--glow-color) 0%, transparent 60%);
-            border-radius: 50%;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-            z-index: 0;
-            transition: opacity 0.3s;
-        }
-
-        /* ── NAVBAR ── */
-        nav {
-            position: fixed;
-            top: 0; width: 100%;
-            padding: 24px 48px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid transparent;
-            transition: all 0.4s var(--ease);
-        }
-        nav.scrolled {
-            padding: 16px 48px;
-            border-bottom: 1px solid var(--border);
-            background: rgba(var(--bg), 0.8);
-        }
-        .logo {
-            font-weight: 600; font-size: 16px; letter-spacing: -0.02em;
-            display: flex; align-items: center; gap: 8px; color: var(--text); text-decoration: none;
-        }
-        .logo-mark { width: 14px; height: 14px; background: var(--text); border-radius: 4px; transition: background 0.4s; }
-        
-        .nav-right { display: flex; align-items: center; gap: 24px; }
-        .nav-links { display: flex; gap: 32px; align-items: center; }
-        .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 400; transition: color 0.3s; }
-        .nav-links a:hover { color: var(--text); }
-        
-        .theme-toggle {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text);
-            width: 36px; height: 36px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.3s var(--ease);
-        }
-        .theme-toggle:hover { border-color: var(--border-hover); transform: scale(1.05); }
-        
-        .nav-btn {
-            background: var(--text); color: var(--bg);
-            padding: 8px 16px; border-radius: 6px;
-            font-weight: 500; font-size: 13px; text-decoration: none;
-            transition: transform 0.2s var(--ease);
-        }
-        .nav-btn:hover { transform: scale(1.02); }
-
-        /* ── HERO ── */
+        /* ── HERO SECTION ── */
         .hero {
-            min-height: 100vh;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            text-align: center; padding: 0 24px; position: relative; z-index: 1;
+            padding: 120px 0 80px 0;
+            text-align: center;
         }
         .hero h1 {
-            font-size: clamp(48px, 8vw, 110px); line-height: 0.95;
-            font-weight: 500; letter-spacing: -0.04em; max-width: 1000px; margin-bottom: 24px;
+            font-size: clamp(48px, 8vw, 80px);
+            font-weight: 600;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+            margin-bottom: 24px;
         }
-        .hero h1 span { display: inline-block; opacity: 0; transform: translateY(30px); animation: fadeUp 1.2s var(--ease) forwards; }
-        .hero h1 span:nth-child(1) { animation-delay: 0.1s; }
-        .hero h1 span:nth-child(2) { animation-delay: 0.2s; }
-        .hero h1 span:nth-child(3) { animation-delay: 0.3s; }
-        
         .hero p {
-            color: var(--muted); font-size: clamp(16px, 2vw, 20px);
-            max-width: 500px; line-height: 1.6; font-weight: 300;
-            opacity: 0; animation: fadeUp 1.2s 0.5s var(--ease) forwards; margin-bottom: 40px;
+            font-size: 18px;
+            color: #71717a; /* Muted gray */
+            max-width: 500px;
+            margin: 0 auto 40px auto;
+            font-weight: 300;
         }
-        .hero-actions { display: flex; gap: 16px; opacity: 0; animation: fadeUp 1.2s 0.6s var(--ease) forwards; }
-        
-        .btn-primary {
-            background: var(--text); color: var(--bg);
-            padding: 16px 32px; border-radius: 8px;
-            font-weight: 500; font-size: 15px; text-decoration: none;
-            display: flex; align-items: center; gap: 12px;
-            transition: all 0.3s var(--ease);
+        .signup-form {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 8px;
+            border: 1px solid #e4e4e7;
+            border-radius: 12px;
+            transition: border-color 0.2s;
         }
-        .btn-primary i { transition: transform 0.3s; }
-        .btn-primary:hover { box-shadow: 0 10px 40px var(--glow-color); }
-        .btn-primary:hover i { transform: translateX(6px); }
-
-        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-
-        /* ── EDITOR SHOWCASE (3D TILT) ── */
-        .showcase {
-            padding: 100px 24px;
-            display: flex; justify-content: center;
-            perspective: 1200px; position: relative; z-index: 1;
+        .signup-form:focus-within {
+            border-color: #09090b;
         }
-        .editor-window {
-            width: 100%; max-width: 1100px;
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: 16px; overflow: hidden;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.1);
-            transform-style: preserve-3d;
-            opacity: 0; transform: translateY(50px) rotateX(10deg);
-            transition: opacity 1s var(--ease), transform 1s var(--ease);
-            will-change: transform;
+        .signup-prefix {
+            font-size: 14px;
+            color: #71717a;
+            padding-left: 12px;
+            font-weight: 500;
+            white-space: nowrap;
         }
-        [data-theme="dark"] .editor-window { box-shadow: 0 40px 100px rgba(0,0,0,0.8); }
-        .editor-window.visible { opacity: 1; transform: translateY(0) rotateX(0deg); }
-        
-        .editor-topbar {
-            height: 48px; border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; padding: 0 16px; gap: 8px;
-            background: var(--surface-hover);
+        .signup-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            font-size: 16px;
+            color: #09090b;
+            background: transparent;
+            min-width: 0;
         }
-        .dot { width: 10px; height: 10px; border-radius: 50%; }
-        .dot:nth-child(1) { background: var(--dot-1); }
-        .dot:nth-child(2) { background: var(--dot-2); }
-        .dot:nth-child(3) { background: var(--dot-3); }
-        
-        .editor-canvas {
-            height: 600px; position: relative;
-            background-image: 
-                radial-gradient(circle at 50% 50%, var(--glow-color) 0%, transparent 60%),
-                linear-gradient(var(--border) 1px, transparent 1px),
-                linear-gradient(90deg, var(--border) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
-            background-position: center center;
-            padding: 60px; display: flex; justify-content: center;
+        .signup-btn {
+            background: #09090b;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .signup-btn:hover {
+            transform: scale(1.02);
         }
 
-        .mock-profile {
-            width: 400px; background: var(--bg);
-            border: 1px solid var(--border); border-radius: 24px;
-            padding: 40px 24px; display: flex; flex-direction: column; align-items: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative;
-            transition: background 0.4s;
+        /* ── IMAGE SECTIONS (TOP & BOTTOM) ── */
+        .image-section {
+            width: 100%;
+            margin: 80px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.04);
         }
-        [data-theme="dark"] .mock-profile { box-shadow: 0 20px 60px rgba(0,0,0,0.9); }
-        
-        .mock-avatar {
-            width: 80px; height: 80px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--border), var(--surface-hover));
-            margin-bottom: 16px; border: 2px solid var(--border);
+        .image-section img {
+            width: 100%;
+            height: auto;
+            display: block;
         }
-        .mock-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
-        .mock-bio { font-size: 13px; color: var(--muted); margin-bottom: 32px; text-align: center; }
-        
-        .mock-links { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-        .mock-link {
-            width: 100%; padding: 16px; background: var(--surface);
-            border: 1px solid var(--border); border-radius: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 14px; transition: all 0.2s; cursor: pointer; color: var(--text);
-        }
-        .mock-link:hover { background: var(--surface-hover); border-color: var(--border-hover); transform: translateY(-2px); }
-        .mock-link i { color: var(--faint); }
 
-        /* ── ADVANCED SLASH MENU ── */
-        .slash-menu {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -20px) scale(0.95);
-            width: 320px; background: var(--surface);
-            border: 1px solid var(--border); border-radius: 12px;
-            padding: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            opacity: 0; pointer-events: none;
-            transition: all 0.3s var(--ease); z-index: 10;
-        }
-        [data-theme="dark"] .slash-menu { box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-        .slash-menu.active { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
-        
-        .slash-input {
-            width: 100%; background: transparent; border: none;
-            color: var(--text); font-family: var(--font); font-size: 14px;
-            padding: 8px 12px; outline: none;
-            border-bottom: 1px solid var(--border); margin-bottom: 8px;
-        }
-        .slash-input::placeholder { color: var(--faint); }
-        
-        .slash-list { max-height: 200px; overflow-y: auto; }
-        .slash-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px 12px; border-radius: 6px;
-            color: var(--muted); font-size: 13px; cursor: pointer; transition: all 0.15s;
-        }
-        .slash-item:hover, .slash-item.active { background: var(--surface-hover); color: var(--text); }
-        .slash-item i { width: 16px; text-align: center; font-size: 14px; }
-        .slash-empty { padding: 20px; text-align: center; color: var(--muted); font-size: 13px; }
-
-        /* ── FEATURES ── */
+        /* ── WHY WE'RE BETTER (FEATURES) ── */
         .features {
-            padding: 120px 24px; max-width: 1000px; margin: 0 auto;
-            display: flex; flex-direction: column; gap: 140px; position: relative; z-index: 1;
+            padding: 80px 0;
+            border-top: 1px solid #e4e4e7;
+            border-bottom: 1px solid #e4e4e7;
         }
-        .feature-row {
-            display: flex; align-items: center; gap: 60px;
-            opacity: 0; transform: translateY(40px); transition: all 0.8s var(--ease);
+        .features h2 {
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+            text-align: center;
         }
-        .feature-row.visible { opacity: 1; transform: translateY(0); }
-        .feature-row:nth-child(even) { flex-direction: row-reverse; }
-        .feature-text { flex: 1; }
-        .feature-text h2 {
-            font-size: clamp(32px, 4vw, 48px); font-weight: 500;
-            line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 16px;
+        .features p.sub {
+            text-align: center;
+            color: #71717a;
+            margin-bottom: 48px;
+            font-size: 16px;
         }
-        .feature-text p { color: var(--muted); font-size: 16px; line-height: 1.6; font-weight: 300; max-width: 400px; }
-        
-        .feature-visual {
-            flex: 1; height: 300px; background: var(--surface);
-            border: 1px solid var(--border); border-radius: 16px;
-            display: flex; align-items: center; justify-content: center;
-            position: relative; overflow: hidden; transition: background 0.4s;
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
         }
-        
-        .visual-circle { width: 150px; height: 150px; border-radius: 50%; border: 1px dashed var(--muted); animation: spin 20s linear infinite; }
-        .visual-circle::after {
-            content: ''; position: absolute; top: 50%; left: 50%;
-            width: 80px; height: 80px; background: var(--text); border-radius: 50%;
-            transform: translate(-50%, -50%);
+        @media (max-width: 600px) {
+            .feature-grid { grid-template-columns: 1fr; }
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .feature-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .feature-item h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .feature-item p {
+            font-size: 15px;
+            color: #71717a;
+        }
 
-        /* ── FOOTER ── */
-        footer {
-            padding: 60px 48px; border-top: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-            color: var(--faint); font-size: 13px; position: relative; z-index: 1;
+        /* ── LIVE PREVIEW SECTION ── */
+        .preview-section {
+            padding: 80px 0;
+            background: #fafafa;
+            border-radius: 24px;
+            margin: 80px 0;
         }
-        footer a { color: var(--faint); text-decoration: none; transition: color 0.2s; }
-        footer a:hover { color: var(--text); }
+        .preview-section h2 {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+        }
+        .preview-section p {
+            text-align: center;
+            color: #71717a;
+            margin-bottom: 40px;
+        }
+        .preview-window {
+            max-width: 400px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #e4e4e7;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+        }
+        .preview-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #e4e4e7;
+            margin: 0 auto 16px auto;
+        }
+        .preview-name {
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        .preview-bio {
+            text-align: center;
+            color: #71717a;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .preview-link {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: #f4f4f5;
+            border: 1px solid #e4e4e7;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            text-decoration: none;
+            color: #09090b;
+            transition: background 0.2s;
+        }
+        .preview-link:hover {
+            background: #e4e4e7;
+        }
 
-        @media (max-width: 768px) {
-            nav { padding: 16px 24px; }
-            .nav-links { display: none; }
-            .feature-row, .feature-row:nth-child(even) { flex-direction: column; gap: 32px; text-align: center; }
-            .feature-text p { margin: 0 auto; }
-            .editor-canvas { padding: 20px; }
-            .mock-profile { width: 100%; }
-            .slash-menu { width: 90%; }
+        /* ── FINAL CTA ── */
+        .final-cta {
+            padding: 80px 0 120px 0;
+            text-align: center;
+        }
+        .final-cta h2 {
+            font-size: 40px;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+        }
+        .final-cta .btn {
+            background: #09090b;
+            color: #ffffff;
+            padding: 14px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
 
-    <div class="noise"></div>
-    <div class="ambient-blob blob-1"></div>
-    <div class="ambient-blob blob-2"></div>
-    <div class="cursor-glow" id="cursorGlow"></div>
-
-    <nav id="navbar">
-        <a href="#" class="logo">
-            <div class="logo-mark"></div>
-            Chromaticc
-        </a>
-        <div class="nav-right">
-            <div class="nav-links">
-                <a href="#features">Features</a>
-                <a href="#showcase">Demo</a>
-                <a href="#pricing">Pricing</a>
+    <div class="container">
+        <!-- ── HERO SECTION ── -->
+        <section class="hero fade-in">
+            <h1>Your page.<br>Your way.</h1>
+            <p>Not just a stack of buttons. A page that feels like you. Claim your handle before someone else does.</p>
+            
+            <!-- Signup Form (Like wsp.baby) -->
+            <div class="signup-form">
+                <span class="signup-prefix">chromati.cc.cd/</span>
+                <input type="text" class="signup-input" placeholder="yourname" aria-label="Username">
+                <button class="signup-btn">Claim</button>
             </div>
-            <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme">
-                <i class="fa-solid fa-moon" id="themeIcon"></i>
-            </button>
-            <a href="#" class="nav-btn">Claim handle</a>
-        </div>
-    </nav>
+        </section>
 
-    <section class="hero">
-        <h1>
-            <span>Your whole</span><br>
-            <span>internet.</span><br>
-            <span>One link.</span>
-        </h1>
-        <p>Not just a stack of buttons. A custom-built page that moves like you, built on a canvas, and looks like nobody else's template.</p>
-        <div class="hero-actions">
-            <a href="#" class="btn-primary magnetic">Start building <i class="fa-solid fa-arrow-right"></i></a>
-        </div>
-    </section>
+        <!-- ── TOP IMAGE (REPLACE SRC WITH top.jpeg) ── -->
+        <!-- Place this image at the same vertical position as wsp.baby's top image -->
+        <section class="image-section fade-in">
+            <img src="top.jpeg" alt="Chromaticc Preview Top" loading="lazy">
+        </section>
 
-    <section class="showcase" id="showcase">
-        <!-- Tilt Wrapper -->
-        <div class="editor-window" id="editorWindow">
-            <div class="editor-topbar">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div style="flex:1; text-align:center; font-size:11px; color:var(--faint); font-family:monospace;">chromaticc.cc.cd/alex</div>
-            </div>
-            <div class="editor-canvas" id="canvasArea">
-                
-                <!-- Interactive Slash Menu -->
-                <div class="slash-menu active" id="slashMenu">
-                    <input type="text" class="slash-input" id="slashInput" placeholder="Type a command..." autocomplete="off">
-                    <div class="slash-list" id="slashList">
-                        <div class="slash-item active"><i class="fa-solid fa-equals"></i> Short answer</div>
-                        <div class="slash-item"><i class="fa-solid fa-bars"></i> Long answer</div>
-                        <div class="slash-item"><i class="fa-regular fa-circle-check"></i> Multiple choice</div>
-                        <div class="slash-item"><i class="fa-regular fa-square-check"></i> Checkboxes</div>
-                        <div class="slash-item"><i class="fa-solid fa-chevron-down"></i> Dropdown</div>
-                        <div class="slash-item"><i class="fa-solid fa-image"></i> Image Block</div>
-                        <div class="slash-item"><i class="fa-solid fa-link"></i> Link List</div>
-                    </div>
+        <!-- ── WHY WE'RE BETTER (FEATURES) ── -->
+        <section class="features fade-in">
+            <h2>Everything you need. Nothing you don't.</h2>
+            <p class="sub">Chromaticc is built for creators who care about how things look and feel.</p>
+            
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <h3>01. Zero clutter.</h3>
+                    <p>No clunky editor. A clean, Google Docs-style canvas that lets you type your page into existence.</p>
                 </div>
-
-                <div class="mock-profile">
-                    <div class="mock-avatar"></div>
-                    <div class="mock-name">Alex</div>
-                    <div class="mock-bio">Designer & Builder</div>
-                    
-                    <div class="mock-links">
-                        <div class="mock-link">
-                            <span>My Portfolio</span>
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        </div>
-                        <div class="mock-link">
-                            <span>Twitter / X</span>
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        </div>
-                        <div class="mock-link">
-                            <span>Latest Project</span>
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        </div>
-                    </div>
+                <div class="feature-item">
+                    <h3>02. Chromaticc Mode.</h3>
+                    <p>Turn on a single switch and every widget transforms into premium glassmorphism with subtle glows.</p>
                 </div>
-
-            </div>
-        </div>
-    </section>
-
-    <section class="features" id="features">
-        <div class="feature-row">
-            <div class="feature-text">
-                <h2>Slash commands. Not clunky menus.</h2>
-                <p>Press <code>/</code> on an empty canvas and the block menu appears exactly where your mouse is. Add a text box, a link list, or a Discord presence in a fraction of a second.</p>
-            </div>
-            <div class="feature-visual">
-                <div style="display:flex; gap:10px; font-family:monospace; font-size:20px; color:var(--muted);">
-                    <span style="background:var(--surface-hover); padding:4px 12px; border-radius:6px; border:1px solid var(--border);">/</span>
-                    <span>type to filter...</span>
+                <div class="feature-item">
+                    <h3>03. Live widgets.</h3>
+                    <p>Spotify, Discord, GitHub, and more update in real-time. Your page never goes stale.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>04. Your own domain.</h3>
+                    <p>Use a clean subdomain or link a custom wildcard. Own your corner of the internet.</p>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="feature-row">
-            <div class="feature-text">
-                <h2>Pure contrast. High fidelity.</h2>
-                <p>No generic AI gradients. No glassmorphism. Just crisp text, deep backgrounds, and razor-thin borders that let your content do the talking.</p>
+        <!-- ── LIVE PREVIEW SECTION ── -->
+        <section class="preview-section fade-in">
+            <h2>See what your page could look like.</h2>
+            <p>A minimal, monochrome layout that works on every screen.</p>
+            
+            <div class="preview-window">
+                <div class="preview-avatar"></div>
+                <div class="preview-name">@yourname</div>
+                <div class="preview-bio">Designer & Builder</div>
+                <a href="#" class="preview-link" onclick="event.preventDefault()">My Portfolio</a>
+                <a href="#" class="preview-link" onclick="event.preventDefault()">Twitter / X</a>
+                <a href="#" class="preview-link" onclick="event.preventDefault()">Latest Project</a>
             </div>
-            <div class="feature-visual">
-                <div class="visual-circle"></div>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <footer>
-        <div>© 2026 Chromaticc. All rights reserved.</div>
-        <div style="display:flex; gap:24px;">
-            <a href="#">Twitter</a>
-            <a href="#">Discord</a>
-            <a href="#">Privacy</a>
-        </div>
-    </footer>
+        <!-- ── BOTTOM IMAGE (REPLACE SRC WITH bottom.jpeg) ── -->
+        <!-- Place this image at the same vertical position as wsp.baby's bottom image -->
+        <section class="image-section fade-in">
+            <img src="bottom.jpeg" alt="Chromaticc Preview Bottom" loading="lazy">
+        </section>
+
+        <!-- ── FINAL CTA ── -->
+        <section class="final-cta fade-in">
+            <h2>Ready to claim your page?</h2>
+            <a href="#" class="btn">Get started</a>
+        </section>
+    </div>
 
     <script>
-        // ── THEME TOGGLE ──
-        const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = document.getElementById('themeIcon');
-        const root = document.documentElement;
-
-        function updateIcon() {
-            if (root.getAttribute('data-theme') === 'dark') {
-                themeIcon.classList.replace('fa-sun', 'fa-moon');
-            } else {
-                themeIcon.classList.replace('fa-moon', 'fa-sun');
-            }
-        }
-        updateIcon();
-
-        themeToggle.addEventListener('click', () => {
-            const current = root.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            root.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
-            updateIcon();
-        });
-
-        // ── CURSOR GLOW & NAVBAR ──
-        const glow = document.getElementById('cursorGlow');
-        const nav = document.getElementById('navbar');
-        
-        document.addEventListener('mousemove', (e) => {
-            // Smooth cursor with requestAnimationFrame
-            requestAnimationFrame(() => {
-                glow.style.left = e.clientX + 'px';
-                glow.style.top = e.clientY + 'px';
-            });
-        });
-
-        window.addEventListener('scroll', () => {
-            nav.classList.toggle('scrolled', window.scrollY > 50);
-        });
-
-        // ── 3D TILT EFFECT ──
-        const editorWindow = document.getElementById('editorWindow');
-        const canvasArea = document.getElementById('canvasArea');
-        
-        // Only apply tilt on desktop
-        if (window.innerWidth > 768) {
-            canvasArea.addEventListener('mousemove', (e) => {
-                const rect = editorWindow.getBoundingClientRect();
-                const x = (e.clientX - rect.left) / rect.width - 0.5;
-                const y = (e.clientY - rect.top) / rect.height - 0.5;
-                
-                editorWindow.style.transform = `perspective(1000px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) scale(1)`;
-            });
-            
-            canvasArea.addEventListener('mouseleave', () => {
-                editorWindow.style.transform = `perspective(1000px) rotateY(0deg) rotateX(0deg) scale(1)`;
-            });
-        }
-
-        // ── INTERSECTION OBSERVER ──
+        // Simple fade-in on scroll
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -528,116 +328,10 @@
                     observer.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.2, rootMargin: "0px 0px -50px 0px" });
+        }, { threshold: 0.1 });
 
-        document.querySelectorAll('.editor-window, .feature-row').forEach(el => observer.observe(el));
-
-        // ── MAGNETIC BUTTON ──
-        document.querySelectorAll('.magnetic').forEach(btn => {
-            btn.addEventListener('mousemove', (e) => {
-                const rect = btn.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
-            });
-            btn.addEventListener('mouseleave', () => {
-                btn.style.transform = `translate(0px, 0px)`;
-            });
-        });
-
-        // ── INTERACTIVE SLASH MENU ──
-        const slashMenu = document.getElementById('slashMenu');
-        const slashInput = document.getElementById('slashInput');
-        const slashList = document.getElementById('slashList');
-        let slashItems = Array.from(slashList.querySelectorAll('.slash-item'));
-        
-        // Toggle menu on canvas click
-        canvasArea.addEventListener('click', (e) => {
-            if(e.target.closest('.mock-link') || e.target.closest('.slash-menu')) return;
-            slashMenu.classList.add('active');
-            slashInput.value = '';
-            filterMenu('');
-            slashInput.focus();
-        });
-
-        // Filter function
-        function filterMenu(query) {
-            let hasVisible = false;
-            slashItems.forEach(item => {
-                const text = item.textContent.toLowerCase();
-                if (text.includes(query.toLowerCase())) {
-                    item.style.display = 'flex';
-                    hasVisible = true;
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-
-            // Handle empty state
-            let emptyMsg = slashList.querySelector('.slash-empty');
-            if (!hasVisible) {
-                if (!emptyMsg) {
-                    emptyMsg = document.createElement('div');
-                    emptyMsg.className = 'slash-empty';
-                    emptyMsg.textContent = 'No blocks found';
-                    slashList.appendChild(emptyMsg);
-                }
-            } else if (emptyMsg) {
-                emptyMsg.remove();
-            }
-
-            // Reset active state to first visible item
-            slashItems.forEach(i => i.classList.remove('active'));
-            const firstVisible = slashItems.find(i => i.style.display !== 'none');
-            if (firstVisible) firstVisible.classList.add('active');
-        }
-
-        slashInput.addEventListener('input', (e) => filterMenu(e.target.value));
-
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (!slashMenu.classList.contains('active')) return;
-
-            const visibleItems = slashItems.filter(i => i.style.display !== 'none');
-            if (visibleItems.length === 0) return;
-
-            let activeIndex = visibleItems.findIndex(i => i.classList.contains('active'));
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                visibleItems[activeIndex].classList.remove('active');
-                activeIndex = (activeIndex + 1) % visibleItems.length;
-                visibleItems[activeIndex].classList.add('active');
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                visibleItems[activeIndex].classList.remove('active');
-                activeIndex = (activeIndex - 1 + visibleItems.length) % visibleItems.length;
-                visibleItems[activeIndex].classList.add('active');
-            } else if (e.key === 'Escape') {
-                slashMenu.classList.remove('active');
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                // Simulate adding the block
-                const text = visibleItems[activeIndex].textContent.trim();
-                slashMenu.classList.remove('active');
-                
-                // Reset mock profile text temporarily to show it worked
-                const nameEl = document.querySelector('.mock-name');
-                const oldName = nameEl.textContent;
-                nameEl.textContent = `Added: ${text}`;
-                setTimeout(() => nameEl.textContent = oldName, 1500);
-            }
-        });
-
-        // Hover states for menu items
-        slashItems.forEach(item => {
-            item.addEventListener('mouseenter', () => {
-                slashItems.forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-            });
-            item.addEventListener('click', () => {
-                slashMenu.classList.remove('active');
-            });
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
         });
     </script>
 </body>
