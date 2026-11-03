@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,29 +7,106 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        // Set theme instantly to prevent flash
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+
     <style>
+        /* ── THEME VARIABLES ── */
+        :root[data-theme="light"] {
+            --bg: #ffffff;
+            --text: #09090b;
+            --muted: #71717a;
+            --border: #e4e4e7;
+            --surface: rgba(255, 255, 255, 0.85);
+            --surface-border: rgba(0, 0, 0, 0.08);
+            --form-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            --top-img-shadow: 0 0 120px 40px rgba(0,0,0,0.85); /* Massive black aura */
+            --top-img-mask: radial-gradient(circle, black 40%, transparent 80%);
+            --bottom-fade: linear-gradient(to bottom, #fafafa 0%, #000000 100%);
+            --preview-bg: #fafafa;
+            --link-bg: #f4f4f5;
+            --cursor-color: #09090b;
+        }
+
+        :root[data-theme="dark"] {
+            --bg: #000000; /* Pure black */
+            --text: #ffffff;
+            --muted: #a1a1aa;
+            --border: #27272a;
+            --surface: rgba(0, 0, 0, 0.85);
+            --surface-border: rgba(255, 255, 255, 0.15);
+            --form-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            --top-img-shadow: none; /* No harsh shadow in dark mode */
+            --top-img-mask: none; /* No mask in dark mode */
+            --bottom-fade: none; /* Remove blend in dark mode */
+            --preview-bg: #09090b;
+            --link-bg: #121214;
+            --cursor-color: #ffffff;
+        }
+
         /* ── GLOBAL & RESET ── */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; /* Hide default cursor */ }
+        
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #ffffff; /* Pure white background */
-            color: #09090b;
+            background-color: var(--bg);
+            color: var(--text);
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
-            overflow-x: hidden; /* Prevent horizontal scroll from rotated image */
+            overflow-x: hidden;
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
+
+        /* ── CUSTOM CURSOR ── */
+        .cursor {
+            position: fixed;
+            top: 0; left: 0;
+            width: 20px; height: 20px;
+            background: var(--cursor-color);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s, background-color 0.4s;
+            mix-blend-mode: difference; /* Makes it invert colors underneath */
+        }
+        .cursor.hovering {
+            width: 60px; height: 60px;
+        }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 0 24px;
+            position: relative;
+            z-index: 2;
         }
-        .text-center { text-align: center; }
+
+        /* ── THEME TOGGLE ── */
+        .theme-toggle {
+            position: fixed;
+            top: 24px; right: 24px;
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 1px solid var(--surface-border);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s;
+        }
+        .theme-toggle:hover { transform: scale(1.1); }
+        .theme-toggle svg { width: 20px; height: 20px; fill: var(--text); }
 
         /* ── ANIMATIONS ── */
         .fade-in {
             opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.8s ease, transform 0.8s ease;
+            transform: translateY(30px);
+            transition: opacity 1s cubic-bezier(0.2, 0.8, 0.2, 1), transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .fade-in.visible {
             opacity: 1;
@@ -45,6 +122,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            perspective: 1000px; /* For 3D tilt */
         }
 
         /* The rotated image behind the claim form */
@@ -52,25 +130,31 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(4deg);
+            transform: translate(-50%, -50%) rotate(6deg); /* Rotated right */
             width: 90%;
             max-width: 600px;
             z-index: 0;
-            opacity: 0.85; /* Slightly dimmed so text pops */
-            filter: blur(1px); /* Subtle blur so it doesn't fight the text */
             pointer-events: none;
+            /* The "Different Universe" effect */
+            box-shadow: var(--top-img-shadow);
+            -webkit-mask-image: var(--top-img-mask);
+            mask-image: var(--top-img-mask);
+            transition: box-shadow 0.4s, mask-image 0.4s;
+            will-change: transform;
         }
         .top-image-wrapper img {
             width: 100%;
             height: auto;
             border-radius: 24px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+            display: block;
         }
 
         .hero-content {
             position: relative;
-            z-index: 2; /* Sit above the image */
+            z-index: 2;
             max-width: 600px;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out; /* Smooth tilt */
         }
 
         .hero h1 {
@@ -79,11 +163,11 @@
             letter-spacing: -0.04em;
             line-height: 1.05;
             margin-bottom: 24px;
-            color: #09090b;
+            color: var(--text);
         }
         .hero p {
             font-size: 18px;
-            color: #52525b;
+            color: var(--muted);
             max-width: 480px;
             margin: 0 auto 40px auto;
             font-weight: 400;
@@ -98,21 +182,20 @@
             max-width: 420px;
             margin: 0 auto;
             padding: 10px;
-            background: rgba(255, 255, 255, 0.85); /* Frosted glass */
+            background: var(--surface);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(0,0,0,0.08);
+            border: 1px solid var(--surface-border);
             border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1); /* Strong shadow to float above image */
+            box-shadow: var(--form-shadow);
             transition: border-color 0.2s, box-shadow 0.2s;
         }
         .signup-form:focus-within {
-            border-color: #09090b;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-color: var(--text);
         }
         .signup-prefix {
             font-size: 14px;
-            color: #71717a;
+            color: var(--muted);
             padding-left: 12px;
             font-weight: 500;
             white-space: nowrap;
@@ -123,32 +206,28 @@
             outline: none;
             font-family: inherit;
             font-size: 16px;
-            color: #09090b;
+            color: var(--text);
             background: transparent;
             min-width: 0;
         }
         .signup-btn {
-            background: #09090b;
-            color: #ffffff;
+            background: var(--text);
+            color: var(--bg);
             border: none;
             padding: 12px 24px;
             border-radius: 10px;
             font-weight: 600;
             font-size: 14px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .signup-btn:hover {
-            transform: scale(1.02);
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            will-change: transform;
         }
 
         /* ── WHY WE'RE BETTER (FEATURES) ── */
         .features {
             padding: 100px 0;
-            border-top: 1px solid #e4e4e7;
+            border-top: 1px solid var(--border);
             position: relative;
             z-index: 2;
-            background: #ffffff;
         }
         .features h2 {
             font-size: 32px;
@@ -159,7 +238,7 @@
         }
         .features p.sub {
             text-align: center;
-            color: #71717a;
+            color: var(--muted);
             margin-bottom: 64px;
             font-size: 16px;
         }
@@ -179,19 +258,21 @@
         .feature-item h3 {
             font-size: 18px;
             font-weight: 600;
+            color: var(--text);
         }
         .feature-item p {
             font-size: 15px;
-            color: #71717a;
+            color: var(--muted);
         }
 
         /* ── LIVE PREVIEW SECTION ── */
         .preview-section {
             padding: 100px 0;
-            background: #fafafa;
-            border-top: 1px solid #e4e4e7;
+            background: var(--preview-bg);
+            border-top: 1px solid var(--border);
             position: relative;
             z-index: 2;
+            transition: background 0.4s;
         }
         .preview-section h2 {
             text-align: center;
@@ -202,23 +283,24 @@
         }
         .preview-section p {
             text-align: center;
-            color: #71717a;
+            color: var(--muted);
             margin-bottom: 48px;
         }
         .preview-window {
             max-width: 380px;
             margin: 0 auto;
-            background: #ffffff;
-            border: 1px solid #e4e4e7;
+            background: var(--bg);
+            border: 1px solid var(--border);
             border-radius: 24px;
             padding: 32px 24px;
-            box-shadow: 0 24px 48px rgba(0,0,0,0.06);
+            box-shadow: var(--form-shadow);
+            transition: background 0.4s;
         }
         .preview-avatar {
             width: 72px;
             height: 72px;
             border-radius: 50%;
-            background: #e4e4e7;
+            background: var(--border);
             margin: 0 auto 16px auto;
         }
         .preview-name {
@@ -229,7 +311,7 @@
         }
         .preview-bio {
             text-align: center;
-            color: #71717a;
+            color: var(--muted);
             font-size: 13px;
             margin-bottom: 24px;
         }
@@ -237,28 +319,30 @@
             display: block;
             width: 100%;
             padding: 14px;
-            background: #f4f4f5;
-            border: 1px solid #e4e4e7;
+            background: var(--link-bg);
+            border: 1px solid var(--border);
             border-radius: 12px;
             text-align: center;
             font-size: 14px;
             font-weight: 500;
             margin-bottom: 12px;
             text-decoration: none;
-            color: #09090b;
-            transition: background 0.2s;
+            color: var(--text);
+            transition: background 0.2s, transform 0.2s;
         }
         .preview-link:hover {
-            background: #e4e4e7;
+            background: var(--border);
+            transform: scale(1.02);
         }
 
         /* ── THE FADE TO BLACK & BOTTOM IMAGE ── */
         .bottom-fade-wrapper {
-            /* Start white, fade to deep black */
-            background: linear-gradient(to bottom, #fafafa 0%, #09090b 40%);
+            /* In light mode, fade to black. In dark mode, no gradient */
+            background: var(--bottom-fade);
             padding-top: 120px;
             position: relative;
             z-index: 2;
+            background-color: #000000; /* Ensure the bottom is always black */
         }
 
         .final-cta {
@@ -274,22 +358,20 @@
         }
         .final-cta .btn {
             background: #ffffff;
-            color: #09090b;
+            color: #000000;
             padding: 16px 40px;
             border-radius: 12px;
             text-decoration: none;
             font-weight: 600;
             font-size: 16px;
-            transition: transform 0.2s;
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
             display: inline-block;
-        }
-        .final-cta .btn:hover {
-            transform: scale(1.02);
+            will-change: transform;
         }
 
         /* The Bottom Image */
         .bottom-image-wrapper {
-            background: #09090b;
+            background: #000000;
             width: 100%;
             line-height: 0;
             position: relative;
@@ -306,24 +388,35 @@
 </head>
 <body>
 
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme">
+        <!-- Sun Icon (Light Mode) -->
+        <svg id="iconSun" viewBox="0 0 24 24" style="display: none;"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/></svg>
+        <!-- Moon Icon (Dark Mode) -->
+        <svg id="iconMoon" viewBox="0 0 24 24" style="display: none;"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.7-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd"/></svg>
+    </button>
+
     <div class="container">
         <!-- ── HERO SECTION ── -->
         <section class="hero fade-in">
             
             <!-- The Rotated Top Image -->
-            <div class="top-image-wrapper">
+            <div class="top-image-wrapper" id="topImage">
                 <img src="top.jpeg" alt="Chromaticc Top Preview">
             </div>
 
-            <!-- The Hero Content -->
-            <div class="hero-content">
+            <!-- The Hero Content (Tilts in 3D) -->
+            <div class="hero-content" id="heroContent">
                 <h1>Your page.<br>Your way.</h1>
                 <p>Not just a stack of buttons. A page that feels like you. Claim your handle before someone else does.</p>
                 
                 <div class="signup-form">
                     <span class="signup-prefix">chromati.cc.cd/</span>
                     <input type="text" class="signup-input" placeholder="yourname" aria-label="Username">
-                    <button class="signup-btn">Claim</button>
+                    <button class="signup-btn magnetic" id="claimBtn">Claim</button>
                 </div>
             </div>
         </section>
@@ -374,7 +467,7 @@
         <div class="container">
             <section class="final-cta fade-in">
                 <h2>Ready to claim<br>your page?</h2>
-                <a href="#" class="btn">Get started</a>
+                <a href="#" class="btn magnetic" id="ctaBtn">Get started</a>
             </section>
         </div>
         
@@ -385,7 +478,99 @@
     </div>
 
     <script>
-        // Simple fade-in on scroll
+        /* ── 1. THEME TOGGLE ── */
+        const themeToggle = document.getElementById('themeToggle');
+        const iconSun = document.getElementById('iconSun');
+        const iconMoon = document.getElementById('iconMoon');
+        const html = document.documentElement;
+
+        function updateIcons() {
+            if (html.getAttribute('data-theme') === 'dark') {
+                iconSun.style.display = 'block';
+                iconMoon.style.display = 'none';
+            } else {
+                iconSun.style.display = 'none';
+                iconMoon.style.display = 'block';
+            }
+        }
+        updateIcons();
+
+        themeToggle.addEventListener('click', () => {
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateIcons();
+        });
+
+        /* ── 2. CUSTOM CURSOR (LERP) ── */
+        const cursor = document.getElementById('cursor');
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let cursorX = mouseX;
+        let cursorY = mouseY;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animateCursor() {
+            // Lerp for smooth trailing effect
+            cursorX += (mouseX - cursorX) * 0.2;
+            cursorY += (mouseY - cursorY) * 0.2;
+            cursor.style.transform = `translate(${cursorX}px, ${cursorY}px) translate(-50%, -50%)`;
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // Expand cursor on hover
+        document.querySelectorAll('a, button, input').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
+        });
+
+        /* ── 3. 3D TILT EFFECT ON HERO ── */
+        const heroContent = document.getElementById('heroContent');
+        const topImage = document.getElementById('topImage');
+        const heroSection = document.querySelector('.hero');
+
+        heroSection.addEventListener('mousemove', (e) => {
+            const rect = heroSection.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width - 0.5;
+            const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+            // Tilt the text/form
+            heroContent.style.transform = `rotateX(${-y * 15}deg) rotateY(${x * 15}deg) translateZ(20px)`;
+            
+            // Parallax the background image slightly
+            topImage.style.transform = `translate(-50%, -50%) rotate(6deg) translate(${x * -40}px, ${y * -40}px)`;
+        });
+
+        heroSection.addEventListener('mouseleave', () => {
+            heroContent.style.transform = `rotateX(0deg) rotateY(0deg) translateZ(0px)`;
+            topImage.style.transform = `translate(-50%, -50%) rotate(6deg)`;
+        });
+
+        /* ── 4. MAGNETIC BUTTONS ── */
+        const magneticElements = document.querySelectorAll('.magnetic');
+
+        magneticElements.forEach(el => {
+            el.addEventListener('mousemove', (e) => {
+                const rect = el.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                
+                // Pull button towards cursor
+                el.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+            });
+
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = `translate(0px, 0px)`;
+            });
+        });
+
+        /* ── 5. SCROLL REVEAL ── */
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
