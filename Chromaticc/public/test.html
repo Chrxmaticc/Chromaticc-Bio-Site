@@ -1,179 +1,601 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>chromati.cc.cd</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wsp.baby — your exclusive page</title>
+  <style>
+    /* ---------- RESET & BASE ---------- */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-    <style>
-        /* ── RESET & BASE ── */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-font-smoothing: antialiased;
-        }
+    :root {
+      --bg: #0a0a0a;
+      --text: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.55);
+      --input-bg: rgba(255, 255, 255, 0.06);
+      --input-border: rgba(255, 255, 255, 0.12);
+      --input-text: #ffffff;
+      --input-placeholder: rgba(255, 255, 255, 0.35);
+      --btn-bg: #ffffff;
+      --btn-text: #0a0a0a;
+      --btn-hover: #e5e5e5;
+      --pill-bg: rgba(255, 255, 255, 0.08);
+      --pill-border: rgba(255, 255, 255, 0.15);
+      --pill-text: rgba(255, 255, 255, 0.85);
+      --toggle-track: rgba(255, 255, 255, 0.15);
+      --toggle-thumb: #ffffff;
+      --transition-speed: 0.35s;
+    }
 
-        body {
-            background-color: #050505; /* Change to #ffffff for light mode */
-            color: #ffffff;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
+    [data-theme="light"] {
+      --bg: #f5f4f0;
+      --text: #0a0a0a;
+      --text-muted: rgba(0, 0, 0, 0.5);
+      --input-bg: rgba(0, 0, 0, 0.04);
+      --input-border: rgba(0, 0, 0, 0.12);
+      --input-text: #0a0a0a;
+      --input-placeholder: rgba(0, 0, 0, 0.35);
+      --btn-bg: #0a0a0a;
+      --btn-text: #ffffff;
+      --btn-hover: #1a1a1a;
+      --pill-bg: rgba(0, 0, 0, 0.05);
+      --pill-border: rgba(0, 0, 0, 0.12);
+      --pill-text: rgba(0, 0, 0, 0.75);
+      --toggle-track: rgba(0, 0, 0, 0.15);
+      --toggle-thumb: #0a0a0a;
+    }
 
-        /* ── LOGO (Top Left) ── */
-        .logo {
-            position: absolute;
-            top: 32px;
-            left: 32px;
-            width: 48px;
-            height: 48px;
-            object-fit: contain;
-            border-radius: 12px;
-            /* Adds a subtle fallback color if the image fails to load */
-            background-color: #121212; 
-            z-index: 10;
-        }
+    html { font-size: 16px; scroll-behavior: smooth; }
 
-        /* ── MAIN LAYOUT (Centers the box) ── */
-        main {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            z-index: 1;
-        }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      position: relative;
+      transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+    }
 
-        /* ── CLAIM CONTAINER ── */
-        .claim-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            width: 100%;
-            max-width: 600px;
-        }
+    /* ---------- BACKGROUND LAYER (something.png, rotated + blurred) ---------- */
+    .bg-layer {
+      position: fixed;
+      inset: -20%; /* oversized to hide edges while rotating */
+      z-index: 0;
+      background-image: url('something.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      /* Rotation + heavy blur to create the soft abstract backdrop */
+      transform: rotate(-18deg) scale(1.4);
+      filter: blur(32px) brightness(0.55) contrast(1.1);
+      opacity: 0.7;
+      transition: opacity var(--transition-speed) ease, filter var(--transition-speed) ease;
+      pointer-events: none;
+    }
 
-        /* ── INPUT ── */
-        .claim-input {
-            width: 100%;
-            background: #121212;
-            border: 1px solid #27272a;
-            color: #ffffff;
-            font-size: clamp(20px, 4vw, 28px);
-            padding: 24px 32px;
-            border-radius: 20px;
-            outline: none;
-            font-family: inherit;
-            transition: border-color 0.2s ease, background 0.2s ease;
-        }
+    [data-theme="light"] .bg-layer {
+      filter: blur(36px) brightness(1.15) contrast(0.9);
+      opacity: 0.55;
+    }
 
-        .claim-input::placeholder {
-            color: #52525b;
-        }
+    /* Subtle grain/noise overlay for that editorial texture */
+    .bg-layer::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+      mix-blend-mode: overlay;
+      opacity: 0.35;
+      pointer-events: none;
+    }
 
-        .claim-input:focus {
-            border-color: #52525b;
-            background: #18181b;
-        }
+    /* ---------- MAIN CONTENT ---------- */
+    .main-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 480px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      gap: 0; /* controlled per-element */
+    }
 
-        /* ── BUTTON ── */
-        .claim-button {
-            width: 100%;
-            background: #ffffff;
-            color: #000000;
-            border: none;
-            font-size: clamp(20px, 4vw, 24px);
-            font-weight: 600;
-            padding: 24px;
-            border-radius: 20px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            font-family: inherit;
-            transition: transform 0.15s ease, background 0.2s;
-        }
+    /* ---------- INVITE PILL ---------- */
+    .invite-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1.35rem;
+      border-radius: 999px;
+      background: var(--pill-bg);
+      border: 1px solid var(--pill-border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: var(--pill-text);
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      user-select: none;
+      transition: background var(--transition-speed) ease, border-color var(--transition-speed) ease, color var(--transition-speed) ease, transform 0.2s ease;
+      margin-bottom: 2.5rem;
+      text-decoration: none;
+    }
 
-        .claim-button:hover {
-            background: #e4e4e7;
-        }
+    .invite-pill:hover {
+      background: rgba(128, 128, 128, 0.18);
+      transform: translateY(-1px);
+    }
 
-        .claim-button:active {
-            transform: scale(0.98);
-        }
+    .invite-pill .arrow {
+      display: inline-block;
+      transition: transform 0.25s ease;
+    }
 
-        .claim-button span {
-            font-size: clamp(20px, 4vw, 24px);
-            font-weight: 400;
-            margin-top: -2px;
-        }
+    .invite-pill:hover .arrow {
+      transform: translateX(4px);
+    }
 
-        /* ── MOBILE ADJUSTMENTS ── */
-        @media (max-width: 600px) {
-            .logo {
-                top: 24px;
-                left: 24px;
-                width: 40px;
-                height: 40px;
-            }
-            .claim-input, .claim-button {
-                padding: 18px 24px;
-            }
-        }
-    </style>
+    /* ---------- LOGO + TITLE ---------- */
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      flex-shrink: 0;
+      /* The icon in your reference is a stylised egg/baby shape */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: var(--text);
+      transition: fill var(--transition-speed) ease;
+    }
+
+    .brand-name {
+      font-size: 3.2rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: var(--text);
+      transition: color var(--transition-speed) ease;
+    }
+
+    .tagline {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
+      margin-bottom: 2rem;
+      transition: color var(--transition-speed) ease;
+    }
+
+    /* ---------- SOUND / THEME ROW ---------- */
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .sound-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+      font-size: 0.95rem;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      transition: color var(--transition-speed) ease;
+      background: none;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+    }
+
+    .sound-toggle:hover {
+      color: var(--text);
+    }
+
+    .sound-toggle .bracket {
+      opacity: 0.6;
+      font-weight: 300;
+    }
+
+    .sound-toggle .label {
+      text-transform: lowercase;
+    }
+
+    /* ---------- THEME TOGGLE SWITCH ---------- */
+    .theme-switch {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--toggle-track);
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: background var(--transition-speed) ease;
+      flex-shrink: 0;
+      outline: none;
+    }
+
+    .theme-switch:focus-visible {
+      box-shadow: 0 0 0 2px var(--text);
+    }
+
+    .theme-switch .thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--toggle-thumb);
+      transition: transform var(--transition-speed) cubic-bezier(0.34, 1.56, 0.64, 1), background var(--transition-speed) ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    [data-theme="light"] .theme-switch .thumb {
+      transform: translateX(24px);
+    }
+
+    .theme-switch .thumb svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--bg);
+      transition: fill var(--transition-speed) ease;
+    }
+
+    .theme-switch .thumb .sun { display: none; }
+    .theme-switch .thumb .moon { display: block; }
+    [data-theme="light"] .theme-switch .thumb .sun { display: block; }
+    [data-theme="light"] .theme-switch .thumb .moon { display: none; }
+
+    /* ---------- SIGNUP FORM ---------- */
+    .signup-form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .input-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 1.2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      pointer-events: none;
+      transition: color var(--transition-speed) ease;
+      letter-spacing: -0.01em;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      padding: 1.15rem 1.2rem 1.15rem 5.4rem; /* space for prefix */
+      border-radius: 16px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: var(--input-text);
+      font-size: 1.05rem;
+      font-weight: 500;
+      font-family: inherit;
+      outline: none;
+      transition: border-color var(--transition-speed) ease, background var(--transition-speed) ease, box-shadow 0.2s ease;
+      letter-spacing: -0.01em;
+    }
+
+    .input-wrap input::placeholder {
+      color: var(--input-placeholder);
+      font-weight: 400;
+    }
+
+    .input-wrap input:focus {
+      border-color: rgba(128, 128, 128, 0.5);
+      box-shadow: 0 0 0 3px rgba(128, 128, 128, 0.12);
+    }
+
+    /* The prefix text */
+    .input-prefix .static {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .input-prefix .slash {
+      opacity: 0.4;
+      margin: 0 0.1em;
+    }
+
+    .claim-btn {
+      width: 100%;
+      padding: 1.15rem 1.5rem;
+      border-radius: 16px;
+      border: none;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: inherit;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: background var(--transition-speed) ease, color var(--transition-speed) ease, transform 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .claim-btn:hover {
+      background: var(--btn-hover);
+    }
+
+    .claim-btn:active {
+      transform: scale(0.98);
+    }
+
+    .claim-btn .arrow {
+      display: inline-block;
+      transition: transform 0.25s ease;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    .claim-btn:hover .arrow {
+      transform: translateX(4px);
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 480px) {
+      .brand-name { font-size: 2.6rem; }
+      .brand-icon { width: 34px; height: 34px; }
+      .tagline { font-size: 1rem; }
+      .main-content { padding: 2rem 1.25rem; }
+      .invite-pill { margin-bottom: 2rem; }
+      .controls-row { gap: 1.2rem; margin-bottom: 2rem; }
+      .input-wrap input { padding: 1rem 1rem 1rem 4.8rem; font-size: 0.95rem; }
+      .input-prefix { font-size: 0.95rem; left: 1rem; }
+      .claim-btn { padding: 1rem 1.25rem; font-size: 1rem; }
+    }
+
+    @media (max-width: 360px) {
+      .brand-name { font-size: 2.2rem; }
+      .sound-toggle { font-size: 0.85rem; }
+      .theme-switch { width: 46px; height: 25px; }
+      .theme-switch .thumb { width: 19px; height: 19px; }
+      [data-theme="light"] .theme-switch .thumb { transform: translateX(21px); }
+    }
+
+    /* ---------- ACCESSIBILITY ---------- */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .bg-layer { transform: rotate(-18deg) scale(1.4); }
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Replace "logo.png" with your actual image path -->
-    <img src="logo.png" alt="Logo" class="logo">
+  <!-- BACKGROUND: something.png, rotated & blurred -->
+  <div class="bg-layer" aria-hidden="true"></div>
 
-    <main>
-        <div class="claim-container">
-            <input type="text" id="username" class="claim-input" placeholder="chromati.cc.cd/you" autocomplete="off" spellcheck="false" />
-            
-            <button class="claim-button" onclick="claimHandle()">
-                Claim <span>→</span>
-            </button>
-        </div>
-    </main>
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
 
-    <script>
-        function claimHandle() {
-            const input = document.getElementById('username');
-            let val = input.value.trim().toLowerCase();
-            
-            // Strip the prefix if they accidentally typed it
-            val = val.replace('chromati.cc.cd/', '');
+    <!-- Invite-only pill -->
+    <a href="#" class="invite-pill" id="invitePill">
+      <span>Invite-only</span>
+      <span class="arrow">→</span>
+    </a>
 
-            if (!val) {
-                input.focus();
-                return;
-            }
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-icon">
+        <!-- Stylised egg/baby icon matching the reference -->
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 4C16 4 8 14 8 24c0 10 7.2 18 16 18s16-8 16-18C40 14 32 4 24 4z" />
+          <circle cx="18" cy="26" r="2.2" fill="var(--bg)" />
+          <circle cx="30" cy="26" r="2.2" fill="var(--bg)" />
+          <path d="M20 33c1.5 1.8 2.8 2.8 4 2.8s2.5-1 4-2.8" stroke="var(--bg)" stroke-width="2.5" stroke-linecap="round" fill="none" />
+        </svg>
+      </div>
+      <span class="brand-name">wsp.baby</span>
+    </div>
 
-            // Simple regex to ensure URL safety
-            if (!/^[a-z0-9-]+$/.test(val)) {
-                alert("Please use only lowercase letters, numbers, and hyphens.");
-                return;
-            }
+    <!-- Tagline -->
+    <p class="tagline">your exclusive page, on our private service</p>
 
-            // Route to signup with the handle pre-filled
-            window.location.href = `/signup?handle=${val}`;
+    <!-- Sound + Theme controls -->
+    <div class="controls-row">
+      <button class="sound-toggle" id="soundToggle" aria-label="Toggle sound">
+        <span class="bracket">[</span>
+        <span class="label" id="soundLabel">sound off</span>
+        <span class="bracket">]</span>
+      </button>
+
+      <button class="theme-switch" id="themeSwitch" aria-label="Toggle dark/light mode">
+        <span class="thumb">
+          <svg class="moon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36A7 7 0 0 1 12 3z"/></svg>
+          <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </span>
+      </button>
+    </div>
+
+    <!-- Signup form -->
+    <form class="signup-form" id="signupForm" autocomplete="off">
+      <div class="input-wrap">
+        <span class="input-prefix">
+          <span class="static">wsp.baby</span><span class="slash">/</span>
+        </span>
+        <input type="text" id="usernameInput" placeholder="you" maxlength="30" spellcheck="false" aria-label="Choose your username" />
+      </div>
+      <button type="submit" class="claim-btn" id="claimBtn">
+        <span>Claim</span>
+        <span class="arrow">→</span>
+      </button>
+    </form>
+
+  </main>
+
+  <!-- AUDIO (sound.wav) -->
+  <audio id="soundEffect" src="sound.wav" preload="auto"></audio>
+
+  <script>
+    (function() {
+      'use strict';
+
+      /* ============================================
+         THEME TOGGLE
+         ============================================ */
+      const themeSwitch = document.getElementById('themeSwitch');
+      const root = document.documentElement;
+
+      // Check for saved preference or system preference
+      const savedTheme = localStorage.getItem('wsp-theme');
+      if (savedTheme) {
+        root.setAttribute('data-theme', savedTheme);
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        root.setAttribute('data-theme', 'light');
+      }
+      // Default is dark (no attribute = :root dark values)
+
+      themeSwitch.addEventListener('click', function() {
+        const current = root.getAttribute('data-theme');
+        const next = current === 'light' ? 'dark' : 'light';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('wsp-theme', next);
+      });
+
+      /* ============================================
+         SOUND TOGGLE
+         ============================================ */
+      const soundToggle = document.getElementById('soundToggle');
+      const soundLabel = document.getElementById('soundLabel');
+      const soundEffect = document.getElementById('soundEffect');
+      let soundOn = false;
+
+      // Preload the audio
+      soundEffect.load();
+
+      soundToggle.addEventListener('click', function() {
+        soundOn = !soundOn;
+        soundLabel.textContent = soundOn ? 'sound on' : 'sound off';
+        soundToggle.setAttribute('aria-label', soundOn ? 'Turn sound off' : 'Turn sound on');
+
+        if (soundOn) {
+          // Play sound.wav
+          soundEffect.currentTime = 0;
+          soundEffect.play().catch(function(err) {
+            // Autoplay policy may block; silently ignore
+            console.log('Audio playback prevented:', err.message);
+          });
+        } else {
+          soundEffect.pause();
+          soundEffect.currentTime = 0;
+        }
+      });
+
+      /* ============================================
+         SIGNUP FORM
+         ============================================ */
+      const form = document.getElementById('signupForm');
+      const input = document.getElementById('usernameInput');
+      const claimBtn = document.getElementById('claimBtn');
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const username = input.value.trim();
+
+        if (!username) {
+          input.focus();
+          // Small shake feedback
+          input.style.transition = 'transform 0.1s ease';
+          input.style.transform = 'translateX(4px)';
+          setTimeout(function() { input.style.transform = 'translateX(-4px)'; }, 100);
+          setTimeout(function() { input.style.transform = 'translateX(2px)'; }, 200);
+          setTimeout(function() { input.style.transform = 'translateX(0)'; }, 300);
+          return;
         }
 
-        // Allow pressing Enter to submit
-        document.getElementById('username').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') claimHandle();
-        });
-    </script>
+        // Validate username: letters, numbers, hyphens, underscores
+        const valid = /^[a-zA-Z0-9_-]{1,30}$/.test(username);
+        if (!valid) {
+          input.style.borderColor = 'rgba(255, 80, 80, 0.6)';
+          setTimeout(function() { input.style.borderColor = ''; }, 1500);
+          return;
+        }
+
+        // Success state
+        const originalText = claimBtn.innerHTML;
+        claimBtn.innerHTML = '✓ Claimed';
+        claimBtn.disabled = true;
+        claimBtn.style.opacity = '0.7';
+
+        // Optionally play sound on claim
+        if (soundOn) {
+          soundEffect.currentTime = 0;
+          soundEffect.play().catch(function() {});
+        }
+
+        // Here you would normally send the request to your backend
+        console.log('Claiming username:', username);
+
+        // Reset after 2.5 seconds
+        setTimeout(function() {
+          claimBtn.innerHTML = originalText;
+          claimBtn.disabled = false;
+          claimBtn.style.opacity = '1';
+          input.value = '';
+        }, 2500);
+      });
+
+      // Invite pill click – prevent navigation (placeholder)
+      document.getElementById('invitePill').addEventListener('click', function(e) {
+        e.preventDefault();
+        // Could open a modal or redirect
+        console.log('Invite-only clicked');
+      });
+
+    })();
+  </script>
 </body>
 </html>
